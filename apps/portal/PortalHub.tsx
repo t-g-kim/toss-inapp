@@ -1,0 +1,250 @@
+import React, { useState } from "react";
+import { TossHeader, TossCard, TossBadge, AdBanner } from "@shared/index";
+import {
+  Sparkles,
+  Dice5,
+  Calculator,
+  Moon,
+  Coins,
+  TrendingDown,
+  Calendar,
+  Stethoscope,
+  Heart,
+  Receipt,
+  ChevronRight,
+  Smartphone,
+  Flame,
+  Award,
+} from "lucide-react";
+
+export type AppId =
+  | "lotto-filter"
+  | "salary-hero"
+  | "fortune-tarot"
+  | "subsidy-finder"
+  | "bargain-radar"
+  | "dividend-planner"
+  | "chart-doctor"
+  | "money-match"
+  | "spending-receipt";
+
+interface PortalHubProps {
+  onSelectApp: (appId: AppId) => void;
+}
+
+interface MiniAppMeta {
+  id: AppId;
+  title: string;
+  category: string;
+  badge: { text: string; variant: "blue" | "green" | "purple" | "orange" | "red" };
+  desc: string;
+  iconBg: string;
+  icon: React.ReactNode;
+  revenueType: string;
+}
+
+const APPS: MiniAppMeta[] = [
+  {
+    id: "lotto-filter",
+    title: "AI 로또 통계 필터",
+    category: "행운/복권",
+    badge: { text: "주간 트래픽 1위", variant: "blue" },
+    desc: "빅데이터 통계로 홀짝·연속번호 제외 필터링 번호 5게임 추출",
+    iconBg: "bg-amber-500",
+    icon: <Dice5 className="w-5 h-5 text-white" />,
+    revenueType: "보상형 광고 회전율 극대화",
+  },
+  {
+    id: "salary-hero",
+    title: "2026 연봉 실수령액 계산기",
+    category: "직장인/재테크",
+    badge: { text: "2026 개정세법", variant: "green" },
+    desc: "최신 4대보험 & 간이세액표 완벽 반영, 연봉 1,000만 인상 시 비교",
+    iconBg: "bg-blue-600",
+    icon: <Calculator className="w-5 h-5 text-white" />,
+    revenueType: "전면 광고 + 협상 리포트 1,900원",
+  },
+  {
+    id: "fortune-tarot",
+    title: "오늘의 행운 부적 & AI 사주 타로",
+    category: "운세/타로",
+    badge: { text: "매일 아침 루틴", variant: "purple" },
+    desc: "오늘의 운세 점수, 타로 카드 드로우 및 액운 방지 황금 부적 발급",
+    iconBg: "bg-indigo-700",
+    icon: <Moon className="w-5 h-5 text-white" />,
+    revenueType: "보상형 광고 + 신년 대운 1,900원",
+  },
+  {
+    id: "subsidy-finder",
+    title: "숨은 정부지원금 자가진단",
+    category: "공공복지/환급",
+    badge: { text: "청년/직장인 필수", variant: "green" },
+    desc: "연령·소득·신분 3조건으로 K패스, 도약계좌 등 미환급 복지 매칭",
+    iconBg: "bg-emerald-600",
+    icon: <Coins className="w-5 h-5 text-white" />,
+    revenueType: "광고 시청 + 서류 가이드 990원",
+  },
+  {
+    id: "bargain-radar",
+    title: "AI 바겐세일 과매도 줍줍 레이더",
+    category: "토스증권 퀀트",
+    badge: { text: "Hexa Desk 탑재", variant: "red" },
+    desc: "RSI 35 이하, 볼린저 하단 이탈 저평가 우량주 실시간 스캔",
+    iconBg: "bg-rose-600",
+    icon: <TrendingDown className="w-5 h-5 text-white" />,
+    revenueType: "보상형 광고 + 6축 리포트 990원",
+  },
+  {
+    id: "dividend-planner",
+    title: "월급 받는 배당 플래너 & 캘린더",
+    category: "배당/패시브인컴",
+    badge: { text: "직장인 추천", variant: "blue" },
+    desc: "월 50만원 배당 받기 위한 12개월 월별 캐시플로우 & 종목 수량 설계",
+    iconBg: "bg-teal-600",
+    icon: <Calendar className="w-5 h-5 text-white" />,
+    revenueType: "맞춤형 포트폴리오 1,900원 결제",
+  },
+  {
+    id: "chart-doctor",
+    title: "내 주식 AI 차트 닥터",
+    category: "기술적 분석",
+    badge: { text: "1초 건강검진", variant: "purple" },
+    desc: "골든크로스, 이평선, RSI 종합 건강 점수 및 손절/익절 마지노선 처방",
+    iconBg: "bg-cyan-600",
+    icon: <Stethoscope className="w-5 h-5 text-white" />,
+    revenueType: "1일 2회 무료 + 광고 충전/490원",
+  },
+  {
+    id: "money-match",
+    title: "토스 친구 금전 궁합 측정기",
+    category: "바이럴/심리",
+    badge: { text: "SNS 공유 폭발", variant: "orange" },
+    desc: "친구·연인과의 더치페이 & 탕진 지수 측정 및 찰떡궁합 판독",
+    iconBg: "bg-pink-600",
+    icon: <Heart className="w-5 h-5 text-white" />,
+    revenueType: "친구 바이럴 + 비밀 조언 990원",
+  },
+  {
+    id: "spending-receipt",
+    title: "무지출 & 팩폭 소비 영수증",
+    category: "짠테크/가계부",
+    badge: { text: "인스타 스토리 인기", variant: "gray" },
+    desc: "오늘 쓴 돈 감성 영수증 출력 + AI 팩폭 심사위원의 촌철살인 평가",
+    iconBg: "bg-slate-800",
+    icon: <Receipt className="w-5 h-5 text-white" />,
+    revenueType: "영수증 저장 광고 + 복리 리포트",
+  },
+];
+
+export const PortalHub: React.FC<PortalHubProps> = ({ onSelectApp }) => {
+  const [filterCat, setFilterCat] = useState<string>("ALL");
+
+  const categories = ["ALL", "행운/복권", "직장인/재테크", "토스증권 퀀트", "바이럴/심리"];
+
+  const filteredApps = APPS.filter((app) => {
+    if (filterCat === "ALL") return true;
+    if (filterCat === "행운/복권") return app.category === "행운/복권" || app.category === "운세/타로";
+    if (filterCat === "직장인/재테크") return app.category === "직장인/재테크" || app.category === "공공복지/환급" || app.category === "짠테크/가계부";
+    if (filterCat === "토스증권 퀀트") return app.category === "토스증권 퀀트" || app.category === "배당/패시브인컴" || app.category === "기술적 분석";
+    if (filterCat === "바이럴/심리") return app.category === "바이럴/심리" || app.category === "운세/타로";
+    return true;
+  });
+
+  return (
+    <div className="min-h-screen bg-toss-bg pb-24">
+      <TossHeader
+        title="토스 인앱 스튜디오"
+        subtitle="Apps in Toss 수익화 프로토타입 런처"
+        rightAction={<TossBadge variant="blue">총 9개 앱</TossBadge>}
+      />
+
+      <div className="p-4 space-y-4 max-w-lg mx-auto">
+        {/* Banner */}
+        <TossCard
+          padding="lg"
+          className="bg-gradient-to-br from-blue-600 via-indigo-600 to-slate-900 text-white"
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-blue-200 font-bold flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" /> 3,000만 토스 유저 타깃
+            </span>
+            <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-semibold">
+              AdMob + TossPay
+            </span>
+          </div>
+
+          <h3 className="text-2xl font-black mt-2">토스 인앱 수익화 올인원</h3>
+          <p className="text-xs text-blue-100 mt-1 leading-relaxed">
+            원클릭 웹뷰 환경에서 고단가 금융 광고와 토스페이 소액결제를 발생시키는 9개의 고수익 미니앱 모음입니다.
+          </p>
+
+          <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-blue-200">
+            <span>✓ 실시간 보상형 광고 시뮬레이터</span>
+            <span>✓ 토스페이 1초 결제창 연동</span>
+          </div>
+        </TossCard>
+
+        {/* Category Pill Filters */}
+        <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setFilterCat(cat)}
+              className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition ${
+                filterCat === cat
+                  ? "bg-toss-blue text-white shadow-xs"
+                  : "bg-white text-toss-subtext hover:bg-gray-100 border border-toss-border/60"
+              }`}
+            >
+              {cat === "ALL" ? "전체 보기" : cat}
+            </button>
+          ))}
+        </div>
+
+        {/* App Cards List */}
+        <div className="space-y-3">
+          {filteredApps.map((app) => (
+            <TossCard
+              key={app.id}
+              padding="md"
+              onClick={() => onSelectApp(app.id)}
+              className="hover:border-toss-blue/60 group"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${app.iconBg}`}
+                  >
+                    {app.icon}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="font-bold text-base text-toss-text group-hover:text-toss-blue transition">
+                        {app.title}
+                      </h4>
+                      <TossBadge variant={app.badge.variant} size="sm">
+                        {app.badge.text}
+                      </TossBadge>
+                    </div>
+                    <p className="text-xs text-toss-subtext mt-1 leading-relaxed">{app.desc}</p>
+                    <div className="mt-2 text-[11px] text-toss-muted font-medium flex items-center gap-1">
+                      <span className="text-amber-600 font-semibold">💰 수익 모델:</span>
+                      <span>{app.revenueType}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-toss-blue shrink-0 mt-3 transition group-hover:translate-x-0.5" />
+              </div>
+            </TossCard>
+          ))}
+        </div>
+
+        <AdBanner
+          title="토스 증권 해외주식 소수점 투자"
+          subtitle="1,000원으로 테슬라, 애플 주주 되기"
+        />
+      </div>
+    </div>
+  );
+};
