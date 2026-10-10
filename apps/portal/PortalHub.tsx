@@ -15,6 +15,7 @@ import {
   Type,
   LayoutGrid,
   Clock,
+  Music,
 } from "lucide-react";
 
 export type AppId =
@@ -25,6 +26,7 @@ export type AppId =
   | "insta-clean"
   | "feed-preview"
   | "insta-time"
+  | "story-music"
   | "money-match"
   | "spending-receipt";
 
@@ -113,6 +115,16 @@ const APPS: MiniAppMeta[] = [
     iconBg: "bg-rose-600",
     icon: <Clock className="w-5 h-5 text-white" />,
     revenueType: "보상형 광고 + 골든캘린더 990원",
+  },
+  {
+    id: "story-music",
+    title: "감성 음악 카드",
+    category: "소셜/크리에이터",
+    badge: { text: "스토리 9:16", variant: "purple" },
+    desc: "인스타 스토리에 올릴 앨범 커버 + 재생바 + 감성 가사 카드 제작",
+    iconBg: "bg-violet-600",
+    icon: <Music className="w-5 h-5 text-white" />,
+    revenueType: "보상형 광고 + VIP 테마 990원",
   },
   {
     id: "money-match",

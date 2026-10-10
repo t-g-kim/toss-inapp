@@ -7,6 +7,7 @@ import { SubsidyCalcApp } from "@apps/subsidy-calc/SubsidyCalcApp";
 import { InstaCleanApp } from "@apps/insta-clean/InstaCleanApp";
 import { FeedPreviewApp } from "@apps/feed-preview/FeedPreviewApp";
 import { InstaTimeApp } from "@apps/insta-time/InstaTimeApp";
+import { StoryMusicApp } from "@apps/story-music/StoryMusicApp";
 import { MoneyMatchApp } from "@apps/money-match/MoneyMatchApp";
 import { SpendingReceiptApp } from "@apps/spending-receipt/SpendingReceiptApp";
 import { getInitialAppFromUrl, isStandaloneMode, setAppUrl, isTossApp } from "@shared/index";
@@ -57,6 +58,8 @@ export const App: React.FC = () => {
         return <FeedPreviewApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "insta-time":
         return <InstaTimeApp onBack={standalone ? undefined : handleBackToPortal} />;
+      case "story-music":
+        return <StoryMusicApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "money-match":
         return <MoneyMatchApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "spending-receipt":
