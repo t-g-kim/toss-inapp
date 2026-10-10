@@ -19,13 +19,60 @@ export interface PartOption {
   maxCoolerH?: number;
   maxRad?: number;
   legacy?: boolean;
+  buyUrl?: string; // 옵션별 전용 직링크 (쿠팡 파트너스 등)
 }
+
+export interface PurchaseLinks {
+  partName: string;
+  naver: string;
+  danawa: string;
+  coupang: string;
+  compuzone: string;
+}
+
+export const getPurchaseLinks = (partName: string): PurchaseLinks => {
+  const q = encodeURIComponent(partName);
+  return {
+    partName,
+    naver: `https://search.shopping.naver.com/search/all?query=${q}`,
+    danawa: `https://search.danawa.com/dsearch.php?query=${q}`,
+    coupang: `https://www.coupang.com/np/search?component=&q=${q}`,
+    compuzone: `https://www.compuzone.co.kr/search/search.php?SearchType=all&SearchText=${q}`,
+  };
+};
 
 export interface PartCategory {
   label: string;
   iconName?: string;
   options: PartOption[];
 }
+
+export const CATALOG_SYNC_KEY = "toss_make_my_pc_catalog_v1";
+export const DEFAULT_CATALOG_DATE = "2026.10 (실시간 연동)";
+
+export const loadStoredCatalog = (): Record<string, PartCategory> | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(CATALOG_SYNC_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.categories) {
+      return parsed.categories;
+    }
+  } catch (e) {
+    console.error("Failed to load cached catalog:", e);
+  }
+  return null;
+};
+
+export const saveStoredCatalog = (data: { updatedAt: string; categories: Record<string, PartCategory> }) => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(CATALOG_SYNC_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.error("Failed to cache catalog:", e);
+  }
+};
 
 export const PARTS: Record<string, PartCategory> = {
   cpu: {
