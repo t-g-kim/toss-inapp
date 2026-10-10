@@ -1,5 +1,5 @@
 export default {
-  appName: "fortune-tarot",
+  appName: "today-tarot",
   webBundleDir: "dist",
   brand: {
     primaryColor: "#3182F6",
