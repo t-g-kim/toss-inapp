@@ -32,7 +32,7 @@ const SUBSIDIES: SubsidyItem[] = [
   },
   {
     id: "youth-leap",
-    title: "2026 청년도약계좌 정부기여금",
+    title: "청년도약계좌 정부기여금",
     category: "목돈 만들기",
     maxBenefit: "정부지원금 + 비과세 연 최대 9.5% 적금 효과",
     summary: "매달 최대 70만원 저축 시 정부가 매칭 기여금을 얹어 5년 만기 5,000만원 목돈 마련 지원.",
@@ -47,7 +47,7 @@ const SUBSIDIES: SubsidyItem[] = [
     maxBenefit: "월 최대 20만원 (12개월간 총 240만원)",
     summary: "부모와 별도 거주하는 무주택 청년 대상 실제 납부하는 임차료 전액 현금 계좌 입금.",
     targetMatch: "만 19~34세 독립 무주택 청년, 중위소득 60% 이하",
-    deadline: "2026 연중 접수 중",
+    deadline: "연중 상시 접수",
     agency: "국토교통부 / 복지로",
   },
   {
@@ -92,9 +92,9 @@ export const SubsidyCalcApp: React.FC<SubsidyCalcAppProps> = ({ onBack }) => {
     <div className="min-h-screen bg-toss-bg pb-24">
       <TossHeader
         title="지원금 모의 계산기"
-        subtitle="2026 정부지원금 모의 계산 및 자가진단"
+        subtitle="맞춤 정부지원금 모의 계산 및 자가진단"
         onBack={onBack}
-        rightAction={<TossBadge variant="green">2026 최신 복지</TossBadge>}
+        rightAction={<TossBadge variant="green">최신 복지 기준</TossBadge>}
       />
 
       <div className="p-4 space-y-4 max-w-lg mx-auto">

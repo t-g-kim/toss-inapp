@@ -78,7 +78,7 @@ const APPS: MiniAppMeta[] = [
     id: "subsidy-calc",
     title: "지원금 모의 계산기",
     category: "공공복지/모의계산",
-    badge: { text: "2026 최신 복지", variant: "green" },
+    badge: { text: "최신 복지 기준", variant: "green" },
     desc: "연령·소득·신분별 K패스, 청년도약계좌 등 주요 정부지원금 모의 계산",
     iconBg: "bg-emerald-600",
     icon: <Coins className="w-5 h-5 text-white" />,
