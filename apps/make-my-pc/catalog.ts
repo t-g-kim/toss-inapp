@@ -30,13 +30,15 @@ export interface PurchaseLinks {
   compuzone: string;
 }
 
+export const USER_COUPANG_PARTNERS_URL = "https://link.coupang.com/a/hJYE2tA1Lw";
+
 export const getPurchaseLinks = (partName: string): PurchaseLinks => {
   const q = encodeURIComponent(partName);
   return {
     partName,
     naver: `https://search.shopping.naver.com/search/all?query=${q}`,
     danawa: `https://search.danawa.com/dsearch.php?query=${q}`,
-    coupang: `https://www.coupang.com/np/search?component=&q=${q}`,
+    coupang: USER_COUPANG_PARTNERS_URL,
     compuzone: `https://www.compuzone.co.kr/search/search.php?SearchType=all&SearchText=${q}`,
   };
 };

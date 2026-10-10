@@ -6,6 +6,8 @@ interface AdBannerProps {
   title?: string;
   subtitle?: string;
   actionText?: string;
+  url?: string;
+  onClick?: () => void;
 }
 
 export const AdBanner: React.FC<AdBannerProps> = ({
@@ -13,6 +15,8 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   title = "KB국민은행 매일 이자 받는 파킹통장",
   subtitle = "연 최고 3.5% 금리 혜택 지금 바로 확인하세요",
   actionText = "[광고] 바로가기",
+  url,
+  onClick,
 }) => {
   const [closed, setClosed] = useState(false);
 
@@ -46,8 +50,18 @@ export const AdBanner: React.FC<AdBannerProps> = ({
           <p className="text-xs text-gray-600 truncate mt-0.5">{subtitle}</p>
         </div>
         <button
-          onClick={() => alert("[스폰서 광고] 외부 안내 페이지로 이동합니다.")}
-          className="shrink-0 flex items-center gap-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition active:scale-95 shadow-sm"
+          onClick={() => {
+            if (onClick) {
+              onClick();
+            } else if (url) {
+              if (typeof window !== "undefined") {
+                window.open(url, "_blank", "noopener,noreferrer");
+              }
+            } else {
+              alert("[스폰서 광고] 외부 안내 페이지로 이동합니다.");
+            }
+          }}
+          className="shrink-0 flex items-center gap-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition active:scale-95 shadow-sm whitespace-nowrap cursor-pointer"
         >
           <span>{actionText}</span>
           <ExternalLink className="w-3 h-3" />

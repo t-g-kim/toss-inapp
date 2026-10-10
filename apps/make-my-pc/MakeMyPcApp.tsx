@@ -14,6 +14,7 @@ import {
   PartOption,
   getPurchaseLinks,
   DEFAULT_CATALOG_DATE,
+  USER_COUPANG_PARTNERS_URL,
 } from "./catalog";
 import { PurchaseModal } from "./PurchaseModal";
 import {
@@ -597,10 +598,23 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             {/* Real-time Purchase Hub Card */}
             <TossCard
               title="🛒 실시간 최저가 구매처 모아보기"
-              subtitle="다나와·네이버쇼핑에서 부품별 최저가와 실시간 재고를 바로 확인하세요"
+              subtitle="쿠팡 로켓배송·다나와·네이버쇼핑에서 부품별 최저가와 실시간 재고를 바로 확인하세요"
               badge={<TossBadge variant="blue" className="whitespace-nowrap">구매 연동</TossBadge>}
             >
-              <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
+              <div className="grid grid-cols-3 gap-2 pt-1 text-xs">
+                <button
+                  onClick={() => {
+                    window.open(USER_COUPANG_PARTNERS_URL, "_blank", "noopener,noreferrer");
+                  }}
+                  className="p-3 bg-rose-50 hover:bg-rose-100/70 border border-rose-200/80 rounded-2xl text-left transition flex items-center justify-between group cursor-pointer overflow-hidden"
+                >
+                  <div className="min-w-0 flex-1 pr-1">
+                    <span className="text-[10px] font-extrabold text-rose-600 block whitespace-nowrap">쿠팡 로켓배송</span>
+                    <span className="text-xs font-black text-gray-900 group-hover:text-rose-700 whitespace-nowrap">쿠팡 특가</span>
+                  </div>
+                  <ExternalLink className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                </button>
+
                 <button
                   onClick={() => {
                     const cpuName = getPartOption("cpu", build.cpu)?.name || "";
@@ -614,7 +628,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                     <span className="text-[10px] font-extrabold text-blue-600 block whitespace-nowrap">다나와 PC 견적</span>
                     <span className="text-xs font-black text-gray-900 group-hover:text-toss-blue whitespace-nowrap">다나와 최저가</span>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-blue-600 shrink-0" />
+                  <ExternalLink className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 </button>
 
                 <button
@@ -630,7 +644,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                     <span className="text-[10px] font-extrabold text-emerald-600 block whitespace-nowrap">네이버 쇼핑</span>
                     <span className="text-xs font-black text-gray-900 group-hover:text-emerald-700 whitespace-nowrap">네이버 최저가</span>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <ExternalLink className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 </button>
               </div>
             </TossCard>
@@ -687,11 +701,12 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
           </div>
         )}
 
-        {/* User-Requested Bottom Banner (with clear compliant [광고] tags) */}
+        {/* User Coupang Partners Bottom Banner */}
         <AdBanner
-          title="로지텍 게이밍 기어 특가전"
-          subtitle="무선 게이밍 마우스 & 기계식 키보드 최대 35% 할인"
-          actionText="[광고] 특가 보러가기"
+          title="쿠팡 로켓배송 PC 부품·게이밍 기어 특가"
+          subtitle="로켓와우 회원 내일 아침 도착 & 카드 즉시할인"
+          actionText="[광고] 쿠팡 특가 보기"
+          url={USER_COUPANG_PARTNERS_URL}
         />
       </div>
 

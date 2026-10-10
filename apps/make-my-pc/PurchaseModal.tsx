@@ -135,12 +135,15 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
 
         {/* Footer info */}
         <div className="p-4 bg-gray-50 border-t border-gray-100 text-center">
-          <p className="text-[10px] text-gray-500 leading-relaxed">
+          <p className="text-[10px] text-gray-500 leading-relaxed whitespace-nowrap truncate">
             * 각 플랫폼의 최신 가격 및 재고 상황은 실시간 판매처 사정에 따라 변동될 수 있습니다.
+          </p>
+          <p className="text-[9px] text-gray-400 mt-1 whitespace-nowrap truncate">
+            * 이 링크는 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
           </p>
           <button
             onClick={onClose}
-            className="mt-2.5 w-full py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-xl transition"
+            className="mt-2.5 w-full py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-xl transition whitespace-nowrap"
           >
             창 닫기
           </button>
