@@ -14,6 +14,7 @@ import {
   Award,
   Type,
   LayoutGrid,
+  Clock,
 } from "lucide-react";
 
 export type AppId =
@@ -23,6 +24,7 @@ export type AppId =
   | "subsidy-calc"
   | "insta-clean"
   | "feed-preview"
+  | "insta-time"
   | "money-match"
   | "spending-receipt";
 
@@ -101,6 +103,16 @@ const APPS: MiniAppMeta[] = [
     iconBg: "bg-rose-500",
     icon: <LayoutGrid className="w-5 h-5 text-white" />,
     revenueType: "보상형 광고 + 하이라이트팩 990원",
+  },
+  {
+    id: "insta-time",
+    title: "인스타 골든타임",
+    category: "소셜/크리에이터",
+    badge: { text: "도달률 2배", variant: "orange" },
+    desc: "오늘 요일·카테고리별 실시간 피크 시간대 & 알고리즘 꿀 해시태그 15선",
+    iconBg: "bg-rose-600",
+    icon: <Clock className="w-5 h-5 text-white" />,
+    revenueType: "보상형 광고 + 골든캘린더 990원",
   },
   {
     id: "money-match",
