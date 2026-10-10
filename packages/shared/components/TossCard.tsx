@@ -31,20 +31,20 @@ export const TossCard: React.FC<TossCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-toss shadow-toss border border-toss-border/40 transition ${
+      className={`bg-white rounded-toss shadow-toss border border-toss-border/40 transition overflow-hidden ${
         onClick ? "cursor-pointer active-press hover:shadow-tossHover" : ""
       } ${paddingMap[padding]} ${className}`}
     >
       {(title || badge || rightAction) && (
-        <div className="flex items-start justify-between mb-3.5">
-          <div>
-            <div className="flex items-center gap-2">
-              {title && <h3 className="text-[17px] font-bold text-toss-text leading-snug">{title}</h3>}
+        <div className="flex items-start justify-between gap-2 mb-3.5 min-w-0">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              {title && <h3 className="text-[16px] font-bold text-toss-text leading-snug break-keep">{title}</h3>}
               {badge}
             </div>
-            {subtitle && <p className="text-xs text-toss-muted mt-0.5">{subtitle}</p>}
+            {subtitle && <p className="text-xs text-toss-muted mt-0.5 leading-relaxed break-keep">{subtitle}</p>}
           </div>
-          {rightAction && <div>{rightAction}</div>}
+          {rightAction && <div className="shrink-0">{rightAction}</div>}
         </div>
       )}
       {children}

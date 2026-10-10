@@ -138,49 +138,49 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-toss-bg pb-24">
+    <div className="min-h-screen bg-toss-bg pb-24 w-full max-w-md mx-auto overflow-x-hidden">
       <TossHeader
         title="가상 PC 조립 견적"
-        subtitle="부품 호환성 체크부터 게임 벤치마크까지 1초 완성"
+        subtitle="실시간 호환성 & 게임 벤치마크"
         onBack={onBack}
         rightAction={
           <button
             onClick={handleSyncCatalog}
             disabled={isSyncingCatalog}
-            className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-toss-blue border border-blue-200/80 rounded-full text-[11px] font-bold transition active:scale-95 shadow-2xs cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-toss-blue border border-blue-200/80 rounded-full text-[11px] font-bold transition active:scale-95 shadow-2xs cursor-pointer shrink-0"
             title="실시간 부품 시세 동기화"
           >
             <Sparkles className={`w-3 h-3 text-toss-blue ${isSyncingCatalog ? "animate-spin" : ""}`} />
-            <span>{isSyncingCatalog ? "동기화 중..." : `${catalogSyncDate} 시세`}</span>
+            <span className="whitespace-nowrap">{isSyncingCatalog ? "동기화 중..." : `${catalogSyncDate} 시세`}</span>
           </button>
         }
       />
 
       {/* Top 3-Tab Navigator */}
-      <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-toss-border/80 px-4 py-2">
-        <div className="grid grid-cols-3 gap-1 p-1 bg-toss-bg rounded-2xl max-w-lg mx-auto">
+      <div className="sticky top-14 z-30 bg-white/90 backdrop-blur-md border-b border-toss-border/80 px-3 sm:px-4 py-2">
+        <div className="grid grid-cols-3 gap-1 p-1 bg-toss-bg rounded-2xl max-w-md mx-auto">
           {[
-            { id: "build", label: "부품 조립", icon: <Layers className="w-3.5 h-3.5" /> },
-            { id: "bench", label: "성능 벤치", icon: <Zap className="w-3.5 h-3.5" /> },
-            { id: "quote", label: "견적 영수증", icon: <Receipt className="w-3.5 h-3.5" /> },
+            { id: "build", label: "부품 조립", icon: <Layers className="w-3.5 h-3.5 shrink-0" /> },
+            { id: "bench", label: "성능 벤치", icon: <Zap className="w-3.5 h-3.5 shrink-0" /> },
+            { id: "quote", label: "견적 영수증", icon: <Receipt className="w-3.5 h-3.5 shrink-0" /> },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 ${
+              className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 min-w-0 ${
                 activeTab === tab.id
                   ? "bg-white text-toss-text shadow-sm"
                   : "text-toss-muted hover:text-toss-subtext"
               }`}
             >
               {tab.icon}
-              <span>{tab.label}</span>
+              <span className="truncate whitespace-nowrap">{tab.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="p-4 space-y-4 max-w-lg mx-auto">
+      <div className="p-4 space-y-4 max-w-md mx-auto w-full">
         {/* TAB 1: BUILD & PARTS PICKER */}
         {activeTab === "build" && (
           <div className="space-y-4 animate-fade-in">
@@ -191,7 +191,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                   <button
                     key={p.id}
                     onClick={() => handleApplyPreset(p.parts)}
-                    className="p-3 rounded-2xl bg-toss-bg hover:bg-gray-200/80 text-left transition border border-transparent hover:border-amber-400 group overflow-hidden"
+                    className="p-3 rounded-2xl bg-toss-bg hover:bg-gray-200/80 text-left transition border border-transparent hover:border-amber-400 group overflow-hidden min-w-0"
                   >
                     <span className="font-bold text-xs text-toss-text block group-hover:text-amber-600 whitespace-nowrap truncate">
                       {p.title}
@@ -228,9 +228,9 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 flex items-center gap-1.5 text-xs font-semibold overflow-hidden">
+                  <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 flex items-center gap-1.5 text-xs font-semibold overflow-hidden min-w-0">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="whitespace-nowrap truncate">선택된 모든 부품 간 소켓·크기 간섭 없이 완벽 호환됩니다!</span>
+                    <span className="whitespace-nowrap truncate min-w-0 flex-1">선택된 모든 부품 간 간섭 없이 완벽 호환됩니다!</span>
                   </div>
                 )}
 
@@ -289,25 +289,27 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             </TossCard>
 
             {/* Category Selector Chips */}
-            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-              {KEYS.map((k) => {
-                const opt = getPartOption(k, build[k]);
-                const isSelected = activeCategory === k;
-                return (
-                  <button
-                    key={k}
-                    onClick={() => setActiveCategory(k)}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold shrink-0 whitespace-nowrap transition ${
-                      isSelected
-                        ? "bg-toss-blue text-white shadow-sm"
-                        : "bg-white text-toss-subtext border border-toss-border hover:bg-gray-50"
-                    }`}
-                  >
-                    <span className="whitespace-nowrap">{SHORT_LABEL[k]}</span>
-                    {opt && <span className="ml-1 opacity-80 text-[10px] whitespace-nowrap">✓</span>}
-                  </button>
-                );
-              })}
+            <div className="w-full max-w-full overflow-hidden">
+              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                {KEYS.map((k) => {
+                  const opt = getPartOption(k, build[k]);
+                  const isSelected = activeCategory === k;
+                  return (
+                    <button
+                      key={k}
+                      onClick={() => setActiveCategory(k)}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold shrink-0 whitespace-nowrap transition ${
+                        isSelected
+                          ? "bg-toss-blue text-white shadow-sm"
+                          : "bg-white text-toss-subtext border border-toss-border hover:bg-gray-50"
+                      }`}
+                    >
+                      <span className="whitespace-nowrap">{SHORT_LABEL[k]}</span>
+                      {opt && <span className="ml-1 opacity-80 text-[10px] whitespace-nowrap">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Active Category Options List */}
@@ -322,14 +324,14 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                     <div
                       key={opt.id}
                       onClick={() => handleSelectPart(activeCategory, opt.id)}
-                      className={`p-3 rounded-2xl border cursor-pointer transition flex items-center justify-between ${
+                      className={`p-3 rounded-2xl border cursor-pointer transition flex items-center justify-between gap-2 min-w-0 ${
                         isChecked
                           ? "border-toss-blue bg-blue-50/50 shadow-sm"
                           : "border-toss-border bg-white hover:bg-gray-50"
                       }`}
                     >
-                      <div className="min-w-0 flex-1 pr-2">
-                        <div className="flex items-center gap-1.5">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 min-w-0">
                           <span className="font-bold text-sm text-toss-text truncate whitespace-nowrap">{opt.name}</span>
                           {isChecked && <TossBadge variant="blue" size="sm" className="whitespace-nowrap shrink-0">선택됨</TossBadge>}
                         </div>
@@ -361,7 +363,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                               title="다나와·네이버 실시간 최저가 비교"
                             >
                               <span>최저가</span>
-                              <ExternalLink className="w-2.5 h-2.5" />
+                              <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                             </button>
                           )}
                         </div>
@@ -373,10 +375,10 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             </TossCard>
 
             {/* Bottom Summary Bar */}
-            <div className="bg-white p-4 rounded-2xl border border-toss-border shadow-sm flex items-center justify-between">
-              <div className="min-w-0 flex-1 pr-2">
+            <div className="bg-white p-4 rounded-2xl border border-toss-border shadow-sm flex items-center justify-between gap-2 min-w-0">
+              <div className="min-w-0 flex-1">
                 <span className="text-xs text-toss-muted block whitespace-nowrap">총 부품 견적 합계</span>
-                <span className="text-xl font-black text-toss-text whitespace-nowrap">
+                <span className="text-lg sm:text-xl font-black text-toss-text whitespace-nowrap">
                   ₩{totalPrice.toLocaleString("ko-KR")}
                 </span>
               </div>
@@ -386,7 +388,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                 onClick={() => setActiveTab("bench")}
                 className="whitespace-nowrap shrink-0"
               >
-                <Zap className="w-4 h-4 mr-1 inline shrink-0" /> 성능 벤치마크 실행
+                <Zap className="w-4 h-4 mr-1 inline shrink-0" /> 성능 벤치 실행
               </TossButton>
             </div>
           </div>
@@ -467,9 +469,9 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                   { name: "리그 오브 레전드", fhd: benchResult.fpsLol.fhd, qhd: benchResult.fpsLol.qhd, tag: "국민 게임" },
                   { name: "로스트아크", fhd: benchResult.fpsLostark.fhd, qhd: benchResult.fpsLostark.qhd, tag: "MMORPG" },
                 ].map((g) => (
-                  <div key={g.name} className="p-3 bg-toss-bg rounded-2xl flex items-center justify-between">
-                    <div className="min-w-0 flex-1 pr-2">
-                      <div className="flex items-center gap-1.5">
+                  <div key={g.name} className="p-3 bg-toss-bg rounded-2xl flex items-center justify-between gap-2 min-w-0">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
                         <span className="font-bold text-sm text-toss-text whitespace-nowrap truncate">{g.name}</span>
                         <span className="text-[10px] text-toss-muted whitespace-nowrap shrink-0">({g.tag})</span>
                       </div>
@@ -555,12 +557,12 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                 {KEYS.map((k) => {
                   const opt = getPartOption(k, build[k]);
                   return (
-                    <div key={k} className="flex items-center justify-between py-1.5 border-b border-gray-100">
-                      <div className="min-w-0 flex-1 pr-2">
+                    <div key={k} className="flex items-center justify-between py-1.5 border-b border-gray-100 gap-2 min-w-0">
+                      <div className="min-w-0 flex-1">
                         <span className="text-[11px] text-toss-muted block whitespace-nowrap">{SHORT_LABEL[k]}</span>
                         <span className="font-bold text-toss-text truncate block whitespace-nowrap">{opt?.name || "미선택"}</span>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                         <span className="font-extrabold text-toss-text whitespace-nowrap">
                           {opt?.price ? `₩${opt.price.toLocaleString("ko-KR")}` : "0원"}
                         </span>
@@ -577,7 +579,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                             title="실시간 최저가 구매 링크"
                           >
                             <span>구매</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </button>
                         )}
                       </div>
@@ -596,62 +598,79 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             </div>
 
             {/* Real-time Purchase Hub Card */}
+            {/* Real-time Purchase Hub Card */}
             <TossCard
               title="🛒 실시간 최저가 구매처 모아보기"
               subtitle="쿠팡 로켓배송·다나와·네이버쇼핑에서 부품별 최저가와 실시간 재고를 바로 확인하세요"
               badge={<TossBadge variant="blue" className="whitespace-nowrap">구매 연동</TossBadge>}
             >
-              <div className="grid grid-cols-3 gap-2 pt-1 text-xs">
+              <div className="space-y-2 pt-1 text-xs">
+                {/* 1. Featured Coupang Partners Link (User Revenue) */}
                 <button
                   onClick={() => {
                     window.open(USER_COUPANG_PARTNERS_URL, "_blank", "noopener,noreferrer");
                   }}
-                  className="p-3 bg-rose-50 hover:bg-rose-100/70 border border-rose-200/80 rounded-2xl text-left transition flex items-center justify-between group cursor-pointer overflow-hidden"
+                  className="w-full p-3 bg-gradient-to-r from-rose-50 to-pink-50 hover:from-rose-100/80 hover:to-pink-100/80 border border-rose-200/90 rounded-2xl text-left transition flex items-center justify-between group cursor-pointer shadow-2xs"
                 >
-                  <div className="min-w-0 flex-1 pr-1">
-                    <span className="text-[10px] font-extrabold text-rose-600 block whitespace-nowrap">쿠팡 로켓배송</span>
-                    <span className="text-xs font-black text-gray-900 group-hover:text-rose-700 whitespace-nowrap">쿠팡 특가</span>
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 bg-rose-500 text-white rounded-md whitespace-nowrap shrink-0">
+                        쿠팡 로켓
+                      </span>
+                      <span className="text-xs font-black text-rose-900 group-hover:text-rose-700 truncate whitespace-nowrap">
+                        쿠팡 로켓배송 특가 & 빠른 배송
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-rose-700/80 mt-0.5 truncate whitespace-nowrap">
+                      내일 아침 도착 보장 & 와우 회원 카드 즉시할인
+                    </p>
                   </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                  <div className="flex items-center gap-1 shrink-0 px-2 py-1 bg-white/90 rounded-lg text-rose-600 font-bold text-[11px] border border-rose-200 shadow-2xs">
+                    <span className="whitespace-nowrap">보러가기</span>
+                    <ExternalLink className="w-3 h-3 shrink-0" />
+                  </div>
                 </button>
 
-                <button
-                  onClick={() => {
-                    const cpuName = getPartOption("cpu", build.cpu)?.name || "";
-                    const gpuName = getPartOption("gpu", build.gpu)?.name || "";
-                    const query = `${cpuName} ${gpuName}`.trim() || "조립PC 견적";
-                    window.open(`https://search.danawa.com/dsearch.php?query=${encodeURIComponent(query)}`, "_blank");
-                  }}
-                  className="p-3 bg-blue-50 hover:bg-blue-100/70 border border-blue-200/80 rounded-2xl text-left transition flex items-center justify-between group cursor-pointer overflow-hidden"
-                >
-                  <div className="min-w-0 flex-1 pr-1">
-                    <span className="text-[10px] font-extrabold text-blue-600 block whitespace-nowrap">다나와 PC 견적</span>
-                    <span className="text-xs font-black text-gray-900 group-hover:text-toss-blue whitespace-nowrap">다나와 최저가</span>
-                  </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                </button>
+                {/* 2. Danawa & Naver 2-Column Grid */}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => {
+                      const cpuName = getPartOption("cpu", build.cpu)?.name || "";
+                      const gpuName = getPartOption("gpu", build.gpu)?.name || "";
+                      const query = `${cpuName} ${gpuName}`.trim() || "조립PC 견적";
+                      window.open(`https://search.danawa.com/dsearch.php?query=${encodeURIComponent(query)}`, "_blank");
+                    }}
+                    className="p-2.5 bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/80 rounded-xl text-left transition flex items-center justify-between group cursor-pointer min-w-0"
+                  >
+                    <div className="min-w-0 flex-1 pr-1">
+                      <span className="text-[10px] font-extrabold text-blue-600 block truncate whitespace-nowrap">다나와 PC 견적</span>
+                      <span className="text-xs font-bold text-gray-900 group-hover:text-toss-blue truncate whitespace-nowrap">다나와 최저가</span>
+                    </div>
+                    <ExternalLink className="w-3 h-3 text-blue-600 shrink-0" />
+                  </button>
 
-                <button
-                  onClick={() => {
-                    const cpuName = getPartOption("cpu", build.cpu)?.name || "";
-                    const gpuName = getPartOption("gpu", build.gpu)?.name || "";
-                    const query = `${cpuName} ${gpuName}`.trim() || "조립PC";
-                    window.open(`https://search.shopping.naver.com/search/all?query=${encodeURIComponent(query)}`, "_blank");
-                  }}
-                  className="p-3 bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-200/80 rounded-2xl text-left transition flex items-center justify-between group cursor-pointer overflow-hidden"
-                >
-                  <div className="min-w-0 flex-1 pr-1">
-                    <span className="text-[10px] font-extrabold text-emerald-600 block whitespace-nowrap">네이버 쇼핑</span>
-                    <span className="text-xs font-black text-gray-900 group-hover:text-emerald-700 whitespace-nowrap">네이버 최저가</span>
-                  </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                </button>
+                  <button
+                    onClick={() => {
+                      const cpuName = getPartOption("cpu", build.cpu)?.name || "";
+                      const gpuName = getPartOption("gpu", build.gpu)?.name || "";
+                      const query = `${cpuName} ${gpuName}`.trim() || "조립PC";
+                      window.open(`https://search.shopping.naver.com/search/all?query=${encodeURIComponent(query)}`, "_blank");
+                    }}
+                    className="p-2.5 bg-emerald-50/70 hover:bg-emerald-100/70 border border-emerald-200/80 rounded-xl text-left transition flex items-center justify-between group cursor-pointer min-w-0"
+                  >
+                    <div className="min-w-0 flex-1 pr-1">
+                      <span className="text-[10px] font-extrabold text-emerald-600 block truncate whitespace-nowrap">네이버 쇼핑</span>
+                      <span className="text-xs font-bold text-gray-900 group-hover:text-emerald-700 truncate whitespace-nowrap">네이버 최저가</span>
+                    </div>
+                    <ExternalLink className="w-3 h-3 text-emerald-600 shrink-0" />
+                  </button>
+                </div>
               </div>
             </TossCard>
 
             {/* Checklist Guide Unlock */}
             <TossCard
-              title="🔧 초보자용 셀프 조립 7단계 체크리스트 & 보증서"
+              title="🔧 초보자용 셀프 조립 7단계 체크리스트"
               subtitle="써멀구리스 도포, 램 슬롯 순서, 케이블 정리 실수 방지 가이드"
               badge={<TossBadge variant="orange" className="whitespace-nowrap">VIP 가이드</TossBadge>}
             >

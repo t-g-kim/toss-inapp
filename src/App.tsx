@@ -76,7 +76,7 @@ export const App: React.FC = () => {
   // 1. Toss In-App Live Webview Mode or Clean Standalone Mode
   if (standalone) {
     return (
-      <main className="w-full min-h-screen bg-toss-bg max-w-md mx-auto">
+      <main className="w-full min-h-screen bg-toss-bg max-w-md mx-auto overflow-x-hidden">
         {renderActiveApp()}
       </main>
     );
@@ -124,7 +124,7 @@ export const App: React.FC = () => {
 
       {/* Main Container */}
       <div
-        className={`w-full transition-all duration-300 ${
+        className={`w-full transition-all duration-300 overflow-x-hidden ${
           deviceFrame
             ? "max-w-[430px] rounded-none md:rounded-[40px] shadow-2xl overflow-hidden border-0 md:border-[10px] md:border-slate-800 bg-white min-h-screen md:min-h-[880px]"
             : "max-w-md bg-white shadow-xl min-h-screen"
