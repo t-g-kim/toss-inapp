@@ -13,6 +13,7 @@ import {
   Flame,
   Award,
   Type,
+  LayoutGrid,
 } from "lucide-react";
 
 export type AppId =
@@ -21,6 +22,7 @@ export type AppId =
   | "my-fortune-tarot"
   | "subsidy-calc"
   | "insta-clean"
+  | "feed-preview"
   | "money-match"
   | "spending-receipt";
 
@@ -89,6 +91,16 @@ const APPS: MiniAppMeta[] = [
     iconBg: "bg-purple-600",
     icon: <Type className="w-5 h-5 text-white" />,
     revenueType: "보상형 광고 + VIP 폰트팩 990원",
+  },
+  {
+    id: "feed-preview",
+    title: "인스타 피드 미리보기",
+    category: "소셜/크리에이터",
+    badge: { text: "9칸 바둑판", variant: "orange" },
+    desc: "사진 올리기 전 3x3 바둑판 격자 배치 & 톤앤매너 96% 조화도 점검",
+    iconBg: "bg-rose-500",
+    icon: <LayoutGrid className="w-5 h-5 text-white" />,
+    revenueType: "보상형 광고 + 하이라이트팩 990원",
   },
   {
     id: "money-match",

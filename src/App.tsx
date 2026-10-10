@@ -5,6 +5,7 @@ import { SalaryHeroApp } from "@apps/salary-hero/SalaryHeroApp";
 import { FortuneTarotApp } from "@apps/my-fortune-tarot/FortuneTarotApp";
 import { SubsidyCalcApp } from "@apps/subsidy-calc/SubsidyCalcApp";
 import { InstaCleanApp } from "@apps/insta-clean/InstaCleanApp";
+import { FeedPreviewApp } from "@apps/feed-preview/FeedPreviewApp";
 import { MoneyMatchApp } from "@apps/money-match/MoneyMatchApp";
 import { SpendingReceiptApp } from "@apps/spending-receipt/SpendingReceiptApp";
 import { getInitialAppFromUrl, isStandaloneMode, setAppUrl, isTossApp } from "@shared/index";
@@ -51,6 +52,8 @@ export const App: React.FC = () => {
         return <SubsidyCalcApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "insta-clean":
         return <InstaCleanApp onBack={standalone ? undefined : handleBackToPortal} />;
+      case "feed-preview":
+        return <FeedPreviewApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "money-match":
         return <MoneyMatchApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "spending-receipt":
