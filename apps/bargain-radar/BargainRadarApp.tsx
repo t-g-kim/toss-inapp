@@ -291,6 +291,13 @@ export const BargainRadarApp: React.FC<BargainRadarAppProps> = ({ onBack }) => {
           </div>
         )}
 
+        <div className="p-3 bg-gray-100/70 rounded-2xl text-[11px] text-toss-muted leading-relaxed">
+          <p className="flex items-center gap-1 font-semibold text-toss-subtext mb-1">
+            <Info className="w-3.5 h-3.5" /> 투자 유의사항
+          </p>
+          본 서비스의 퀀트 지표 및 분석 결과는 데이터 통계에 기반한 모의 참고용 정보이며, 특정 종목의 매수·매도를 권유하지 않습니다. 모든 투자 판단과 책임은 투자자 본인에게 있습니다.
+        </div>
+
         <AdBanner
           title="미래에셋증권 미국주식 온라인 수수료 0원"
           subtitle="환전 우대 90% 혜택받고 서학개미 출발하기"
