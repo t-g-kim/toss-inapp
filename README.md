@@ -36,13 +36,19 @@ toss-inapp/
 ## 🚀 빠른 실행 방법
 
 ```bash
-# 1. 의존성 설치 (Bun 또는 npm 사용)
-bun install
-# 또는 npm install
+# 1. 의존성 설치 (npm 또는 bun)
+npm install
 
-# 2. 로컬 개발 서버 실행
-bun run dev
-# 또는 npm run dev
+# 2. 통합 포털 허브 실행 (전체 앱 테스트베드)
+npm run dev
+
+# 3. 특정 개별 앱만 독립적으로 실행 (예: 로또 앱)
+npm run dev --workspace=@toss-app/lotto-filter
+# 또는 해당 앱 폴더로 이동 후 실행
+cd apps/lotto-filter && npm run dev
+
+# 4. 전체 앱 일괄 빌드
+npm run build:all
 ```
 
 브라우저에서 `http://localhost:3000` 접속 시:

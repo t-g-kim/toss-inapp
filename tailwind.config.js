@@ -1,10 +1,12 @@
+import path from "path";
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-    "./apps/**/*.{js,ts,jsx,tsx}",
-    "./packages/**/*.{js,ts,jsx,tsx}",
+    path.join(import.meta.dirname, "./index.html"),
+    path.join(import.meta.dirname, "./src/**/*.{js,ts,jsx,tsx}"),
+    path.join(import.meta.dirname, "./apps/**/*.{js,ts,jsx,tsx,html}"),
+    path.join(import.meta.dirname, "./packages/**/*.{js,ts,jsx,tsx}"),
   ],
   theme: {
     extend: {
