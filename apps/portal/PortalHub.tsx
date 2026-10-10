@@ -86,10 +86,10 @@ const APPS: MiniAppMeta[] = [
   },
   {
     id: "bargain-radar",
-    title: "AI 바겐세일 과매도 줍줍 레이더",
-    category: "토스증권 퀀트",
-    badge: { text: "Hexa Desk 탑재", variant: "red" },
-    desc: "RSI 35 이하, 볼린저 하단 이탈 저평가 우량주 실시간 스캔",
+    title: "바겐레이더 (과매도 퀀트)",
+    category: "투자/금융 퀀트",
+    badge: { text: "6축 퀀트 모델", variant: "red" },
+    desc: "RSI 35 이하, 볼린저 하단 이탈 과매도 우량주 지표 분석",
     iconBg: "bg-rose-600",
     icon: <TrendingDown className="w-5 h-5 text-white" />,
     revenueType: "보상형 광고 + 6축 리포트 990원",
@@ -139,13 +139,13 @@ const APPS: MiniAppMeta[] = [
 export const PortalHub: React.FC<PortalHubProps> = ({ onSelectApp }) => {
   const [filterCat, setFilterCat] = useState<string>("ALL");
 
-  const categories = ["ALL", "행운/복권", "직장인/재테크", "토스증권 퀀트", "바이럴/심리"];
+  const categories = ["ALL", "행운/복권", "직장인/재테크", "투자/금융 퀀트", "바이럴/심리"];
 
   const filteredApps = APPS.filter((app) => {
     if (filterCat === "ALL") return true;
     if (filterCat === "행운/복권") return app.category === "행운/복권" || app.category === "운세/타로";
     if (filterCat === "직장인/재테크") return app.category === "직장인/재테크" || app.category === "공공복지/환급" || app.category === "짠테크/가계부";
-    if (filterCat === "토스증권 퀀트") return app.category === "토스증권 퀀트" || app.category === "배당/패시브인컴" || app.category === "기술적 분석";
+    if (filterCat === "투자/금융 퀀트") return app.category === "투자/금융 퀀트" || app.category === "배당/패시브인컴" || app.category === "기술적 분석";
     if (filterCat === "바이럴/심리") return app.category === "바이럴/심리" || app.category === "운세/타로";
     return true;
   });

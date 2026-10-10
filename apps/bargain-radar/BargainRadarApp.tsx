@@ -110,10 +110,10 @@ export const BargainRadarApp: React.FC<BargainRadarAppProps> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-toss-bg pb-24">
       <TossHeader
-        title="AI 바겐세일 과매도 레이더"
-        subtitle="RSI 과매도 & 6축 저평가 우량주 탐색기"
+        title="바겐레이더"
+        subtitle="RSI 과매도 & 6축 퀀트 보조지표 분석"
         onBack={onBack}
-        rightAction={<TossBadge variant="red">실시간 스캔</TossBadge>}
+        rightAction={<TossBadge variant="blue">보조지표 통계</TossBadge>}
       />
 
       <div className="p-4 space-y-4 max-w-lg mx-auto">
@@ -121,16 +121,16 @@ export const BargainRadarApp: React.FC<BargainRadarAppProps> = ({ onBack }) => {
         <TossCard padding="lg" className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white">
           <div className="flex items-center justify-between">
             <span className="text-xs text-blue-300 font-bold flex items-center gap-1">
-              <Activity className="w-3.5 h-3.5" /> Hexa Desk 분석 엔진 탑재
+              <Activity className="w-3.5 h-3.5" /> 6축 퀀트 보조지표 모델 탑재
             </span>
             <span className="text-[11px] bg-red-500/20 text-red-300 px-2 py-0.5 rounded-full border border-red-400/30 font-semibold">
-              RSI 35 이하 집중 발굴
+              RSI 35 이하 과매도 구간
             </span>
           </div>
 
-          <h3 className="text-2xl font-black mt-2">오늘의 바겐세일 우량주</h3>
+          <h3 className="text-2xl font-black mt-2">과매도 구간 우량주 지표</h3>
           <p className="text-xs text-blue-100 mt-1 leading-relaxed">
-            통계적으로 하락이 과도하여 반등 확률이 높은 종목을 6축 알고리즘으로 엄선했습니다.
+            14일 RSI 및 볼린저밴드 기준 기술적 과매도 구간에 진입한 주요 종목 통계입니다.
           </p>
 
           {/* Market Toggle */}
@@ -265,20 +265,20 @@ export const BargainRadarApp: React.FC<BargainRadarAppProps> = ({ onBack }) => {
               </div>
 
               <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl">
-                <span className="text-xs text-toss-blue font-bold block mb-1">AI 반등 분석 결론</span>
+                <span className="text-xs text-toss-blue font-bold block mb-1">기술적 지표 분석 의견</span>
                 <p className="text-xs text-gray-800 leading-relaxed font-medium">{selectedStock.thesis}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="bg-toss-bg p-3 rounded-xl">
-                  <span className="text-toss-muted block mb-0.5">1차 반등 목표가</span>
+                  <span className="text-toss-muted block mb-0.5">기술적 저항 구간</span>
                   <span className="font-extrabold text-emerald-600 text-sm">
                     {selectedStock.reboundTarget}
                   </span>
                 </div>
                 <div className="bg-toss-bg p-3 rounded-xl">
-                  <span className="text-toss-muted block mb-0.5">손절 마지노선 지지선</span>
-                  <span className="font-extrabold text-toss-red text-sm">
+                  <span className="text-toss-muted block mb-0.5">기술적 지지 구간</span>
+                  <span className="font-extrabold text-toss-blue text-sm">
                     {selectedStock.supportLine}
                   </span>
                 </div>
@@ -306,7 +306,7 @@ export const BargainRadarApp: React.FC<BargainRadarAppProps> = ({ onBack }) => {
 
       <RewardedAdModal
         isOpen={adModalOpen}
-        rewardTitle="오늘의 AI 과매도 줍줍 레이더 전체 종목 잠금 해제"
+        rewardTitle="과매도 우량주 퀀트 지표 전체 종목 열람"
         onClose={() => setAdModalOpen(false)}
         onRewarded={() => {
           setUnlockedAll(true);
@@ -316,7 +316,7 @@ export const BargainRadarApp: React.FC<BargainRadarAppProps> = ({ onBack }) => {
 
       <TossPayModal
         isOpen={payModalOpen}
-        productTitle="AI 바겐세일 줍줍 레이더 VIP 무제한 패스"
+        productTitle="6축 퀀트 보조지표 리포트 무제한 패스"
         price={990}
         onClose={() => setPayModalOpen(false)}
         onSuccess={() => {
