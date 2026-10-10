@@ -22,7 +22,6 @@ export type AppId =
   | "salary-hero"
   | "my-fortune-tarot"
   | "subsidy-calc"
-  | "bargain-radar"
   | "dividend-planner"
   | "chart-doctor"
   | "money-match"
@@ -83,16 +82,6 @@ const APPS: MiniAppMeta[] = [
     iconBg: "bg-emerald-600",
     icon: <Coins className="w-5 h-5 text-white" />,
     revenueType: "광고 시청 + 서류 가이드 990원",
-  },
-  {
-    id: "bargain-radar",
-    title: "바겐레이더 (과매도 퀀트)",
-    category: "투자/금융 퀀트",
-    badge: { text: "6축 퀀트 모델", variant: "red" },
-    desc: "RSI 35 이하, 볼린저 하단 이탈 과매도 우량주 지표 분석",
-    iconBg: "bg-rose-600",
-    icon: <TrendingDown className="w-5 h-5 text-white" />,
-    revenueType: "보상형 광고 + 6축 리포트 990원",
   },
   {
     id: "dividend-planner",
