@@ -4,7 +4,6 @@ import {
   TossCard,
   TossButton,
   TossBadge,
-  AdBanner,
   RewardedAdModal,
   TossPayModal,
 } from "@shared/index";
@@ -454,22 +453,22 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                 </div>
               ) : (
                 <div className="pt-2 text-center">
-                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-1.5 mb-3 text-left">
-                    <div className="flex items-center gap-1.5 font-bold text-slate-800">
-                      <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-extrabold rounded">
-                        AD 안내
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-2 mb-3 text-left">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-black rounded-md tracking-wider">
+                        [광고 안내]
                       </span>
-                      <span>무료 열람을 위한 광고 시청 안내</span>
+                      <span className="text-[11px] text-blue-600 font-bold">약 5초 동영상</span>
                     </div>
-                    <p className="text-[11px] text-slate-600 leading-relaxed">
-                      약 5초간 짧은 동영상 광고를 시청하시면 추가 10종 게임 FPS 정밀 리포트를 <strong>무료로 열람</strong>하실 수 있어요.
+                    <p className="text-[11px] text-slate-700 leading-relaxed font-medium">
+                      추가 10종 게임 FPS 정밀 리포트는 <strong>[광고] 5초 시청 후 무료</strong>로 즉시 열람하실 수 있어요.
                     </p>
                   </div>
 
                   <TossButton variant="secondary" size="sm" onClick={() => setAdModalOpen(true)}>
-                    <span className="flex items-center justify-center gap-1">
-                      <span className="px-1 py-0.2 bg-gray-200 text-gray-700 text-[10px] font-bold rounded">AD</span>
-                      <span>5초 광고 보고 10종 FPS 무료 열람</span>
+                    <span className="flex items-center justify-center gap-1 font-bold">
+                      <span className="px-1.5 py-0.2 bg-blue-600 text-white text-[9px] font-black rounded">AD</span>
+                      <span>[광고] 5초 시청 후 10종 FPS 무료 열람</span>
                     </span>
                   </TossButton>
                 </div>
@@ -575,11 +574,6 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             </div>
           </div>
         )}
-
-        <AdBanner
-          title="로지텍 게이밍 기어 특가전"
-          subtitle="무선 게이밍 마우스 & 기계식 키보드 최대 35% 할인"
-        />
       </div>
 
       {/* Rewarded Ad Modal (with Toss Review compliant pre-ad notice) */}
