@@ -190,13 +190,13 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                   <button
                     key={p.id}
                     onClick={() => handleApplyPreset(p.parts)}
-                    className="p-3 rounded-2xl bg-toss-bg hover:bg-gray-200/80 text-left transition border border-transparent hover:border-amber-400 group"
+                    className="p-3 rounded-2xl bg-toss-bg hover:bg-gray-200/80 text-left transition border border-transparent hover:border-amber-400 group overflow-hidden"
                   >
-                    <span className="font-bold text-xs text-toss-text block group-hover:text-amber-600">
+                    <span className="font-bold text-xs text-toss-text block group-hover:text-amber-600 whitespace-nowrap truncate">
                       {p.title}
                     </span>
-                    <span className="text-[10px] text-toss-muted block mt-0.5">{p.desc}</span>
-                    <span className="text-[11px] font-extrabold text-amber-600 block mt-1.5">
+                    <span className="text-[10px] text-toss-muted block mt-0.5 whitespace-nowrap truncate">{p.desc}</span>
+                    <span className="text-[11px] font-extrabold text-amber-600 block mt-1.5 whitespace-nowrap">
                       {p.priceRange}
                     </span>
                   </button>
@@ -209,9 +209,9 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
               title="🔍 실시간 시스템 호환성 & 전력 검증"
               badge={
                 issues.length === 0 ? (
-                  <TossBadge variant="green">호환 100%</TossBadge>
+                  <TossBadge variant="green" className="whitespace-nowrap">호환 100%</TossBadge>
                 ) : (
-                  <TossBadge variant="red">간섭 경고</TossBadge>
+                  <TossBadge variant="red" className="whitespace-nowrap">간섭 경고</TossBadge>
                 )
               }
             >
@@ -219,27 +219,27 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                 {/* Issues Box */}
                 {issues.length > 0 ? (
                   <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 text-rose-800 space-y-1">
-                    <span className="font-bold flex items-center gap-1 text-rose-900">
-                      <AlertTriangle className="w-3.5 h-3.5" /> 부품 간섭·호환 불일치 발견
+                    <span className="font-bold flex items-center gap-1 text-rose-900 whitespace-nowrap truncate">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> 부품 간섭·호환 불일치 발견
                     </span>
                     {issues.map((iss, i) => (
-                      <p key={i} className="text-[11px] pl-4">• {iss}</p>
+                      <p key={i} className="text-[11px] pl-4 whitespace-nowrap truncate">• {iss}</p>
                     ))}
                   </div>
                 ) : (
-                  <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 flex items-center gap-1.5 text-xs font-semibold">
+                  <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 flex items-center gap-1.5 text-xs font-semibold overflow-hidden">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>선택된 모든 부품 간 소켓·크기 간섭 없이 완벽 호환됩니다!</span>
+                    <span className="whitespace-nowrap truncate">선택된 모든 부품 간 소켓·크기 간섭 없이 완벽 호환됩니다!</span>
                   </div>
                 )}
 
                 {/* Power Bar */}
                 <div className="p-3 bg-toss-bg rounded-xl space-y-1.5">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-bold text-toss-text flex items-center gap-1">
-                      <Zap className="w-3.5 h-3.5 text-amber-500" /> 전력 소모량
+                    <span className="font-bold text-toss-text flex items-center gap-1 whitespace-nowrap">
+                      <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" /> 전력 소모량
                     </span>
-                    <span className="font-extrabold text-toss-text">
+                    <span className="font-extrabold text-toss-text whitespace-nowrap">
                       {power.draw}W / {power.capacity}W ({power.percent}%)
                     </span>
                   </div>
@@ -255,17 +255,17 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                       style={{ width: `${Math.min(100, power.percent)}%` }}
                     />
                   </div>
-                  <p className="text-[10px] text-toss-muted">{power.message}</p>
+                  <p className="text-[10px] text-toss-muted whitespace-nowrap truncate">{power.message}</p>
                 </div>
 
                 {/* Thermal Bar */}
                 {thermal && (
                   <div className="p-3 bg-toss-bg rounded-xl space-y-1.5">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="font-bold text-toss-text flex items-center gap-1">
-                        <Flame className="w-3.5 h-3.5 text-rose-500" /> 쿨러 냉각 여유도
+                      <span className="font-bold text-toss-text flex items-center gap-1 whitespace-nowrap">
+                        <Flame className="w-3.5 h-3.5 text-rose-500 shrink-0" /> 쿨러 냉각 여유도
                       </span>
-                      <span className="font-extrabold text-toss-text">
+                      <span className="font-extrabold text-toss-text whitespace-nowrap">
                         {Math.round(thermal.ratio * 100)}%
                       </span>
                     </div>
@@ -281,7 +281,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                         style={{ width: `${Math.min(100, thermal.ratio * 100)}%` }}
                       />
                     </div>
-                    <p className="text-[10px] text-toss-muted">{thermal.message}</p>
+                    <p className="text-[10px] text-toss-muted whitespace-nowrap truncate">{thermal.message}</p>
                   </div>
                 )}
               </div>
@@ -296,14 +296,14 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                   <button
                     key={k}
                     onClick={() => setActiveCategory(k)}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold shrink-0 transition ${
+                    className={`px-3 py-2 rounded-xl text-xs font-bold shrink-0 whitespace-nowrap transition ${
                       isSelected
                         ? "bg-toss-blue text-white shadow-sm"
                         : "bg-white text-toss-subtext border border-toss-border hover:bg-gray-50"
                     }`}
                   >
-                    <span>{SHORT_LABEL[k]}</span>
-                    {opt && <span className="ml-1 opacity-80 text-[10px]">✓</span>}
+                    <span className="whitespace-nowrap">{SHORT_LABEL[k]}</span>
+                    {opt && <span className="ml-1 opacity-80 text-[10px] whitespace-nowrap">✓</span>}
                   </button>
                 );
               })}
@@ -329,20 +329,20 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                     >
                       <div className="min-w-0 flex-1 pr-2">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-sm text-toss-text truncate">{opt.name}</span>
-                          {isChecked && <TossBadge variant="blue" size="sm">선택됨</TossBadge>}
+                          <span className="font-bold text-sm text-toss-text truncate whitespace-nowrap">{opt.name}</span>
+                          {isChecked && <TossBadge variant="blue" size="sm" className="whitespace-nowrap shrink-0">선택됨</TossBadge>}
                         </div>
                         {opt.sub && (
-                          <p className="text-[11px] text-toss-muted mt-0.5 truncate">{opt.sub}</p>
+                          <p className="text-[11px] text-toss-muted mt-0.5 truncate whitespace-nowrap">{opt.sub}</p>
                         )}
                       </div>
                       <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                        <span className="font-extrabold text-sm text-toss-text block">
+                        <span className="font-extrabold text-sm text-toss-text block whitespace-nowrap">
                           {opt.price === 0 ? "무료" : `₩${opt.price.toLocaleString("ko-KR")}`}
                         </span>
                         <div className="flex items-center gap-1.5">
                           {opt.score && (
-                            <span className="text-[10px] text-toss-blue font-semibold">
+                            <span className="text-[10px] text-toss-blue font-semibold whitespace-nowrap">
                               점수 {opt.score}
                             </span>
                           )}
@@ -356,7 +356,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                                   categoryLabel: PARTS[activeCategory]?.label,
                                 });
                               }}
-                              className="px-2 py-0.5 bg-gray-100 hover:bg-blue-100 text-gray-700 hover:text-toss-blue text-[10px] font-bold rounded-md flex items-center gap-0.5 transition cursor-pointer"
+                              className="px-2 py-0.5 bg-gray-100 hover:bg-blue-100 text-gray-700 hover:text-toss-blue text-[10px] font-bold rounded-md flex items-center gap-0.5 transition cursor-pointer whitespace-nowrap shrink-0"
                               title="다나와·네이버 실시간 최저가 비교"
                             >
                               <span>최저가</span>
@@ -373,9 +373,9 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
 
             {/* Bottom Summary Bar */}
             <div className="bg-white p-4 rounded-2xl border border-toss-border shadow-sm flex items-center justify-between">
-              <div>
-                <span className="text-xs text-toss-muted block">총 부품 견적 합계</span>
-                <span className="text-xl font-black text-toss-text">
+              <div className="min-w-0 flex-1 pr-2">
+                <span className="text-xs text-toss-muted block whitespace-nowrap">총 부품 견적 합계</span>
+                <span className="text-xl font-black text-toss-text whitespace-nowrap">
                   ₩{totalPrice.toLocaleString("ko-KR")}
                 </span>
               </div>
@@ -383,8 +383,9 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                 variant="primary"
                 size="md"
                 onClick={() => setActiveTab("bench")}
+                className="whitespace-nowrap shrink-0"
               >
-                <Zap className="w-4 h-4 mr-1 inline" /> 성능 벤치마크 실행
+                <Zap className="w-4 h-4 mr-1 inline shrink-0" /> 성능 벤치마크 실행
               </TossButton>
             </div>
           </div>
@@ -394,14 +395,14 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
         {activeTab === "bench" && (
           <div className="space-y-4 animate-fade-in">
             {/* Benchmark Runner Banner */}
-            <div className="p-5 rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white shadow-lg text-center">
-              <span className="text-[11px] bg-white/10 px-3 py-1 rounded-full text-indigo-200 font-semibold inline-block mb-2">
+            <div className="p-5 rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white shadow-lg text-center overflow-hidden">
+              <span className="text-[11px] bg-white/10 px-3 py-1 rounded-full text-indigo-200 font-semibold inline-block mb-2 whitespace-nowrap">
                 가상 PC 3D 부하 시뮬레이션
               </span>
-              <h3 className="text-3xl font-black text-amber-300">
+              <h3 className="text-3xl font-black text-amber-300 whitespace-nowrap">
                 {benchResult.overall}점
               </h3>
-              <p className="text-xs text-gray-300 mt-1">
+              <p className="text-xs text-gray-300 mt-1 whitespace-nowrap truncate">
                 {benchResult.tier} · 가성비 지수 {benchResult.valueScore}점/10만
               </p>
 
@@ -413,17 +414,17 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                       style={{ width: `${benchProgress}%` }}
                     />
                   </div>
-                  <span className="text-xs text-amber-200 animate-pulse block">
+                  <span className="text-xs text-amber-200 animate-pulse block whitespace-nowrap truncate">
                     {benchStepText} ({benchProgress}%)
                   </span>
                 </div>
               ) : (
                 <button
                   onClick={handleRunBenchmark}
-                  className="mt-4 px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-1.5 mx-auto"
+                  className="mt-4 px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-1.5 mx-auto whitespace-nowrap"
                 >
-                  <Play className="w-4 h-4 fill-current" />
-                  <span>벤치마크 다시 측정하기</span>
+                  <Play className="w-4 h-4 fill-current shrink-0" />
+                  <span className="whitespace-nowrap">벤치마크 다시 측정하기</span>
                 </button>
               )}
             </div>
@@ -438,8 +439,8 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                 ].map((m) => (
                   <div key={m.label} className="space-y-1">
                     <div className="flex justify-between font-bold text-toss-text">
-                      <span>{m.label}</span>
-                      <span>{m.score}점</span>
+                      <span className="whitespace-nowrap truncate pr-2">{m.label}</span>
+                      <span className="whitespace-nowrap shrink-0">{m.score}점</span>
                     </div>
                     <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                       <div
@@ -456,7 +457,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             <TossCard
               title="🎮 인기 게임 예상 평균 FPS"
               subtitle="그래픽 최고 옵션 기준 실측 시뮬레이션 프레임"
-              badge={<TossBadge variant="purple">실시간 계산</TossBadge>}
+              badge={<TossBadge variant="purple" className="whitespace-nowrap">실시간 계산</TossBadge>}
             >
               <div className="space-y-2.5 pt-1 text-xs">
                 {[
@@ -466,20 +467,20 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                   { name: "로스트아크", fhd: benchResult.fpsLostark.fhd, qhd: benchResult.fpsLostark.qhd, tag: "MMORPG" },
                 ].map((g) => (
                   <div key={g.name} className="p-3 bg-toss-bg rounded-2xl flex items-center justify-between">
-                    <div>
+                    <div className="min-w-0 flex-1 pr-2">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-sm text-toss-text">{g.name}</span>
-                        <span className="text-[10px] text-toss-muted">({g.tag})</span>
+                        <span className="font-bold text-sm text-toss-text whitespace-nowrap truncate">{g.name}</span>
+                        <span className="text-[10px] text-toss-muted whitespace-nowrap shrink-0">({g.tag})</span>
                       </div>
-                      <span className="text-[11px] text-toss-muted">
-                        FHD: <strong className="text-toss-blue">{g.fhd} FPS</strong>
+                      <span className="text-[11px] text-toss-muted whitespace-nowrap block mt-0.5">
+                        FHD: <strong className="text-toss-blue whitespace-nowrap">{g.fhd} FPS</strong>
                       </span>
                     </div>
-                    <div className="text-right">
-                      <span className="text-xs font-extrabold text-toss-text block">
+                    <div className="text-right shrink-0">
+                      <span className="text-xs font-extrabold text-toss-text block whitespace-nowrap">
                         QHD: {g.qhd} FPS
                       </span>
-                      <span className={`text-[10px] font-bold ${g.fhd >= 60 ? "text-emerald-600" : "text-amber-600"}`}>
+                      <span className={`text-[10px] font-bold whitespace-nowrap block mt-0.5 ${g.fhd >= 60 ? "text-emerald-600" : "text-amber-600"}`}>
                         {g.fhd >= 144 ? "극강 쾌적" : g.fhd >= 60 ? "원활 플레이" : "옵션 타협 필요"}
                       </span>
                     </div>
@@ -492,41 +493,41 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             <TossCard
               title="📑 발로란트·팰월드·엘든링 등 10종 정밀 FPS 리포트"
               subtitle="해상도별 프레임 드랍 방지 가이드 & 병목률 분석"
-              badge={<TossBadge variant="blue">보너스 리포트</TossBadge>}
+              badge={<TossBadge variant="blue" className="whitespace-nowrap">보너스 리포트</TossBadge>}
             >
               {unlockedReport ? (
                 <div className="p-3 bg-blue-50 rounded-xl border border-blue-200 text-xs text-blue-900 space-y-1.5 animate-fade-in">
-                  <h5 className="font-bold text-sm text-blue-800">✓ 정밀 벤치마크 & 병목 분석 완료</h5>
-                  <p>• 발로란트: FHD 360Hz 모니터 완벽 방어 가능 (평균 380 FPS)</p>
-                  <p>• 엘든링: 60 FPS 고정 풀옵션 쾌적 구동</p>
-                  <p>• CPU 병목 지수: 4.2% (이상적인 균형 - 병목 없음)</p>
+                  <h5 className="font-bold text-sm text-blue-800 whitespace-nowrap">✓ 정밀 벤치마크 & 병목 분석 완료</h5>
+                  <p className="whitespace-nowrap truncate">• 발로란트: FHD 360Hz 모니터 완벽 방어 가능 (평균 380 FPS)</p>
+                  <p className="whitespace-nowrap truncate">• 엘든링: 60 FPS 고정 풀옵션 쾌적 구동</p>
+                  <p className="whitespace-nowrap truncate">• CPU 병목 지수: 4.2% (이상적인 균형 - 병목 없음)</p>
                 </div>
               ) : (
                 <div className="pt-2 text-center">
                   <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-2 mb-3 text-left">
                     <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-black rounded-md tracking-wider">
+                      <span className="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-black rounded-md tracking-wider whitespace-nowrap">
                         [광고 안내]
                       </span>
-                      <span className="text-[11px] text-blue-600 font-bold">약 5초 동영상</span>
+                      <span className="text-[11px] text-blue-600 font-bold whitespace-nowrap">약 5초 동영상</span>
                     </div>
-                    <p className="text-[11px] text-slate-700 leading-relaxed font-medium">
+                    <p className="text-[11px] text-slate-700 leading-relaxed font-medium whitespace-nowrap truncate">
                       추가 10종 게임 FPS 정밀 리포트는 <strong>[광고] 5초 시청 후 무료</strong>로 즉시 열람하실 수 있어요.
                     </p>
                   </div>
 
                   <TossButton variant="secondary" size="sm" onClick={() => setAdModalOpen(true)}>
-                    <span className="flex items-center justify-center gap-1 font-bold">
-                      <span className="px-1.5 py-0.2 bg-blue-600 text-white text-[9px] font-black rounded">AD</span>
-                      <span>[광고] 5초 시청 후 10종 FPS 무료 열람</span>
+                    <span className="flex items-center justify-center gap-1 font-bold whitespace-nowrap">
+                      <span className="px-1.5 py-0.2 bg-blue-600 text-white text-[9px] font-black rounded whitespace-nowrap">AD</span>
+                      <span className="whitespace-nowrap">[광고] 5초 시청 후 10종 FPS 무료 열람</span>
                     </span>
                   </TossButton>
                 </div>
               )}
             </TossCard>
 
-            <TossButton variant="primary" size="lg" onClick={() => setActiveTab("quote")}>
-              <Receipt className="w-4 h-4 mr-1.5 inline" /> 견적서 확인 및 공유하기
+            <TossButton variant="primary" size="lg" onClick={() => setActiveTab("quote")} className="whitespace-nowrap">
+              <Receipt className="w-4 h-4 mr-1.5 inline shrink-0" /> <span className="whitespace-nowrap">견적서 확인 및 공유하기</span>
             </TossButton>
           </div>
         )}
@@ -535,15 +536,15 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
         {activeTab === "quote" && (
           <div className="space-y-4 animate-fade-in">
             {/* Printable Digital Receipt Card */}
-            <div className="bg-white rounded-3xl p-5 border border-toss-border shadow-sm space-y-4">
+            <div className="bg-white rounded-3xl p-5 border border-toss-border shadow-sm space-y-4 overflow-hidden">
               <div className="text-center pb-3 border-b border-dashed border-gray-300">
-                <span className="text-[10px] uppercase font-mono tracking-widest text-toss-muted block">
+                <span className="text-[10px] uppercase font-mono tracking-widest text-toss-muted block whitespace-nowrap">
                   DIGITAL PC SPECIFICATION
                 </span>
-                <h4 className="text-xl font-black text-toss-text mt-0.5">
+                <h4 className="text-xl font-black text-toss-text mt-0.5 whitespace-nowrap">
                   나만의 맞춤 PC 견적서
                 </h4>
-                <p className="text-xs text-toss-muted mt-1">
+                <p className="text-xs text-toss-muted mt-1 whitespace-nowrap truncate">
                   종합 벤치마크 {benchResult.overall}점 ({benchResult.tier})
                 </p>
               </div>
@@ -555,11 +556,11 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                   return (
                     <div key={k} className="flex items-center justify-between py-1.5 border-b border-gray-100">
                       <div className="min-w-0 flex-1 pr-2">
-                        <span className="text-[11px] text-toss-muted block">{SHORT_LABEL[k]}</span>
-                        <span className="font-bold text-toss-text truncate block">{opt?.name || "미선택"}</span>
+                        <span className="text-[11px] text-toss-muted block whitespace-nowrap">{SHORT_LABEL[k]}</span>
+                        <span className="font-bold text-toss-text truncate block whitespace-nowrap">{opt?.name || "미선택"}</span>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="font-extrabold text-toss-text">
+                      <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
+                        <span className="font-extrabold text-toss-text whitespace-nowrap">
                           {opt?.price ? `₩${opt.price.toLocaleString("ko-KR")}` : "0원"}
                         </span>
                         {opt?.price && opt.price > 0 && (
@@ -571,7 +572,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                                 categoryLabel: SHORT_LABEL[k],
                               })
                             }
-                            className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-toss-blue text-[10px] font-bold rounded-md flex items-center gap-0.5 transition cursor-pointer"
+                            className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-toss-blue text-[10px] font-bold rounded-md flex items-center gap-0.5 transition cursor-pointer whitespace-nowrap shrink-0"
                             title="실시간 최저가 구매 링크"
                           >
                             <span>구매</span>
@@ -586,8 +587,8 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
 
               {/* Total Summary */}
               <div className="pt-3 border-t-2 border-slate-900 flex justify-between items-center">
-                <span className="text-sm font-bold text-toss-text">총 예상 견적</span>
-                <span className="text-2xl font-black text-toss-blue">
+                <span className="text-sm font-bold text-toss-text whitespace-nowrap">총 예상 견적</span>
+                <span className="text-2xl font-black text-toss-blue whitespace-nowrap">
                   ₩{totalPrice.toLocaleString("ko-KR")}
                 </span>
               </div>
@@ -597,7 +598,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             <TossCard
               title="🛒 실시간 최저가 구매처 모아보기"
               subtitle="다나와·네이버쇼핑에서 부품별 최저가와 실시간 재고를 바로 확인하세요"
-              badge={<TossBadge variant="blue">구매 연동</TossBadge>}
+              badge={<TossBadge variant="blue" className="whitespace-nowrap">구매 연동</TossBadge>}
             >
               <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
                 <button
@@ -607,13 +608,13 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                     const query = `${cpuName} ${gpuName}`.trim() || "조립PC 견적";
                     window.open(`https://search.danawa.com/dsearch.php?query=${encodeURIComponent(query)}`, "_blank");
                   }}
-                  className="p-3 bg-blue-50 hover:bg-blue-100/70 border border-blue-200/80 rounded-2xl text-left transition flex items-center justify-between group cursor-pointer"
+                  className="p-3 bg-blue-50 hover:bg-blue-100/70 border border-blue-200/80 rounded-2xl text-left transition flex items-center justify-between group cursor-pointer overflow-hidden"
                 >
-                  <div>
-                    <span className="text-[10px] font-extrabold text-blue-600 block">다나와 PC 견적</span>
-                    <span className="text-xs font-black text-gray-900 group-hover:text-toss-blue">다나와 최저가</span>
+                  <div className="min-w-0 flex-1 pr-1">
+                    <span className="text-[10px] font-extrabold text-blue-600 block whitespace-nowrap">다나와 PC 견적</span>
+                    <span className="text-xs font-black text-gray-900 group-hover:text-toss-blue whitespace-nowrap">다나와 최저가</span>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-blue-600" />
+                  <ExternalLink className="w-4 h-4 text-blue-600 shrink-0" />
                 </button>
 
                 <button
@@ -623,13 +624,13 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                     const query = `${cpuName} ${gpuName}`.trim() || "조립PC";
                     window.open(`https://search.shopping.naver.com/search/all?query=${encodeURIComponent(query)}`, "_blank");
                   }}
-                  className="p-3 bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-200/80 rounded-2xl text-left transition flex items-center justify-between group cursor-pointer"
+                  className="p-3 bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-200/80 rounded-2xl text-left transition flex items-center justify-between group cursor-pointer overflow-hidden"
                 >
-                  <div>
-                    <span className="text-[10px] font-extrabold text-emerald-600 block">네이버 쇼핑</span>
-                    <span className="text-xs font-black text-gray-900 group-hover:text-emerald-700">네이버 최저가</span>
+                  <div className="min-w-0 flex-1 pr-1">
+                    <span className="text-[10px] font-extrabold text-emerald-600 block whitespace-nowrap">네이버 쇼핑</span>
+                    <span className="text-xs font-black text-gray-900 group-hover:text-emerald-700 whitespace-nowrap">네이버 최저가</span>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-emerald-600" />
+                  <ExternalLink className="w-4 h-4 text-emerald-600 shrink-0" />
                 </button>
               </div>
             </TossCard>
@@ -638,20 +639,20 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             <TossCard
               title="🔧 초보자용 셀프 조립 7단계 체크리스트 & 보증서"
               subtitle="써멀구리스 도포, 램 슬롯 순서, 케이블 정리 실수 방지 가이드"
-              badge={<TossBadge variant="orange">VIP 가이드</TossBadge>}
+              badge={<TossBadge variant="orange" className="whitespace-nowrap">VIP 가이드</TossBadge>}
             >
               {unlockedChecklist ? (
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-950 space-y-1.5 animate-fade-in">
-                  <h5 className="font-bold text-amber-800">✓ 조립 전 필수 체크리스트</h5>
-                  <p>1. 램 장착 시 2번, 4번 슬롯 우선 장착 (듀얼채널 대역폭 2배)</p>
-                  <p>2. CPU 쿨러 장착 전 하단 보호 비닐 제거 필수 확인!</p>
-                  <p>3. 전원 케이블: 메인보드 24핀 + CPU 보조 8핀 결착 확인</p>
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-950 space-y-1.5 animate-fade-in overflow-hidden">
+                  <h5 className="font-bold text-amber-800 whitespace-nowrap">✓ 조립 전 필수 체크리스트</h5>
+                  <p className="whitespace-nowrap truncate">1. 램 장착 시 2번, 4번 슬롯 우선 장착 (듀얼채널 대역폭 2배)</p>
+                  <p className="whitespace-nowrap truncate">2. CPU 쿨러 장착 전 하단 보호 비닐 제거 필수 확인!</p>
+                  <p className="whitespace-nowrap truncate">3. 전원 케이블: 메인보드 24핀 + CPU 보조 8핀 결착 확인</p>
                 </div>
               ) : (
                 <div className="pt-2 text-center">
-                  <TossButton variant="secondary" size="md" onClick={() => setPayModalOpen(true)}>
-                    <Crown className="w-4 h-4 mr-1 inline text-amber-500" />
-                    <span>조립 체크리스트 & 보증서 소장 (990원)</span>
+                  <TossButton variant="secondary" size="md" onClick={() => setPayModalOpen(true)} className="whitespace-nowrap">
+                    <Crown className="w-4 h-4 mr-1 inline text-amber-500 shrink-0" />
+                    <span className="whitespace-nowrap">조립 체크리스트 & 보증서 소장 (990원)</span>
                   </TossButton>
                 </div>
               )}
@@ -666,8 +667,9 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                   confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
                   alert("🎉 견적서 요약본이 클립보드에 복사되었습니다!");
                 }}
+                className="whitespace-nowrap"
               >
-                <Share2 className="w-4 h-4 mr-1.5 inline" /> 견적서 복사 및 친구에게 공유
+                <Share2 className="w-4 h-4 mr-1.5 inline shrink-0" /> <span className="whitespace-nowrap">견적서 복사 및 친구에게 공유</span>
               </TossButton>
 
               <TossButton
@@ -677,8 +679,9 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                   setBuild(PRESET_BUILDS[0].parts);
                   setActiveTab("build");
                 }}
+                className="whitespace-nowrap"
               >
-                <RotateCcw className="w-4 h-4 mr-1 inline" /> 부품 처음부터 다시 맞추기
+                <RotateCcw className="w-4 h-4 mr-1 inline shrink-0" /> <span className="whitespace-nowrap">부품 처음부터 다시 맞추기</span>
               </TossButton>
             </div>
           </div>

@@ -71,23 +71,23 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
       <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full shadow-2xl flex flex-col border border-gray-100 overflow-hidden max-h-[90vh]">
         {/* Header */}
         <div className="p-5 pb-3 border-b border-gray-100 flex items-start justify-between">
-          <div>
+          <div className="min-w-0 flex-1 pr-2">
             <div className="flex items-center gap-1.5 mb-1">
-              <span className="px-2 py-0.5 bg-blue-50 text-toss-blue text-[10px] font-bold rounded-full">
+              <span className="px-2 py-0.5 bg-blue-50 text-toss-blue text-[10px] font-bold rounded-full whitespace-nowrap">
                 {categoryLabel || "부품 구매"}
               </span>
-              <span className="text-[11px] text-gray-500 font-medium">실시간 최저가 검색</span>
+              <span className="text-[11px] text-gray-500 font-medium whitespace-nowrap">실시간 최저가 검색</span>
             </div>
-            <h3 className="text-lg font-black text-gray-900 leading-tight">{partName}</h3>
+            <h3 className="text-lg font-black text-gray-900 leading-tight whitespace-nowrap truncate">{partName}</h3>
             {price !== undefined && (
-              <p className="text-xs text-blue-600 font-bold mt-0.5">
+              <p className="text-xs text-blue-600 font-bold mt-0.5 whitespace-nowrap">
                 기준 시세 약 {price.toLocaleString()}원
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition"
+            className="p-1.5 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition shrink-0"
             aria-label="닫기"
           >
             <X className="w-5 h-5" />
@@ -96,7 +96,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
 
         {/* Platform List */}
         <div className="p-4 space-y-2.5 overflow-y-auto">
-          <p className="text-xs text-gray-500 mb-1">
+          <p className="text-xs text-gray-500 mb-1 whitespace-nowrap truncate">
             원하시는 쇼핑 플랫폼을 선택하시면 최저가 검색 페이지로 바로 연결됩니다.
           </p>
 
@@ -108,20 +108,20 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
                 onClick={() => handleOpenLink(p.url)}
                 className="w-full p-3.5 rounded-2xl border border-gray-200/80 hover:border-toss-blue bg-white hover:bg-blue-50/30 transition text-left flex items-center justify-between group active:scale-[0.99] shadow-2xs"
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
                   <div className="w-10 h-10 rounded-xl bg-gray-50 group-hover:bg-blue-100/60 text-gray-700 group-hover:text-toss-blue flex items-center justify-center shrink-0 transition">
                     <Icon className="w-5 h-5" />
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-extrabold text-gray-900 group-hover:text-toss-blue transition">
+                      <span className="text-sm font-extrabold text-gray-900 group-hover:text-toss-blue transition whitespace-nowrap">
                         {p.name}
                       </span>
-                      <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${p.tagColor}`}>
+                      <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold shrink-0 whitespace-nowrap ${p.tagColor}`}>
                         {p.tag}
                       </span>
                     </div>
-                    <p className="text-[11px] text-gray-500 truncate mt-0.5">{p.desc}</p>
+                    <p className="text-[11px] text-gray-500 truncate mt-0.5 whitespace-nowrap">{p.desc}</p>
                   </div>
                 </div>
 
