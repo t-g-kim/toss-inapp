@@ -193,7 +193,7 @@ export const SubsidyCalcApp: React.FC<SubsidyCalcAppProps> = ({ onBack }) => {
                     이전
                   </TossButton>
                   <TossButton variant="primary" onClick={handleDiagnose} className="w-2/3">
-                    진단 결과 조회하기
+                    무료 모의 계산 결과 보기
                   </TossButton>
                 </div>
               </div>
@@ -250,7 +250,7 @@ export const SubsidyCalcApp: React.FC<SubsidyCalcAppProps> = ({ onBack }) => {
             <TossCard
               title="📑 1분 신청 필수 서류 & 탈락 방지 가이드"
               subtitle="정부24 및 은행 심사에서 한 번에 통과하는 필수 제출서류 체크리스트"
-              badge={<TossBadge variant="orange">인기 자료</TossBadge>}
+              badge={<TossBadge variant="orange">선택 열람</TossBadge>}
             >
               {unlockedGuide ? (
                 <div className="space-y-2.5 text-xs text-toss-subtext pt-2 animate-fade-in">
@@ -266,13 +266,36 @@ export const SubsidyCalcApp: React.FC<SubsidyCalcAppProps> = ({ onBack }) => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center pt-2">
-                  <div className="grid grid-cols-2 gap-2 mt-3">
-                    <TossButton variant="secondary" size="sm" onClick={() => setAdModalOpen(true)}>
-                      광고 보고 가이드 받기
+                <div className="pt-2 text-center">
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-1.5 mb-3 text-left">
+                    <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                      <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-extrabold rounded">
+                        AD 안내
+                      </span>
+                      <span>무료 열람을 위한 광고 시청 안내</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      약 5초간 짧은 동영상 광고를 시청하시면 서류 가이드와 체크리스트를 <strong>추가 비용 없이 무료로 열람</strong>하실 수 있어요.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <TossButton
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setAdModalOpen(true)}
+                    >
+                      <span className="flex items-center justify-center gap-1">
+                        <span className="px-1 py-0.2 bg-gray-200 text-gray-700 text-[10px] font-bold rounded">AD</span>
+                        <span>5초 광고 보고 무료 열람</span>
+                      </span>
                     </TossButton>
-                    <TossButton variant="primary" size="sm" onClick={() => setPayModalOpen(true)}>
-                      토스페이 990원 결제
+                    <TossButton
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setPayModalOpen(true)}
+                    >
+                      광고 없이 열람 (990원)
                     </TossButton>
                   </div>
                 </div>
