@@ -1,0 +1,24 @@
+{
+  "name": "@toss-app/insta-clean",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "bundle": "ait build",
+    "build:ait": "vite build && ait build",
+    "preview": "vite preview",
+    "deploy": "ait deploy"
+  },
+  "dependencies": {
+    "@toss/shared": "*",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "lucide-react": "^1.55.0",
+    "canvas-confetti": "^1.9.4"
+  },
+  "devDependencies": {
+    "@apps-in-toss/devtools": "^3.8.0"
+  }
+}

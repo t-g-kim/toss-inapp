@@ -15,6 +15,7 @@ import {
   Smartphone,
   Flame,
   Award,
+  Type,
 } from "lucide-react";
 
 export type AppId =
@@ -22,6 +23,7 @@ export type AppId =
   | "salary-hero"
   | "my-fortune-tarot"
   | "subsidy-calc"
+  | "insta-clean"
   | "dividend-planner"
   | "chart-doctor"
   | "money-match"
@@ -82,6 +84,16 @@ const APPS: MiniAppMeta[] = [
     iconBg: "bg-emerald-600",
     icon: <Coins className="w-5 h-5 text-white" />,
     revenueType: "광고 시청 + 서류 가이드 990원",
+  },
+  {
+    id: "insta-clean",
+    title: "인스타 줄바꿈 감성 폰트",
+    category: "소셜/크리에이터",
+    badge: { text: "인스타 필수템", variant: "purple" },
+    desc: "본문 줄바꿈 깨짐 1초 방지 + 20종 감성 영문 폰트 & 특수문자",
+    iconBg: "bg-purple-600",
+    icon: <Type className="w-5 h-5 text-white" />,
+    revenueType: "보상형 광고 + VIP 폰트팩 990원",
   },
   {
     id: "dividend-planner",

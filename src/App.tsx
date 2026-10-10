@@ -4,6 +4,7 @@ import { LottoFilterApp } from "@apps/lotto-filter/LottoFilterApp";
 import { SalaryHeroApp } from "@apps/salary-hero/SalaryHeroApp";
 import { FortuneTarotApp } from "@apps/my-fortune-tarot/FortuneTarotApp";
 import { SubsidyCalcApp } from "@apps/subsidy-calc/SubsidyCalcApp";
+import { InstaCleanApp } from "@apps/insta-clean/InstaCleanApp";
 import { DividendPlannerApp } from "@apps/dividend-planner/DividendPlannerApp";
 import { ChartDoctorApp } from "@apps/chart-doctor/ChartDoctorApp";
 import { MoneyMatchApp } from "@apps/money-match/MoneyMatchApp";
@@ -50,6 +51,8 @@ export const App: React.FC = () => {
       case "subsidy-calc":
       case "subsidy-finder" as any:
         return <SubsidyCalcApp onBack={standalone ? undefined : handleBackToPortal} />;
+      case "insta-clean":
+        return <InstaCleanApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "dividend-planner":
         return <DividendPlannerApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "chart-doctor":
