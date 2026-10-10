@@ -16,6 +16,7 @@ import {
   LayoutGrid,
   Clock,
   Music,
+  Cpu,
 } from "lucide-react";
 
 export type AppId =
@@ -23,6 +24,7 @@ export type AppId =
   | "salary-hero"
   | "my-fortune-tarot"
   | "subsidy-calc"
+  | "make-my-pc"
   | "insta-clean"
   | "feed-preview"
   | "insta-time"
@@ -85,6 +87,16 @@ const APPS: MiniAppMeta[] = [
     iconBg: "bg-emerald-600",
     icon: <Coins className="w-5 h-5 text-white" />,
     revenueType: "광고 시청 + 서류 가이드 990원",
+  },
+  {
+    id: "make-my-pc",
+    title: "가상 PC 조립 견적",
+    category: "IT/유틸리티",
+    badge: { text: "게임 벤치마크", variant: "orange" },
+    desc: "CPU·GPU 부품 호환성 체크, 100만~300만 황금 견적 & 게임 FPS 측정",
+    iconBg: "bg-amber-600",
+    icon: <Cpu className="w-5 h-5 text-white" />,
+    revenueType: "보상형 광고 + 조립 보증서 990원",
   },
   {
     id: "insta-clean",
