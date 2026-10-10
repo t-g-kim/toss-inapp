@@ -3,7 +3,7 @@ import { PortalHub, AppId } from "@apps/portal/PortalHub";
 import { LottoFilterApp } from "@apps/lotto-filter/LottoFilterApp";
 import { SalaryHeroApp } from "@apps/salary-hero/SalaryHeroApp";
 import { FortuneTarotApp } from "@apps/my-fortune-tarot/FortuneTarotApp";
-import { SubsidyFinderApp } from "@apps/subsidy-finder/SubsidyFinderApp";
+import { SubsidyCalcApp } from "@apps/subsidy-calc/SubsidyCalcApp";
 import { BargainRadarApp } from "@apps/bargain-radar/BargainRadarApp";
 import { DividendPlannerApp } from "@apps/dividend-planner/DividendPlannerApp";
 import { ChartDoctorApp } from "@apps/chart-doctor/ChartDoctorApp";
@@ -48,8 +48,9 @@ export const App: React.FC = () => {
         return <SalaryHeroApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "my-fortune-tarot":
         return <FortuneTarotApp onBack={standalone ? undefined : handleBackToPortal} />;
-      case "subsidy-finder":
-        return <SubsidyFinderApp onBack={standalone ? undefined : handleBackToPortal} />;
+      case "subsidy-calc":
+      case "subsidy-finder" as any:
+        return <SubsidyCalcApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "bargain-radar":
         return <BargainRadarApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "dividend-planner":

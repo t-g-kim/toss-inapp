@@ -3,9 +3,10 @@ import { TossHeader, TossCard, TossButton, TossBadge, AdBanner, RewardedAdModal,
 import { Search, CheckCircle2, ExternalLink, FileText, ArrowRight, Wallet, Check } from "lucide-react";
 import confetti from "canvas-confetti";
 
-interface SubsidyFinderAppProps {
+interface SubsidyCalcAppProps {
   onBack?: () => void;
 }
+export type SubsidyFinderAppProps = SubsidyCalcAppProps;
 
 interface SubsidyItem {
   id: string;
@@ -71,7 +72,7 @@ const SUBSIDIES: SubsidyItem[] = [
   },
 ];
 
-export const SubsidyFinderApp: React.FC<SubsidyFinderAppProps> = ({ onBack }) => {
+export const SubsidyCalcApp: React.FC<SubsidyCalcAppProps> = ({ onBack }) => {
   const [step, setStep] = useState<number>(1);
   const [ageGroup, setAgeGroup] = useState<string>("youth");
   const [jobStatus, setJobStatus] = useState<string>("employee");
@@ -90,8 +91,8 @@ export const SubsidyFinderApp: React.FC<SubsidyFinderAppProps> = ({ onBack }) =>
   return (
     <div className="min-h-screen bg-toss-bg pb-24">
       <TossHeader
-        title="숨은 정부지원금 자가진단"
-        subtitle="내가 받을 수 있는 복지지원금 찾기"
+        title="지원금 모의 계산기"
+        subtitle="2026 정부지원금 모의 계산 및 자가진단"
         onBack={onBack}
         rightAction={<TossBadge variant="green">2026 최신 복지</TossBadge>}
       />
@@ -313,3 +314,5 @@ export const SubsidyFinderApp: React.FC<SubsidyFinderAppProps> = ({ onBack }) =>
     </div>
   );
 };
+
+export const SubsidyFinderApp = SubsidyCalcApp;

@@ -1,5 +1,5 @@
 export default {
-  appName: "subsidy-finder",
+  appName: "subsidy-calc",
   webBundleDir: "dist",
   brand: {
     primaryColor: "#3182F6",

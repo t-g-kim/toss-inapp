@@ -1,5 +1,5 @@
 {
-  "name": "@toss-app/subsidy-finder",
+  "name": "@toss-app/subsidy-calc",
   "version": "1.0.0",
   "private": true,
   "type": "module",

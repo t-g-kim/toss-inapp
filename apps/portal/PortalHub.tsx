@@ -21,7 +21,7 @@ export type AppId =
   | "lotto-filter"
   | "salary-hero"
   | "my-fortune-tarot"
-  | "subsidy-finder"
+  | "subsidy-calc"
   | "bargain-radar"
   | "dividend-planner"
   | "chart-doctor"
@@ -75,11 +75,11 @@ const APPS: MiniAppMeta[] = [
     revenueType: "보상형 광고 + 신년 대운 1,900원",
   },
   {
-    id: "subsidy-finder",
-    title: "숨은 정부지원금 자가진단",
-    category: "공공복지/환급",
-    badge: { text: "청년/직장인 필수", variant: "green" },
-    desc: "연령·소득·신분 3조건으로 K패스, 도약계좌 등 미환급 복지 매칭",
+    id: "subsidy-calc",
+    title: "지원금 모의 계산기",
+    category: "공공복지/모의계산",
+    badge: { text: "2026 최신 복지", variant: "green" },
+    desc: "연령·소득·신분별 K패스, 청년도약계좌 등 주요 정부지원금 모의 계산",
     iconBg: "bg-emerald-600",
     icon: <Coins className="w-5 h-5 text-white" />,
     revenueType: "광고 시청 + 서류 가이드 990원",
