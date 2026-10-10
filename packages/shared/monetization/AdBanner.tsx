@@ -12,7 +12,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   placement = "inline",
   title = "KB국민은행 매일 이자 받는 파킹통장",
   subtitle = "연 최고 3.5% 금리 혜택 지금 바로 확인하세요",
-  actionText = "혜택 받기",
+  actionText = "[광고] 바로가기",
 }) => {
   const [closed, setClosed] = useState(false);
 
@@ -26,10 +26,10 @@ export const AdBanner: React.FC<AdBannerProps> = ({
     >
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-medium">
-          <span className="bg-gray-200/80 text-gray-600 px-1.5 py-0.5 rounded text-[9px] font-bold">
-            AD
+          <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-bold">
+            광고
           </span>
-          <span>Google AdMob · 맞춤형 광고</span>
+          <span className="text-gray-500 font-semibold">스폰서 외부 링크</span>
         </div>
         <button
           onClick={() => setClosed(true)}
@@ -46,8 +46,8 @@ export const AdBanner: React.FC<AdBannerProps> = ({
           <p className="text-xs text-gray-600 truncate mt-0.5">{subtitle}</p>
         </div>
         <button
-          onClick={() => alert("스폰서 링크로 이동합니다 (테스트 링크)")}
-          className="shrink-0 flex items-center gap-1 bg-toss-blue hover:bg-toss-blueDark text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition active:scale-95 shadow-sm"
+          onClick={() => alert("[스폰서 광고] 외부 안내 페이지로 이동합니다.")}
+          className="shrink-0 flex items-center gap-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition active:scale-95 shadow-sm"
         >
           <span>{actionText}</span>
           <ExternalLink className="w-3 h-3" />

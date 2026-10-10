@@ -75,19 +75,19 @@ export const RewardedAdModal: React.FC<RewardedAdModalProps> = ({
               <Film className="w-7 h-7 text-toss-blue" />
             </div>
 
-            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[11px] font-bold mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
-              <span>광고 시청 안내</span>
+            <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-[11px] font-black mb-2 border border-slate-200">
+              <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+              <span>[광고 시청 사전 동의 안내]</span>
             </div>
 
             <h3 className="font-extrabold text-lg text-toss-text">
-              약 {adDurationSeconds}초 동안 광고가 재생돼요
+              약 {adDurationSeconds}초간 동영상 광고가 재생돼요
             </h3>
 
             <p className="text-xs text-toss-subtext mt-2 leading-relaxed px-2">
-              짧은 동영상 광고를 시청하시면{" "}
+              유저 동의 후 짧은 스폰서 광고를 시청하시면{" "}
               <strong className="text-toss-text font-bold">‘{rewardTitle}’</strong>을(를){" "}
-              <span className="text-emerald-600 font-bold">무료</span>로 이용하실 수 있어요.
+              <span className="text-blue-600 font-bold">무료</span>로 이용하실 수 있어요.
             </p>
 
             <div className="mt-5 space-y-2">
@@ -96,14 +96,14 @@ export const RewardedAdModal: React.FC<RewardedAdModalProps> = ({
                 className="w-full py-3.5 bg-toss-blue hover:bg-toss-blueDark text-white font-bold rounded-2xl shadow-md shadow-toss-blue/30 active:scale-95 transition flex items-center justify-center gap-1.5 text-sm"
               >
                 <Play className="w-4 h-4 fill-current" />
-                <span>[AD] 광고 시청하고 무료로 받기</span>
+                <span>[광고] 5초 시청 시작하기</span>
               </button>
 
               <button
                 onClick={onClose}
                 className="w-full py-3 text-toss-muted hover:text-toss-text font-medium text-xs rounded-xl transition"
               >
-                다음에 볼게요 (취소)
+                시청하지 않고 닫기 (취소)
               </button>
             </div>
           </div>
