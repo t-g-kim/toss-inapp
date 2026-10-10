@@ -20,7 +20,7 @@ import {
 export type AppId =
   | "lotto-filter"
   | "salary-hero"
-  | "fortune-tarot"
+  | "my-fortune-tarot"
   | "subsidy-finder"
   | "bargain-radar"
   | "dividend-planner"
@@ -65,7 +65,7 @@ const APPS: MiniAppMeta[] = [
     revenueType: "전면 광고 + 협상 리포트 1,900원",
   },
   {
-    id: "fortune-tarot",
+    id: "my-fortune-tarot",
     title: "오늘의 행운 부적 & AI 사주 타로",
     category: "운세/타로",
     badge: { text: "매일 아침 루틴", variant: "purple" },

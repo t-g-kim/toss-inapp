@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { PortalHub, AppId } from "@apps/portal/PortalHub";
 import { LottoFilterApp } from "@apps/lotto-filter/LottoFilterApp";
 import { SalaryHeroApp } from "@apps/salary-hero/SalaryHeroApp";
-import { FortuneTarotApp } from "@apps/fortune-tarot/FortuneTarotApp";
+import { FortuneTarotApp } from "@apps/my-fortune-tarot/FortuneTarotApp";
 import { SubsidyFinderApp } from "@apps/subsidy-finder/SubsidyFinderApp";
 import { BargainRadarApp } from "@apps/bargain-radar/BargainRadarApp";
 import { DividendPlannerApp } from "@apps/dividend-planner/DividendPlannerApp";
@@ -46,7 +46,7 @@ export const App: React.FC = () => {
         return <LottoFilterApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "salary-hero":
         return <SalaryHeroApp onBack={standalone ? undefined : handleBackToPortal} />;
-      case "fortune-tarot":
+      case "my-fortune-tarot":
         return <FortuneTarotApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "subsidy-finder":
         return <SubsidyFinderApp onBack={standalone ? undefined : handleBackToPortal} />;

@@ -1,6 +1,6 @@
 # 토스 콘솔 등록 정보 - v1.0.0
 
-- **프로젝트**: 오늘의 타로 운세 (`apps/fortune-tarot`)
+- **프로젝트**: 오늘의 타로 운세 (`apps/my-fortune-tarot`)
 - **버전**: v1.0.0
 - **번들 파일**: `my-fortune-tarot.ait`
 - **배포일**: 2026-10-10
@@ -22,7 +22,7 @@
 
 | 항목 | 입력 값 |
 |---|---|
-| **앱 번들** | `apps/fortune-tarot/my-fortune-tarot.ait` 업로드 |
+| **앱 번들** | `apps/my-fortune-tarot/my-fortune-tarot.ait` 업로드 |
 | **출시 노트** | `하루 한 장의 타로 카드로 오늘의 금전운과 흐름을 읽고 나만의 행운 부적을 소장하는 힐링 운세 서비스입니다.` |
 | **메모** | `v1.0.0 최초 출시 번들` |
 
@@ -54,11 +54,11 @@
 ## 3. 카테고리 및 노출 (화면 4)
 
 - **카테고리**: `생활` > `운세/사주` (또는 `취미/여가`)
-- **앱 로고 (600 × 600px)**: `apps/fortune-tarot/assets/logo_600x600.png`
+- **앱 로고 (600 × 600px)**: `apps/my-fortune-tarot/assets/logo_600x600.png`
 - **미리보기 및 스크린샷 (636 × 1048px)**:
-  1. `apps/fortune-tarot/assets/screenshot_1.png` (타로 카드 셔플 화면)
-  2. `apps/fortune-tarot/assets/screenshot_2.png` (오늘의 카드 해석 결과)
-  3. `apps/fortune-tarot/assets/screenshot_3.png` (행운 부적 및 심층 조언)
+  1. `apps/my-fortune-tarot/assets/screenshot_1.png` (타로 카드 셔플 화면)
+  2. `apps/my-fortune-tarot/assets/screenshot_2.png` (오늘의 카드 해석 결과)
+  3. `apps/my-fortune-tarot/assets/screenshot_3.png` (행운 부적 및 심층 조언)
 
 ---
 
