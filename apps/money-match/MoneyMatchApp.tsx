@@ -41,7 +41,7 @@ export const MoneyMatchApp: React.FC<MoneyMatchAppProps> = ({ onBack }) => {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: "토스 친구 금전 궁합 측정기",
+        title: "친구 연인 금전 궁합 측정기",
         text: `${myName}님과 ${friendName}님의 금전 궁합은 ${score}점입니다! 지금 확인해보세요.`,
         url: window.location.href,
       }).catch(() => {});
@@ -53,7 +53,7 @@ export const MoneyMatchApp: React.FC<MoneyMatchAppProps> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-toss-bg pb-24">
       <TossHeader
-        title="토스 친구 금전 궁합 측정기"
+        title="친구 연인 금전 궁합 측정기"
         subtitle="우리 둘이 만나면 돈이 모일까? 샐까?"
         onBack={onBack}
         rightAction={<TossBadge variant="purple">바이럴 1위</TossBadge>}
@@ -70,7 +70,7 @@ export const MoneyMatchApp: React.FC<MoneyMatchAppProps> = ({ onBack }) => {
                   <span className="font-bold text-toss-text text-sm block">나의 정보</span>
                   <input
                     type="text"
-                    placeholder="내 이름 (예: 김토스)"
+                    placeholder="내 이름 (예: 김철수)"
                     value={myName}
                     onChange={(e) => setMyName(e.target.value)}
                     className="w-full p-3 rounded-xl border border-toss-border bg-white text-xs font-semibold focus:outline-none focus:border-toss-blue"

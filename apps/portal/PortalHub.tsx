@@ -6,9 +6,6 @@ import {
   Calculator,
   Moon,
   Coins,
-  TrendingDown,
-  Calendar,
-  Stethoscope,
   Heart,
   Receipt,
   ChevronRight,
@@ -24,8 +21,6 @@ export type AppId =
   | "my-fortune-tarot"
   | "subsidy-calc"
   | "insta-clean"
-  | "dividend-planner"
-  | "chart-doctor"
   | "money-match"
   | "spending-receipt";
 
@@ -96,28 +91,8 @@ const APPS: MiniAppMeta[] = [
     revenueType: "보상형 광고 + VIP 폰트팩 990원",
   },
   {
-    id: "dividend-planner",
-    title: "월급 받는 배당 플래너 & 캘린더",
-    category: "배당/패시브인컴",
-    badge: { text: "직장인 추천", variant: "blue" },
-    desc: "월 50만원 배당 받기 위한 12개월 월별 캐시플로우 & 종목 수량 설계",
-    iconBg: "bg-teal-600",
-    icon: <Calendar className="w-5 h-5 text-white" />,
-    revenueType: "맞춤형 포트폴리오 1,900원 결제",
-  },
-  {
-    id: "chart-doctor",
-    title: "내 주식 AI 차트 닥터",
-    category: "기술적 분석",
-    badge: { text: "1초 건강검진", variant: "purple" },
-    desc: "골든크로스, 이평선, RSI 종합 건강 점수 및 손절/익절 마지노선 처방",
-    iconBg: "bg-cyan-600",
-    icon: <Stethoscope className="w-5 h-5 text-white" />,
-    revenueType: "1일 2회 무료 + 광고 충전/490원",
-  },
-  {
     id: "money-match",
-    title: "토스 친구 금전 궁합 측정기",
+    title: "친구 연인 금전 궁합 측정기",
     category: "바이럴/심리",
     badge: { text: "SNS 공유 폭발", variant: "orange" },
     desc: "친구·연인과의 더치페이 & 탕진 지수 측정 및 찰떡궁합 판독",
