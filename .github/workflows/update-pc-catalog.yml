@@ -6,17 +6,23 @@ on:
     - cron: '0 0 * * 1'
   workflow_dispatch: # 수동 즉시 실행 지원
 
+permissions:
+  contents: write
+
 jobs:
   update-catalog:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
         run: npm ci
@@ -29,12 +35,14 @@ jobs:
 
       - name: Commit and push if updated
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "PC Catalog Sync Bot"
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [ -n "$(git status --porcelain apps/make-my-pc/catalog-latest.json)" ]; then
             git add apps/make-my-pc/catalog-latest.json
             git commit -m "chore(make-my-pc): auto-sync latest PC parts & market prices [skip ci]"
+            git pull --rebase origin main || true
             git push origin main
           else
             echo "No price updates required."
           fi
+
