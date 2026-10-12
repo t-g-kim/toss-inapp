@@ -42,16 +42,16 @@ export interface IlchonComment {
   time: string;
 }
 
-// 1. 전설의 싸이월드 BGM 8곡
+// 1. 감성 레트로 Lo-Fi & 8-bit BGM 8곡 (저작권 프리 자체 오리지널)
 export const CY_BGMS: BpmTrack[] = [
-  { id: "bgm_1", title: "Y (Please Tell Me Why)", artist: "프리스타일", year: "2004" },
-  { id: "bgm_2", title: "Fly (feat. Amin. J)", artist: "에픽하이", year: "2005" },
-  { id: "bgm_3", title: "사랑했나봐", artist: "윤도현", year: "2005" },
-  { id: "bgm_4", title: "She Is", artist: "클래지콰이", year: "2005" },
-  { id: "bgm_5", title: "너에게 쓰는 편지", artist: "MC몽 (feat. 린)", year: "2004" },
-  { id: "bgm_6", title: "가시", artist: "버즈", year: "2005" },
-  { id: "bgm_7", title: "낭만고양이", artist: "체리필터", year: "2002" },
-  { id: "bgm_8", title: "내사람 (Partner For Life)", artist: "SG워너비", year: "2006" },
+  { id: "bgm_1", title: "새벽 2시의 다이어리 (Lo-Fi)", artist: "미니룸 스튜디오", year: "2004" },
+  { id: "bgm_2", title: "오렌지빛 미니룸 (Y2K Lounge)", artist: "도트 비트", year: "2005" },
+  { id: "bgm_3", title: "그 시절, 너에게 (Acoustic)", artist: "레트로 소년", year: "2005" },
+  { id: "bgm_4", title: "도토리로 산 추억 (Music Box)", artist: "오르골 밴드", year: "2003" },
+  { id: "bgm_5", title: "방과 후 운동장 바람 (Chiptune)", artist: "8비트 히어로", year: "2005" },
+  { id: "bgm_6", title: "비 오는 날의 창가 (Rain Lo-Fi)", artist: "센티멘탈 룸", year: "2006" },
+  { id: "bgm_7", title: "파도타기 서핑 (Retro Synth)", artist: "사이버 키드", year: "2004" },
+  { id: "bgm_8", title: "너와 나의 비밀 일기 (Piano)", artist: "미니미 멜로디", year: "2005" },
 ];
 
 // 2. 미니룸 벽지/바닥 테마 4종

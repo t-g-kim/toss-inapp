@@ -5,12 +5,13 @@
  * - 가구/소품 배치 및 BGM 사운드웨이브 플레이어
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   MiniroomTheme,
   MinimiChar,
   BpmTrack,
 } from "./data";
+import { retroAudioSynth } from "./audioSynth";
 import { Volume2, VolumeX, Sparkles, Heart, MessageSquare } from "lucide-react";
 
 interface MiniroomViewerProps {
@@ -34,7 +35,23 @@ export const MiniroomViewer: React.FC<MiniroomViewerProps> = ({
   totalCount,
   homeTitle,
 }) => {
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    if (isPlaying) {
+      retroAudioSynth.play(bgm.id);
+    }
+  }, [bgm.id, isPlaying]);
+
+  const handleToggleSound = () => {
+    if (isPlaying) {
+      retroAudioSynth.stop();
+      setIsPlaying(false);
+    } else {
+      retroAudioSynth.play(bgm.id);
+      setIsPlaying(true);
+    }
+  };
 
   return (
     <div className="w-full max-w-[420px] mx-auto bg-[#e4e7eb] p-2.5 rounded-2xl border-2 border-[#94a3b8] shadow-md select-none font-sans">
@@ -52,7 +69,7 @@ export const MiniroomViewer: React.FC<MiniroomViewerProps> = ({
 
         {/* 상단 미니 BGM 플레이어 */}
         <div
-          onClick={() => setIsPlaying(!isPlaying)}
+          onClick={handleToggleSound}
           className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg cursor-pointer transition max-w-[190px]"
           title="BGM 일시정지 / 재생"
         >

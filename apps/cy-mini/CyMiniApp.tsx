@@ -20,6 +20,7 @@ import {
   IlchonComment,
 } from "./data";
 import { MiniroomViewer } from "./MiniroomViewer";
+import { retroAudioSynth } from "./audioSynth";
 import {
   TossButton,
   TossCard,
@@ -75,7 +76,11 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
   // 5. 다이어리 감성 문구
   const [diaryText, setDiaryText] = useState(RETRO_CY_QUOTES[0]);
 
-  // 6. 수익화 모달 상태
+  // 6. 나만의 BGM 직접 입력 상태
+  const [customBgmTitle, setCustomBgmTitle] = useState("");
+  const [customBgmArtist, setCustomBgmArtist] = useState("");
+
+  // 7. 수익화 모달 상태
   const [isAdOpen, setIsAdOpen] = useState(false);
   const [unlockedGoldSkin, setUnlockedGoldSkin] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
@@ -94,6 +99,25 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
     setPlacedProps((prev) =>
       prev.includes(propId) ? prev.filter((id) => id !== propId) : [...prev, propId]
     );
+  };
+
+  // 나만의 BGM 직접 입력 등록
+  const handleApplyCustomBgm = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customBgmTitle.trim()) return;
+
+    const newTrack: BpmTrack = {
+      id: `custom_${Date.now()}`,
+      title: customBgmTitle.trim(),
+      artist: customBgmArtist.trim() || "내 추천곡",
+      year: "2026",
+    };
+    setSelectedBgm(newTrack);
+    retroAudioSynth.play("bgm_1");
+    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+    setCustomBgmTitle("");
+    setCustomBgmArtist("");
+    alert(`🎵 "${newTrack.title}" 곡이 대표 BGM으로 등록되었습니다!`);
   };
 
   // 일촌평 등록
@@ -399,9 +423,51 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
         {/* --- 탭 3: BGM 주크박스 --- */}
         {activeTab === "jukebox" && (
           <div className="space-y-3.5 animate-fade-in">
+            {/* 1. 나만의 BGM 직접 입력하기 (사용자 생성 BGM) */}
             <TossCard
-              title="📻 2000년대 전설의 BGM 플레이어"
-              subtitle="미니홈피 대표곡을 변경하면 상단 플레이어에 실시간 반영됩니다"
+              title="🎵 내 BGM 직접 입력하기"
+              subtitle="좋아하는 노래 제목과 아티스트를 직접 적어 대표곡으로 등록해 보세요"
+            >
+              <form onSubmit={handleApplyCustomBgm} className="space-y-2.5 pt-1">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-500 block mb-1">
+                    곡 제목 (필수)
+                  </label>
+                  <input
+                    type="text"
+                    value={customBgmTitle}
+                    onChange={(e) => setCustomBgmTitle(e.target.value)}
+                    placeholder="예: 프리스타일 - Y / 뉴진스 - Ditto"
+                    maxLength={30}
+                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#FF7710] focus:bg-white transition"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-gray-500 block mb-1">
+                    가수 / 아티스트 (선택)
+                  </label>
+                  <input
+                    type="text"
+                    value={customBgmArtist}
+                    onChange={(e) => setCustomBgmArtist(e.target.value)}
+                    placeholder="예: 내 애창곡 / 감성 플레이리스트"
+                    maxLength={20}
+                    className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#FF7710] focus:bg-white transition"
+                  />
+                </div>
+                <div className="pt-1">
+                  <TossButton variant="primary" size="md" type="submit" disabled={!customBgmTitle.trim()}>
+                    <span>♬ 이 곡으로 대표 BGM 등록하기</span>
+                  </TossButton>
+                </div>
+              </form>
+            </TossCard>
+
+            {/* 2. 감성 레트로 Lo-Fi & 8-bit 오리지널 BGM (8선) */}
+            <TossCard
+              title="📻 감성 Lo-Fi & 8-bit BGM (8선)"
+              subtitle="클릭 시 브라우저 내장 신디사이저로 레트로 멜로디가 실제 연주됩니다"
+              badge={<TossBadge variant="green">저작권 0% 안심 음원</TossBadge>}
             >
               <div className="space-y-2 pt-1">
                 {CY_BGMS.map((track) => {
@@ -411,6 +477,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                       key={track.id}
                       onClick={() => {
                         setSelectedBgm(track);
+                        retroAudioSynth.play(track.id);
                         confetti({ particleCount: 30, spread: 50, origin: { y: 0.6 } });
                       }}
                       className={`p-3 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer transition ${
@@ -432,12 +499,19 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                       </div>
 
                       {isCurrent ? (
-                        <TossBadge variant="orange" size="sm">
-                          재생중
-                        </TossBadge>
+                        <div className="flex items-center gap-1">
+                          <span className="flex items-end gap-0.5 h-3 shrink-0">
+                            <span className="w-0.5 bg-orange-500 h-2 animate-bounce" />
+                            <span className="w-0.5 bg-orange-500 h-3 animate-pulse" />
+                            <span className="w-0.5 bg-orange-500 h-1.5 animate-bounce" />
+                          </span>
+                          <TossBadge variant="orange" size="sm">
+                            재생중
+                          </TossBadge>
+                        </div>
                       ) : (
                         <span className="text-xs font-bold text-orange-600 hover:underline">
-                          설정
+                          듣기 & 설정
                         </span>
                       )}
                     </div>

@@ -96,7 +96,7 @@ def render_ss1(draw, x, y, w, h):
     # TODAY 바
     draw.rounded_rectangle([x + 35, y + 35, x + w - 35, y + 75], radius=10, fill=(248, 250, 252))
     draw.text((x + 50, y + 55), "TODAY 482 | TOTAL 13,850", fill=(225, 29, 72), font=get_font(14, bold=True), anchor="lm")
-    draw.text((x + w - 50, y + 55), "▶ BGM: 프리스타일 - Y", fill=(180, 83, 9), font=get_font(13, bold=True), anchor="rm")
+    draw.text((x + w - 50, y + 55), "▶ BGM: 새벽 2시의 다이어리", fill=(180, 83, 9), font=get_font(13, bold=True), anchor="rm")
 
     # 미니룸 캔버스
     draw.rounded_rectangle([x + 35, y + 85, x + w - 35, y + 400], radius=14, fill=(254, 215, 170))
@@ -176,10 +176,10 @@ def render_ss3(draw, x, y, w, h):
     draw.text((x + 40, y + 60), "미니홈피 대표곡을 설정하면 사운드웨이브가 재생됩니다", fill=(100, 116, 139), font=font_sm)
 
     tracks = [
-        ("Y (Please Tell Me Why)", "프리스타일 (2004)", True),
-        ("Fly (feat. Amin. J)", "에픽하이 (2005)", False),
-        ("사랑했나봐", "윤도현 (2005)", False),
-        ("She Is", "클래지콰이 (2005)", False),
+        ("새벽 2시의 다이어리 (Lo-Fi)", "미니룸 스튜디오 (2004)", True),
+        ("오렌지빛 미니룸 (Y2K Lounge)", "도트 비트 (2005)", False),
+        ("그 시절, 너에게 (Acoustic)", "레트로 소년 (2005)", False),
+        ("도토리로 산 추억 (Music Box)", "오르골 밴드 (2003)", False),
     ]
     ty = y + 95
     for title, artist, is_curr in tracks:
@@ -199,7 +199,7 @@ def main():
     generate_logo()
     generate_screenshot("screenshot_1.png", "MINIROOM", "나만의 도트 미니룸 & 홈피", "그 시절 우리가 사랑했던 레트로 감성 공간", render_ss1)
     generate_screenshot("screenshot_2.png", "인테리어", "도트 캐릭터 & 가구 소품 꾸미기", "CRT 모니터·턴테이블·곰인형으로 나만의 방 완성", render_ss2)
-    generate_screenshot("screenshot_3.png", "BGM", "추억의 감성 BGM 주크박스", "프리스타일 Y·에픽하이 Fly 명곡 감성 소환", render_ss3)
+    generate_screenshot("screenshot_3.png", "BGM", "감성 Lo-Fi & 레트로 BGM", "새벽 2시의 다이어리·오렌지빛 미니룸 8선", render_ss3)
     print("🎉 All Miniroom assets generated successfully!")
 
 if __name__ == "__main__":
