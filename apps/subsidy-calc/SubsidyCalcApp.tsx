@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { TossHeader, TossCard, TossButton, TossBadge, RewardedAdModal, TossPayModal } from "@shared/index";
-import { Search, CheckCircle2, ExternalLink, FileText, ArrowRight, Wallet, Check } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { TossCard, TossButton, TossBadge, RewardedAdModal, TossPayModal } from "@shared/index";
+import { Search, CheckCircle2, ExternalLink, FileText, ArrowRight, Wallet, Check, ChevronLeft } from "lucide-react";
 import confetti from "canvas-confetti";
 
 interface SubsidyCalcAppProps {
@@ -141,23 +141,69 @@ export const SubsidyCalcApp: React.FC<SubsidyCalcAppProps> = ({ onBack }) => {
   const [adModalOpen, setAdModalOpen] = useState(false);
   const [payModalOpen, setPayModalOpen] = useState(false);
 
+  useEffect(() => {
+    // 토스 네이티브 내비게이션 바 뒤로가기 버튼과 브라우저 히스토리 스택 동기화
+    try {
+      window.history.replaceState({ step: 1 }, "");
+    } catch {}
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state && typeof e.state.step === "number") {
+        setStep(e.state.step);
+      } else {
+        setStep(1);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const goToStep = (nextStep: number) => {
+    try {
+      window.history.pushState({ step: nextStep }, "");
+    } catch {}
+    setStep(nextStep);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleDiagnose = () => {
     const matched = SUBSIDIES.filter((sub) => sub.isEligible(ageGroup, jobStatus, incomeRange));
     setResults(matched);
-    setStep(3);
+    goToStep(3);
     confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
   };
 
   return (
     <div className="min-h-screen bg-toss-bg pb-24">
-      <TossHeader
-        title="지원금 모의 계산기"
-        subtitle="맞춤 정부지원금 모의 계산 및 자가진단"
-        onBack={onBack}
-        rightAction={<TossBadge variant="green">최신 복지 기준</TossBadge>}
-      />
+      {/* 로컬 포털 테스트베드 환경에서만 뒤로가기 보조 바 노출 (토스 실제 인앱 환경에서는 완전히 제거) */}
+      {onBack && (
+        <div className="bg-slate-100 px-4 py-2 flex items-center justify-between text-xs text-slate-600 border-b border-slate-200">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1 font-bold text-slate-700 hover:text-black cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>포털 허브로 돌아가기</span>
+          </button>
+          <span className="text-[10px] text-slate-400">개발자 모드</span>
+        </div>
+      )}
 
       <div className="p-4 space-y-4 max-w-lg mx-auto">
+        {/* 상단 서비스 헤딩 (토스 검수 기준 준수: 네이티브 내비게이션 바와 중복되는 헤더 및 백버튼 완전 제거) */}
+        <div className="pt-2 pb-1 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-black text-toss-text tracking-tight">
+              맞춤 정부지원금 모의 계산
+            </h1>
+            <p className="text-xs text-toss-muted mt-0.5">
+              연령·소득 조건에 따른 예상 복지 수혜금 1분 자가진단
+            </p>
+          </div>
+          <TossBadge variant="green">최신 복지 기준</TossBadge>
+        </div>
+
         {step < 3 ? (
           <TossCard
             title="1분 맞춤 조건 선택"
@@ -213,7 +259,7 @@ export const SubsidyCalcApp: React.FC<SubsidyCalcAppProps> = ({ onBack }) => {
                   </div>
                 </div>
 
-                <TossButton variant="primary" onClick={() => setStep(2)}>
+                <TossButton variant="primary" onClick={() => goToStep(2)}>
                   다음 단계 (소득 선택)
                 </TossButton>
               </div>
@@ -249,7 +295,17 @@ export const SubsidyCalcApp: React.FC<SubsidyCalcAppProps> = ({ onBack }) => {
                 </div>
 
                 <div className="flex gap-2">
-                  <TossButton variant="secondary" onClick={() => setStep(1)} className="w-1/3">
+                  <TossButton
+                    variant="secondary"
+                    onClick={() => {
+                      if (window.history.length > 1) {
+                        window.history.back();
+                      } else {
+                        goToStep(1);
+                      }
+                    }}
+                    className="w-1/3"
+                  >
                     이전
                   </TossButton>
                   <TossButton variant="primary" onClick={handleDiagnose} className="w-2/3">
@@ -276,7 +332,7 @@ export const SubsidyCalcApp: React.FC<SubsidyCalcAppProps> = ({ onBack }) => {
                 </span>
               </div>
               <button
-                onClick={() => setStep(1)}
+                onClick={() => goToStep(1)}
                 className="text-[11px] font-bold text-toss-blue hover:underline whitespace-nowrap shrink-0"
               >
                 변경
@@ -313,7 +369,7 @@ export const SubsidyCalcApp: React.FC<SubsidyCalcAppProps> = ({ onBack }) => {
                   조건을 변경하여 다시 진단해 보세요.
                 </p>
                 <div className="mt-4">
-                  <TossButton variant="secondary" size="sm" onClick={() => setStep(1)}>
+                  <TossButton variant="secondary" size="sm" onClick={() => goToStep(1)}>
                     조건 다시 선택하기
                   </TossButton>
                 </div>
@@ -418,7 +474,7 @@ export const SubsidyCalcApp: React.FC<SubsidyCalcAppProps> = ({ onBack }) => {
 
             <button
               onClick={() => {
-                setStep(1);
+                goToStep(1);
                 setResults([]);
               }}
               className="w-full text-center text-xs text-toss-muted hover:underline py-2"

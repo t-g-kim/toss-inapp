@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
-  TossHeader,
   TossCard,
   TossButton,
   TossBadge,
@@ -321,25 +320,43 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
 
   return (
     <div className="min-h-screen bg-toss-bg pb-24 w-full max-w-md mx-auto overflow-x-hidden">
-      <TossHeader
-        title="가상 PC 조립 견적"
-        subtitle="실시간 호환성 & 게임 벤치마크"
-        onBack={onBack}
-        rightAction={
+      {/* 로컬 포털 테스트베드 환경에서만 뒤로가기 보조 바 노출 (토스 실제 인앱 환경에서는 완전히 제거) */}
+      {onBack && (
+        <div className="bg-slate-100 px-4 py-2 flex items-center justify-between text-xs text-slate-600 border-b border-slate-200">
           <button
-            onClick={handleSyncCatalog}
-            disabled={isSyncingCatalog}
-            className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-toss-blue border border-blue-200/80 rounded-full text-[11px] font-bold transition active:scale-95 shadow-2xs cursor-pointer shrink-0"
-            title="실시간 부품 시세 동기화"
+            onClick={onBack}
+            className="flex items-center gap-1 font-bold text-slate-700 hover:text-black cursor-pointer"
           >
-            <Sparkles className={`w-3 h-3 text-toss-blue ${isSyncingCatalog ? "animate-spin" : ""}`} />
-            <span className="whitespace-nowrap">{isSyncingCatalog ? "동기화 중..." : `${catalogSyncDate} 시세`}</span>
+            <ChevronLeft className="w-4 h-4" />
+            <span>포털 허브로 돌아가기</span>
           </button>
-        }
-      />
+          <span className="text-[10px] text-slate-400">개발자 모드</span>
+        </div>
+      )}
 
-      {/* Top 4-Tab Navigator */}
-      <div className="sticky top-14 z-30 bg-white/90 backdrop-blur-md border-b border-toss-border/80 px-2 sm:px-4 py-2">
+      {/* 상단 서비스 헤딩 & 시세 동기화 (토스 검수 기준 준수: 네이티브 내비게이션 바와 중복되는 헤더 완전 제거) */}
+      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-black text-toss-text tracking-tight">
+            가상 PC 조립 견적
+          </h1>
+          <p className="text-xs text-toss-muted mt-0.5">
+            실시간 부품 호환성 진단 & 게임 FPS 벤치마크
+          </p>
+        </div>
+        <button
+          onClick={handleSyncCatalog}
+          disabled={isSyncingCatalog}
+          className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-toss-blue border border-blue-200/80 rounded-full text-[11px] font-bold transition active:scale-95 shadow-2xs cursor-pointer shrink-0"
+          title="실시간 부품 시세 동기화"
+        >
+          <Sparkles className={`w-3 h-3 text-toss-blue ${isSyncingCatalog ? "animate-spin" : ""}`} />
+          <span className="whitespace-nowrap">{isSyncingCatalog ? "동기화 중..." : `${catalogSyncDate} 시세`}</span>
+        </button>
+      </div>
+
+      {/* Top 4-Tab Navigator (sticky at top-0 under native navigation bar) */}
+      <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-toss-border/80 px-2 sm:px-4 py-2">
         <div className="grid grid-cols-4 gap-1 p-1 bg-toss-bg rounded-2xl max-w-md mx-auto">
           {[
             { id: "build", label: "부품 조립", icon: <Layers className="w-3.5 h-3.5 shrink-0" /> },
