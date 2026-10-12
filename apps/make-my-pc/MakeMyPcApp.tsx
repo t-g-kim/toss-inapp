@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   TossHeader,
   TossCard,
@@ -12,6 +12,7 @@ import {
   PARTS,
   PRESET_BUILDS,
   PartOption,
+  SUB_CATEGORIES,
   getPurchaseLinks,
   DEFAULT_CATALOG_DATE,
   USER_COUPANG_PARTNERS_URL,
@@ -49,9 +50,126 @@ import {
   Crown,
   Layers,
   Wrench,
+  ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import confetti from "canvas-confetti";
+
+/**
+ * 터치 스와이프, 마우스 휠 가로스크롤, 마우스 드래그 스크롤, 요소 자동 스크롤을 완벽 지원하는 훅
+ */
+function useHorizontalScroll<T extends HTMLElement = HTMLDivElement>() {
+  const containerRef = useRef<T>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const draggedRef = useRef(false);
+
+  const updateScrollState = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 4);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    // 마우스 휠 가로 변환 (passive: false로 페이지 세로 스크롤 가로채기)
+    const handleWheel = (e: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth) return;
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) || e.deltaX !== 0) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY !== 0 ? e.deltaY : e.deltaX;
+        updateScrollState();
+      }
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    el.addEventListener("scroll", updateScrollState, { passive: true });
+    window.addEventListener("resize", updateScrollState);
+
+    // 초기 마운트 및 폰트 로드 후 계산
+    updateScrollState();
+    const t = setTimeout(updateScrollState, 150);
+
+    return () => {
+      clearTimeout(t);
+      el.removeEventListener("wheel", handleWheel);
+      el.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, [updateScrollState]);
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    const el = containerRef.current;
+    if (!el) return;
+    isDraggingRef.current = true;
+    draggedRef.current = false;
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    const el = containerRef.current;
+    if (!el) return;
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXRef.current) * 1.2;
+    if (Math.abs(walk) > 4) {
+      draggedRef.current = true;
+    }
+    el.scrollLeft = scrollLeftRef.current - walk;
+    updateScrollState();
+  };
+
+  const onMouseUp = () => {
+    isDraggingRef.current = false;
+  };
+
+  const onMouseLeave = () => {
+    isDraggingRef.current = false;
+  };
+
+  const scrollByAmount = (amount: number) => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: amount, behavior: "smooth" });
+    setTimeout(updateScrollState, 250);
+  };
+
+  const scrollToElement = (targetId: string) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const target = el.querySelector(`[data-scroll-id="${targetId}"]`) as HTMLElement | null;
+    if (target) {
+      const targetLeft = target.offsetLeft - el.clientWidth / 2 + target.clientWidth / 2;
+      el.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
+      setTimeout(updateScrollState, 250);
+    }
+  };
+
+  return {
+    ref: containerRef,
+    canScrollLeft,
+    canScrollRight,
+    scrollLeft: () => scrollByAmount(-200),
+    scrollRight: () => scrollByAmount(200),
+    scrollToElement,
+    updateScrollState,
+    wasDragged: () => draggedRef.current,
+    containerProps: {
+      onMouseDown,
+      onMouseMove,
+      onMouseUp,
+      onMouseLeave,
+    },
+  };
+}
 
 interface MakeMyPcAppProps {
   onBack?: () => void;
@@ -60,6 +178,11 @@ interface MakeMyPcAppProps {
 export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
   const [activeTab, setActiveTab] = useState<"build" | "view3d" | "bench" | "quote">("build");
   const [activeCategory, setActiveCategory] = useState<keyof BuildState>("cpu");
+  const [activeSubCategory, setActiveSubCategory] = useState<string>("all");
+  
+  const categoryScroll = useHorizontalScroll<HTMLDivElement>();
+  const subCategoryScroll = useHorizontalScroll<HTMLDivElement>();
+
   const [build, setBuild] = useState<BuildState>(PRESET_BUILDS[0].parts);
   const [benchRunning, setBenchRunning] = useState(false);
   const [benchProgress, setBenchProgress] = useState(0);
@@ -92,6 +215,26 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
       alert("⚡ 다나와 최저가 및 쿠팡 파트너스 최신 시세가 정상 동기화되었습니다!");
     }, 600);
   };
+
+  const handleSelectCategory = (k: keyof BuildState) => {
+    setActiveCategory(k);
+    setActiveSubCategory("all");
+  };
+
+  // activeCategory 바뀔 때 해당 카테고리 칩으로 자동 스크롤
+  useEffect(() => {
+    categoryScroll.scrollToElement(activeCategory);
+  }, [activeCategory]);
+
+  // activeSubCategory 바뀔 때 해당 서브 카테고리 칩으로 자동 스크롤
+  useEffect(() => {
+    subCategoryScroll.scrollToElement(activeSubCategory);
+  }, [activeSubCategory]);
+
+  const subCategories = SUB_CATEGORIES[activeCategory] || [{ id: "all", label: "전체", filter: () => true }];
+  const activeSubDef = subCategories.find((s) => s.id === activeSubCategory) || subCategories[0];
+  const allCategoryOptions = PARTS[activeCategory]?.options || [];
+  const filteredCategoryOptions = allCategoryOptions.filter(activeSubDef.filter);
 
   const totalPrice = calculateTotalPrice(build);
   const issues = checkCompatibility(build);
@@ -312,37 +455,178 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
               <Pc3DViewer build={build} height={250} />
             </div>
 
-            {/* Category Selector Chips */}
-            <div className="w-full max-w-full overflow-hidden">
-              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                {KEYS.map((k) => {
-                  const opt = getPartOption(k, build[k]);
-                  const isSelected = activeCategory === k;
-                  return (
-                    <button
-                      key={k}
-                      onClick={() => setActiveCategory(k)}
-                      className={`px-3 py-2 rounded-xl text-xs font-bold shrink-0 whitespace-nowrap transition ${
-                        isSelected
-                          ? "bg-toss-blue text-white shadow-sm"
-                          : "bg-white text-toss-subtext border border-toss-border hover:bg-gray-50"
-                      }`}
-                    >
-                      <span className="whitespace-nowrap">{SHORT_LABEL[k]}</span>
-                      {opt && <span className="ml-1 opacity-80 text-[10px] whitespace-nowrap">✓</span>}
-                    </button>
-                  );
-                })}
+            {/* Category Selector with Drag, Wheel, Navigation Buttons & Fade Indicators */}
+            <div className="space-y-2">
+              {/* Header with Title and Left/Right Nav Buttons */}
+              <div className="flex items-center justify-between px-0.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-toss-text flex items-center gap-1">
+                    <Layers className="w-3.5 h-3.5 text-toss-blue shrink-0" />
+                    <span>부품 카테고리 ({KEYS.indexOf(activeCategory) + 1}/{KEYS.length})</span>
+                  </span>
+                  <span className="text-[11px] font-semibold text-toss-blue bg-blue-50 px-2 py-0.5 rounded-full">
+                    {SHORT_LABEL[activeCategory]}
+                  </span>
+                </div>
+                {/* Desktop/Touch Navigation Arrows */}
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={categoryScroll.scrollLeft}
+                    disabled={!categoryScroll.canScrollLeft}
+                    className={`w-6 h-6 rounded-full border flex items-center justify-center transition cursor-pointer ${
+                      categoryScroll.canScrollLeft
+                        ? "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95 shadow-2xs"
+                        : "bg-gray-100/60 text-gray-300 border-transparent cursor-not-allowed"
+                    }`}
+                    aria-label="이전 카테고리"
+                    title="이전 카테고리"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5 shrink-0" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={categoryScroll.scrollRight}
+                    disabled={!categoryScroll.canScrollRight}
+                    className={`w-6 h-6 rounded-full border flex items-center justify-center transition cursor-pointer ${
+                      categoryScroll.canScrollRight
+                        ? "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95 shadow-2xs"
+                        : "bg-gray-100/60 text-gray-300 border-transparent cursor-not-allowed"
+                    }`}
+                    aria-label="다음 카테고리"
+                    title="다음 카테고리"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                  </button>
+                </div>
               </div>
+
+              {/* Main Category Chips Scroll Container */}
+              <div className="relative group w-full">
+                {categoryScroll.canScrollLeft && (
+                  <div className="absolute left-0 top-0 bottom-0 w-5 bg-gradient-to-r from-toss-bg to-transparent pointer-events-none z-10" />
+                )}
+                {categoryScroll.canScrollRight && (
+                  <div className="absolute right-0 top-0 bottom-0 w-5 bg-gradient-to-l from-toss-bg to-transparent pointer-events-none z-10" />
+                )}
+
+                <div
+                  ref={categoryScroll.ref}
+                  {...categoryScroll.containerProps}
+                  className="flex gap-1.5 overflow-x-auto pb-1 px-0.5 scrollbar-none touch-pan-x cursor-grab active:cursor-grabbing select-none"
+                  style={{ WebkitOverflowScrolling: "touch" }}
+                >
+                  {KEYS.map((k) => {
+                    const opt = getPartOption(k, build[k]);
+                    const isSelected = activeCategory === k;
+                    const count = (PARTS[k]?.options || []).length;
+                    return (
+                      <button
+                        key={k}
+                        data-scroll-id={k}
+                        type="button"
+                        onClick={() => {
+                          if (categoryScroll.wasDragged()) return;
+                          handleSelectCategory(k);
+                        }}
+                        className={`px-3 py-2 rounded-xl text-xs font-bold shrink-0 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 ${
+                          isSelected
+                            ? "bg-toss-blue text-white shadow-sm ring-2 ring-blue-200"
+                            : "bg-white text-toss-subtext border border-toss-border hover:bg-gray-50"
+                        }`}
+                      >
+                        <span className="whitespace-nowrap">{SHORT_LABEL[k]}</span>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                            isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                        {opt && <span className="ml-0.5 opacity-90 text-[10px] whitespace-nowrap">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Sub-Category Filter Chips (하위 카테고리) */}
+              {subCategories.length > 1 && (
+                <div className="relative w-full">
+                  {subCategoryScroll.canScrollLeft && (
+                    <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-toss-bg to-transparent pointer-events-none z-10" />
+                  )}
+                  {subCategoryScroll.canScrollRight && (
+                    <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-toss-bg to-transparent pointer-events-none z-10" />
+                  )}
+
+                  <div
+                    ref={subCategoryScroll.ref}
+                    {...subCategoryScroll.containerProps}
+                    className="flex items-center gap-1.5 overflow-x-auto pb-1 px-0.5 scrollbar-none touch-pan-x cursor-grab active:cursor-grabbing select-none"
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    <span className="text-[10px] font-bold text-gray-400 shrink-0 whitespace-nowrap mr-0.5">
+                      하위 분류:
+                    </span>
+                    {subCategories.map((sub) => {
+                      const isSubActive =
+                        activeSubCategory === sub.id || (activeSubCategory === "all" && sub.id === "all");
+                      const subCount = allCategoryOptions.filter(sub.filter).length;
+                      return (
+                        <button
+                          key={sub.id}
+                          data-scroll-id={sub.id}
+                          type="button"
+                          onClick={() => {
+                            if (subCategoryScroll.wasDragged()) return;
+                            setActiveSubCategory(sub.id);
+                          }}
+                          className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold shrink-0 whitespace-nowrap transition cursor-pointer flex items-center gap-1 ${
+                            isSubActive
+                              ? "bg-slate-900 text-white shadow-xs"
+                              : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200/80"
+                          }`}
+                        >
+                          <span className="whitespace-nowrap">{sub.label}</span>
+                          <span
+                            className={`text-[9px] px-1 rounded-full ${
+                              isSubActive ? "bg-white/20 text-white" : "bg-gray-100 text-gray-400"
+                            }`}
+                          >
+                            {subCount}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Active Category Options List */}
             <TossCard
-              title={`${PARTS[activeCategory]?.label || ""} 선택`}
-              subtitle="클릭하여 원하는 부품으로 실시간 교체"
+              title={`${PARTS[activeCategory]?.label || ""} 선택 (${filteredCategoryOptions.length}개)`}
+              subtitle={
+                activeSubCategory !== "all"
+                  ? `'${activeSubDef.label}' 필터링 결과입니다.`
+                  : "클릭하여 원하는 부품으로 실시간 교체"
+              }
             >
               <div className="space-y-2 pt-1 text-xs">
-                {(PARTS[activeCategory]?.options || []).map((opt) => {
+                {filteredCategoryOptions.length === 0 ? (
+                  <div className="py-8 text-center text-gray-400">
+                    <p className="text-xs">선택한 하위 카테고리에 해당하는 부품이 없습니다.</p>
+                    <button
+                      type="button"
+                      onClick={() => setActiveSubCategory("all")}
+                      className="mt-2 text-xs text-toss-blue font-bold underline cursor-pointer"
+                    >
+                      전체 부품 보기
+                    </button>
+                  </div>
+                ) : (
+                  filteredCategoryOptions.map((opt) => {
                   const isChecked = build[activeCategory] === opt.id;
                   return (
                     <div
@@ -396,7 +680,8 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                       </div>
                     </div>
                   );
-                })}
+                })
+              )}
               </div>
             </TossCard>
 

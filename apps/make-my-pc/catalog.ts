@@ -53,6 +53,136 @@ export interface PartCategory {
   options: PartOption[];
 }
 
+export interface SubCategoryDef {
+  id: string;
+  label: string;
+  filter: (opt: PartOption) => boolean;
+}
+
+export const SUB_CATEGORIES: Record<string, SubCategoryDef[]> = {
+  case: [
+    { id: "all", label: "전체", filter: () => true },
+    {
+      id: "panoramic",
+      label: "어항/파노라마",
+      filter: (o) =>
+        o.name.includes("어항") ||
+        o.name.includes("파노라마") ||
+        o.name.includes("Vision") ||
+        o.id === "case3" ||
+        o.id === "case4" ||
+        o.id === "case8" ||
+        o.id === "case10" ||
+        o.id === "case11" ||
+        o.id === "case13",
+    },
+    {
+      id: "mesh",
+      label: "메쉬/쿨링특화",
+      filter: (o) =>
+        o.name.includes("메쉬") ||
+        o.name.includes("MESH") ||
+        o.id === "case5" ||
+        o.id === "case6" ||
+        o.id === "case9" ||
+        o.id === "case7",
+    },
+    {
+      id: "mini",
+      label: "컴팩트 미니타워",
+      filter: (o) =>
+        o.name.includes("미니타워") ||
+        (Array.isArray(o.form) ? o.form.length === 1 && o.form[0] === "mATX" : o.form === "mATX"),
+    },
+    {
+      id: "middle",
+      label: "표준 미들/빅타워",
+      filter: (o) =>
+        o.name.includes("미들타워") ||
+        o.name.includes("빅타워") ||
+        o.id === "case2" ||
+        o.id === "case9" ||
+        o.id === "case3" ||
+        o.id === "case12",
+    },
+    { id: "premium", label: "감성/하이엔드 (10만원대~)", filter: (o) => o.price >= 100000 },
+  ],
+  cpu: [
+    { id: "all", label: "전체", filter: () => true },
+    { id: "amd", label: "AMD 라이젠", filter: (o) => o.name.includes("Ryzen") },
+    { id: "intel", label: "Intel 인텔", filter: (o) => o.name.includes("Core") },
+    { id: "x3d", label: "3D V-Cache 게이밍", filter: (o) => o.name.includes("X3D") },
+    { id: "budget", label: "가성비 (10~20만원대)", filter: (o) => o.price <= 250000 },
+    { id: "high", label: "고성능 (30만원대~)", filter: (o) => o.price > 250000 },
+  ],
+  gpu: [
+    { id: "all", label: "전체", filter: () => true },
+    { id: "nvidia", label: "NVIDIA 지포스", filter: (o) => o.name.includes("GeForce") },
+    { id: "amd", label: "AMD 라데온", filter: (o) => o.name.includes("Radeon") },
+    { id: "fhd", label: "FHD 가성비 (≤55만)", filter: (o) => o.price > 0 && o.price <= 550000 },
+    { id: "qhd", label: "QHD 메인스트림", filter: (o) => o.price > 550000 && o.price <= 1000000 },
+    { id: "flagship", label: "4K 플래그십 (100만~)", filter: (o) => o.price > 1000000 },
+    { id: "igpu", label: "내장 그래픽", filter: (o) => o.price === 0 },
+  ],
+  mb: [
+    { id: "all", label: "전체", filter: () => true },
+    { id: "am5", label: "AM5 (라이젠 7000/9000)", filter: (o) => o.socket === "AM5" },
+    { id: "lga1700", label: "LGA1700 (인텔 12~14세대)", filter: (o) => o.socket === "LGA1700" },
+    { id: "am4", label: "AM4 (라이젠 5000)", filter: (o) => o.socket === "AM4" },
+    { id: "lga1851", label: "LGA1851 (인텔 울트라)", filter: (o) => o.socket === "LGA1851" },
+    { id: "ddr5", label: "DDR5 전용", filter: (o) => o.mem === "DDR5" },
+    { id: "ddr4", label: "DDR4 가성비", filter: (o) => o.mem === "DDR4" },
+    { id: "atx", label: "ATX 표준규격", filter: (o) => o.form === "ATX" },
+    { id: "matx", label: "mATX 컴팩트", filter: (o) => o.form === "mATX" },
+  ],
+  ram: [
+    { id: "all", label: "전체", filter: () => true },
+    { id: "ddr5", label: "DDR5 최신", filter: (o) => o.mem === "DDR5" },
+    { id: "ddr4", label: "DDR4 가성비", filter: (o) => o.mem === "DDR4" },
+    { id: "cap16", label: "16GB 국민구성", filter: (o) => o.name.includes("16GB") },
+    { id: "cap32", label: "32GB 게이밍추천", filter: (o) => o.name.includes("32GB") },
+    { id: "cap64", label: "64GB 대용량작업", filter: (o) => o.name.includes("64GB") },
+    { id: "rgb", label: "튜닝/RGB", filter: (o) => o.name.includes("CL30") || o.name.includes("RGB") },
+  ],
+  storage: [
+    { id: "all", label: "전체", filter: () => true },
+    {
+      id: "pcie4",
+      label: "PCIe 4.0 고속 M.2",
+      filter: (o) =>
+        o.name.includes("PRO") || o.name.includes("P41") || o.name.includes("SN580") || (o.sub || "").includes("PCIe 4.0"),
+    },
+    {
+      id: "pcie3",
+      label: "PCIe 3.0 가성비 NVMe",
+      filter: (o) =>
+        o.name.includes("G2") || o.name.includes("P31") || (o.sub || "").includes("PCIe 3.0"),
+    },
+    { id: "sata", label: "SATA 2.5인치", filter: (o) => (o.sub || "").includes("SATA") },
+    { id: "cap1tb", label: "1TB 표준용량", filter: (o) => o.name.includes("1TB") },
+    { id: "highcap", label: "2TB~4TB 대용량", filter: (o) => o.name.includes("2TB") || o.name.includes("4TB") },
+  ],
+  cooler: [
+    { id: "all", label: "전체", filter: () => true },
+    { id: "air", label: "타워 공랭", filter: (o) => o.type === "air" && o.price > 0 },
+    { id: "aio360", label: "360mm 3열 수랭", filter: (o) => o.type === "aio" && o.rad === 360 },
+    { id: "aio240", label: "240mm 2열 수랭", filter: (o) => o.type === "aio" && o.rad === 240 },
+    { id: "budget", label: "가성비 (3만원대 이하)", filter: (o) => o.price <= 36000 },
+    { id: "bundle", label: "기본 쿨러", filter: (o) => o.price === 0 },
+  ],
+  psu: [
+    { id: "all", label: "전체", filter: () => true },
+    { id: "entry", label: "500W~650W 가성비", filter: (o) => (o.capacity || 0) <= 650 },
+    { id: "gold", label: "750W~850W 골드/ATX3.0", filter: (o) => (o.capacity || 0) >= 750 && (o.capacity || 0) <= 850 },
+    { id: "high", label: "1000W~1300W 플래그십", filter: (o) => (o.capacity || 0) >= 1000 },
+    {
+      id: "seasonic_fsp",
+      label: "시소닉/FSP 명품",
+      filter: (o) => o.name.includes("시소닉") || o.name.includes("FSP"),
+    },
+  ],
+};
+
 export const CATALOG_SYNC_KEY = "toss_make_my_pc_catalog_v1";
 export const DEFAULT_CATALOG_DATE = latestCatalogData?.updatedAt
   ? new Date(latestCatalogData.updatedAt).toISOString().slice(0, 10).replace(/-/g, ".")
