@@ -22,10 +22,19 @@ const COL = {
 };
 
 const CASE_DIMS: Record<string, { w: number; h: number; d: number }> = {
-  case1: { w: 2.0, h: 3.9, d: 3.9 }, // 앱코 미니타워
-  case2: { w: 2.3, h: 4.4, d: 4.3 }, // darkFlash 미들타워
-  case3: { w: 2.6, h: 4.8, d: 4.7 }, // 리안리 O11D EVO 빅타워
+  case1: { w: 2.0, h: 3.9, d: 3.9 }, // 앱코 NCORE 미니타워
+  case5: { w: 2.2, h: 4.3, d: 4.2 }, // 잘만 i3 NEO 미들타워
+  case6: { w: 2.3, h: 4.4, d: 4.3 }, // 마이크로닉스 Master M60 메쉬
+  case2: { w: 2.3, h: 4.4, d: 4.3 }, // darkFlash DK352 미들타워
+  case7: { w: 2.3, h: 4.5, d: 4.4 }, // 앱코 G40 시그니처 화이트
+  case8: { w: 2.4, h: 4.2, d: 4.3 }, // 3RSYS S401 Quiet 어항
   case4: { w: 2.1, h: 3.5, d: 4.4 }, // 존스보 D31 파노라마
+  case9: { w: 2.5, h: 4.6, d: 4.6 }, // darkFlash DLX21 MESH
+  case10: { w: 2.6, h: 4.6, d: 4.6 }, // 안텍 C8 MESH 커브드
+  case11: { w: 2.6, h: 4.5, d: 4.6 }, // 몬텍 KING 95 PRO 어항
+  case3: { w: 2.6, h: 4.8, d: 4.7 }, // 리안리 O11D EVO RGB 빅타워
+  case12: { w: 2.3, h: 4.5, d: 4.4 }, // Fractal Design North 우드
+  case13: { w: 2.6, h: 4.7, d: 4.6 }, // 리안리 O11 Vision 3면 유리
 };
 
 export const Pc3DViewer: React.FC<Pc3DViewerProps> = ({
