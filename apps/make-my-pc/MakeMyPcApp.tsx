@@ -249,7 +249,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
       `[토스 인앱 - 맞춤 PC 견적서]`,
       `📅 견적 일시: ${new Date().toLocaleDateString("ko-KR")}`,
       `⚡ 종합 성능: ${benchResult.overall}점 (${benchResult.tier})`,
-      `🔋 예상 소비전력: ${power.totalTdp}W (권장 파워: ${power.recommendedPsu}W)`,
+      `🔋 예상 소비전력: ${power.draw}W (장착 파워: ${power.capacity}W, ${power.percent}%)`,
       `──────────────────────────`,
       ...KEYS.map((k, idx) => {
         const opt = getPartOption(k, build[k]);
@@ -1017,7 +1017,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                   </div>
                   <div className="bg-slate-800/80 rounded-xl p-2 border border-slate-700">
                     <span className="text-[10px] text-slate-400 block">소비전력</span>
-                    <span className="text-xs font-black text-blue-300">{power.totalTdp}W / {power.recommendedPsu}W</span>
+                    <span className="text-xs font-black text-blue-300">{power.draw}W / {power.capacity}W</span>
                   </div>
                   <div className="bg-slate-800/80 rounded-xl p-2 border border-slate-700">
                     <span className="text-[10px] text-slate-400 block">선택 부품</span>

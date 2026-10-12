@@ -9,6 +9,7 @@ import {
   Sparkles,
   Eye,
   Sliders,
+  Monitor,
 } from "lucide-react";
 import { BuildState, getPartOption, checkCompatibility } from "./engine";
 
@@ -60,6 +61,7 @@ export const Pc3DViewer: React.FC<Pc3DViewerProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [autoRotate, setAutoRotate] = useState(true);
+  const [webGlError, setWebGlError] = useState(false);
   const autoRotateRef = useRef(autoRotate);
   autoRotateRef.current = autoRotate;
 
@@ -684,7 +686,14 @@ export const Pc3DViewer: React.FC<Pc3DViewerProps> = ({
     camera.position.set(5.8, 3.8, 6.4);
     camera.lookAt(0, -0.1, 0);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    } catch (e) {
+      console.warn("WebGL initialization failed:", e);
+      setWebGlError(true);
+      return;
+    }
     renderer.setSize(width, heightPx);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -853,6 +862,17 @@ export const Pc3DViewer: React.FC<Pc3DViewerProps> = ({
     >
       {/* 3D WebGL Canvas */}
       <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+
+      {/* WebGL 미지원/오류 시 세련된 폴백 카드 */}
+      {webGlError && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10 bg-slate-900/95">
+          <Monitor className="w-12 h-12 text-sky-400 mb-2 stroke-[1.5]" />
+          <p className="text-xs font-black text-white">실시간 3D 조립 시뮬레이션</p>
+          <p className="text-[11px] text-slate-400 mt-1 max-w-[240px]">
+            {gpuOpt?.name ? `${gpuOpt.name} · ` : ""}{caseOpt?.name || "고성능 케이스"}
+          </p>
+        </div>
+      )}
 
       {/* 좌측 상단: 장착 부품 스펙 뱃지 */}
       <div className="absolute top-3 left-3 flex flex-col gap-1 pointer-events-none z-10 max-w-[65%]">
