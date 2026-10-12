@@ -19,6 +19,7 @@ import {
 } from "./catalog";
 import { PurchaseModal } from "./PurchaseModal";
 import { Pc3DViewer } from "./Pc3DViewer";
+import { PartThumbnail } from "./PartThumbnail";
 import {
   BuildState,
   KEYS,
@@ -632,12 +633,19 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                     <div
                       key={opt.id}
                       onClick={() => handleSelectPart(activeCategory, opt.id)}
-                      className={`p-3 rounded-2xl border cursor-pointer transition flex items-center justify-between gap-2 min-w-0 ${
+                      className={`p-3 rounded-2xl border cursor-pointer transition flex items-center justify-between gap-3 min-w-0 ${
                         isChecked
-                          ? "border-toss-blue bg-blue-50/50 shadow-sm"
+                          ? "border-toss-blue bg-blue-50/50 shadow-xs ring-1 ring-blue-100"
                           : "border-toss-border bg-white hover:bg-gray-50"
                       }`}
                     >
+                      {/* 부품 실물 썸네일 */}
+                      <PartThumbnail
+                        category={activeCategory}
+                        part={opt}
+                        size={46}
+                      />
+
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <span className="font-bold text-sm text-toss-text truncate whitespace-nowrap">{opt.name}</span>
@@ -955,7 +963,12 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                 {KEYS.map((k) => {
                   const opt = getPartOption(k, build[k]);
                   return (
-                    <div key={k} className="flex items-center justify-between py-1.5 border-b border-gray-100 gap-2 min-w-0">
+                    <div key={k} className="flex items-center justify-between py-2 border-b border-gray-100 gap-2.5 min-w-0">
+                      {opt ? (
+                        <PartThumbnail category={k} part={opt} size={36} />
+                      ) : (
+                        <div className="w-9 h-9 rounded-xl bg-gray-100 shrink-0" />
+                      )}
                       <div className="min-w-0 flex-1">
                         <span className="text-[11px] text-toss-muted block whitespace-nowrap">{SHORT_LABEL[k]}</span>
                         <span className="font-bold text-toss-text truncate block whitespace-nowrap">{opt?.name || "미선택"}</span>
