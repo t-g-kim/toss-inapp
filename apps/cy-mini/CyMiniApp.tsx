@@ -15,6 +15,8 @@ import {
   RETRO_CY_QUOTES,
   DEFAULT_ILCHON_COMMENTS,
   DEFAULT_GUESTBOOK_ENTRIES,
+  FRIEND_MINIROOMS,
+  FriendMiniroom,
   BpmTrack,
   MiniroomTheme,
   MinimiChar,
@@ -51,6 +53,11 @@ import {
   Unlock,
   CornerDownRight,
   CheckCircle2,
+  Waves,
+  Compass,
+  Shuffle,
+  X,
+  ArrowRight,
 } from "lucide-react";
 
 interface CyMiniAppProps {
@@ -108,6 +115,27 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [unlockedVipFont, setUnlockedVipFont] = useState(false);
 
+  // 8. 일촌 파도타기(Surfing) 탐험 상태
+  const [visitingFriend, setVisitingFriend] = useState<FriendMiniroom | null>(null);
+  const [showPadoModal, setShowPadoModal] = useState(false);
+  const [friendsList, setFriendsList] = useState<FriendMiniroom[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("cy_mini_friends_v1");
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return FRIEND_MINIROOMS;
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("cy_mini_friends_v1", JSON.stringify(friendsList));
+      } catch {}
+    }
+  }, [friendsList]);
+
   // 토스 네이티브 내비게이션 바 뒤로가기 버튼과 브라우저 히스토리 스택 동기화
   useEffect(() => {
     try {
@@ -135,12 +163,40 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
     }
   };
 
-  // 파도타기 (TODAY 올리기)
-  const handlePadoRide = () => {
-    setTodayCount((prev) => prev + 1);
-    setTotalCount((prev) => prev + 1);
-    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
-    alert("🌊 파도타기 성공! 방문자 수가 +1 증가했습니다.");
+  // 일촌 파도타기 이동
+  const handleSurfingTo = (friend: FriendMiniroom) => {
+    setVisitingFriend(friend);
+    setShowPadoModal(false);
+    confetti({
+      particleCount: 50,
+      spread: 60,
+      origin: { y: 0.5 },
+      colors: ["#3b82f6", "#06b6d4", "#f97316", "#fbbf24"],
+    });
+  };
+
+  // 랜덤 일촌 파도타기
+  const handleRandomPado = () => {
+    const candidates = friendsList.filter((f) => !visitingFriend || f.id !== visitingFriend.id);
+    const chosen = candidates[Math.floor(Math.random() * candidates.length)] || friendsList[0];
+    handleSurfingTo(chosen);
+  };
+
+  // 다음 일촌으로 파도타기
+  const handleNextPado = () => {
+    if (!visitingFriend) {
+      handleRandomPado();
+      return;
+    }
+    const idx = friendsList.findIndex((f) => f.id === visitingFriend.id);
+    const nextIdx = (idx + 1) % friendsList.length;
+    handleSurfingTo(friendsList[nextIdx]);
+  };
+
+  // 내 미니룸으로 복귀
+  const handleBackToMyHome = () => {
+    setVisitingFriend(null);
+    confetti({ particleCount: 40, spread: 50, origin: { y: 0.6 } });
   };
 
   // 소품 토글
@@ -150,7 +206,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
     );
   };
 
-  // 방명록 등록 (★ 키포인트 기능)
+  // 방명록 등록 (내 미니홈피 or 방문한 친구 미니홈피)
   const handleAddGuestbook = (e: React.FormEvent) => {
     e.preventDefault();
     if (!gbContent.trim()) {
@@ -158,14 +214,20 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
       return;
     }
 
-    const nextNo = (guestbookEntries[0]?.no || 0) + 1;
+    if (visitingFriend && gbSendEgg && eggCount < 1) {
+      alert("보유한 오리알이 부족해요! 하단 오리알 무료 충전소에서 충전 후 선물해주세요 🥚");
+      return;
+    }
+
+    const targetList = visitingFriend ? visitingFriend.guestbook : guestbookEntries;
+    const nextNo = (targetList[0]?.no || 0) + 1;
     const now = new Date();
     const formattedDate = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
     const newEntry: GuestbookEntry = {
       id: `gb_${Date.now()}`,
       no: nextNo,
-      author: gbAuthor.trim() || "익명 일촌",
+      author: gbAuthor.trim() || nickname || "파도타기 손님",
       ilchonRelation: gbRelation,
       avatarType: gbAvatar,
       content: gbContent.trim(),
@@ -175,32 +237,76 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
       sticker: gbSticker,
     };
 
-    setGuestbookEntries((prev) => [newEntry, ...prev]);
-    if (gbSendEgg) {
-      setEggCount((prev) => prev + 1);
+    if (visitingFriend) {
+      // 방문한 친구의 방명록에 등록
+      const updatedFriend: FriendMiniroom = {
+        ...visitingFriend,
+        todayCount: visitingFriend.todayCount + 1,
+        guestbook: [newEntry, ...visitingFriend.guestbook],
+      };
+      setVisitingFriend(updatedFriend);
+      setFriendsList((prev) =>
+        prev.map((f) => (f.id === visitingFriend.id ? updatedFriend : f))
+      );
+      if (gbSendEgg) {
+        setEggCount((prev) => Math.max(0, prev - 1));
+      }
+      setGbContent("");
+      confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
+      alert(`🎉 ${visitingFriend.ownerName} 님의 방명록에 등록되었습니다! ${gbSendEgg ? "(오리알 1개 선물 🥚)" : ""}`);
+    } else {
+      // 내 방명록에 등록
+      setGuestbookEntries((prev) => [newEntry, ...prev]);
+      if (gbSendEgg) {
+        setEggCount((prev) => prev + 1);
+      }
+      setGbContent("");
+      confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+      alert("🎉 방명록이 등록되었습니다!");
     }
-    setGbContent("");
-    confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
-    alert("🎉 방명록이 등록되었습니다!");
   };
 
   // 방명록 주인장 답글 등록
   const handleAddReply = (entryId: string) => {
     if (!replyInputText.trim()) return;
-    setGuestbookEntries((prev) =>
-      prev.map((item) =>
+
+    if (visitingFriend) {
+      const updatedList = visitingFriend.guestbook.map((item) =>
         item.id === entryId
           ? {
               ...item,
               reply: {
-                author: "주인장",
+                author: visitingFriend.ownerName,
                 content: replyInputText.trim(),
                 createdAt: "방금 전",
               },
             }
           : item
-      )
-    );
+      );
+      const updatedFriend: FriendMiniroom = {
+        ...visitingFriend,
+        guestbook: updatedList,
+      };
+      setVisitingFriend(updatedFriend);
+      setFriendsList((prev) =>
+        prev.map((f) => (f.id === visitingFriend.id ? updatedFriend : f))
+      );
+    } else {
+      setGuestbookEntries((prev) =>
+        prev.map((item) =>
+          item.id === entryId
+            ? {
+                ...item,
+                reply: {
+                  author: "주인장",
+                  content: replyInputText.trim(),
+                  createdAt: "방금 전",
+                },
+              }
+            : item
+        )
+      );
+    }
     setReplyTargetId(null);
     setReplyInputText("");
     confetti({ particleCount: 30, spread: 40, origin: { y: 0.6 } });
@@ -301,23 +407,71 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
 
           {/* 파도타기 버튼 */}
           <button
-            onClick={handlePadoRide}
+            onClick={() => setShowPadoModal(true)}
             className="px-3 py-1.5 bg-[#FF7710] hover:bg-[#ea580c] text-white font-black text-xs rounded-xl shadow-xs transition cursor-pointer active:scale-95 flex items-center gap-1"
           >
             <span>🌊 파도타기</span>
           </button>
         </div>
 
+        {/* 파도타기 방문 중 상단 알림 배너 */}
+        {visitingFriend && (
+          <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white p-3 rounded-2xl shadow-sm border border-blue-300/40 flex items-center justify-between gap-2 animate-fade-in">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="px-2 py-0.5 bg-white/20 rounded-full text-[10px] font-black tracking-wide">
+                  🌊 일촌 파도타기 중
+                </span>
+                <span className="font-black text-sm truncate">
+                  {visitingFriend.ownerName} ({visitingFriend.ilchonTitle})
+                </span>
+              </div>
+              <p className="text-[11px] text-blue-100 truncate mt-0.5">
+                "{visitingFriend.intro}"
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={handleNextPado}
+                className="px-2.5 py-1.5 bg-white/20 hover:bg-white/30 text-white font-bold text-xs rounded-xl transition cursor-pointer active:scale-95 whitespace-nowrap"
+                title="다음 친구 방으로 파도타기"
+              >
+                다음 🌊
+              </button>
+              <button
+                type="button"
+                onClick={handleBackToMyHome}
+                className="px-2.5 py-1.5 bg-white text-blue-700 hover:bg-blue-50 font-black text-xs rounded-xl shadow-xs transition cursor-pointer active:scale-95 whitespace-nowrap"
+              >
+                내 홈피 🏠
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* 미니룸 상시 렌더링 뷰어 */}
         <MiniroomViewer
-          theme={selectedTheme}
-          minimi={selectedMinimi}
-          bgm={selectedBgm}
-          moodText={moodText}
-          placedProps={placedProps}
-          todayCount={todayCount}
-          totalCount={totalCount}
-          homeTitle={homeTitle}
+          theme={
+            visitingFriend
+              ? MINIROOM_THEMES.find((t) => t.id === visitingFriend.themeId) || selectedTheme
+              : selectedTheme
+          }
+          minimi={
+            visitingFriend
+              ? MINIMI_CHARS.find((m) => m.id === visitingFriend.minimiId) || selectedMinimi
+              : selectedMinimi
+          }
+          bgm={
+            visitingFriend
+              ? CY_BGMS.find((b) => b.id === visitingFriend.bgmId) || selectedBgm
+              : selectedBgm
+          }
+          moodText={visitingFriend ? visitingFriend.moodText : moodText}
+          placedProps={visitingFriend ? visitingFriend.placedProps : placedProps}
+          todayCount={visitingFriend ? visitingFriend.todayCount : todayCount}
+          totalCount={visitingFriend ? visitingFriend.totalCount : totalCount}
+          homeTitle={visitingFriend ? visitingFriend.homeTitle : homeTitle}
           eggCount={eggCount}
         />
 
@@ -325,7 +479,12 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
         <div className="grid grid-cols-4 gap-1 bg-[#e2e8f0] p-1 rounded-2xl border border-[#cbd5e1]">
           {[
             { id: "home", label: "미니룸", icon: Home },
-            { id: "guestbook", label: "방명록", icon: MessageSquare, badge: guestbookEntries.length },
+            {
+              id: "guestbook",
+              label: "방명록",
+              icon: MessageSquare,
+              badge: visitingFriend ? visitingFriend.guestbook.length : guestbookEntries.length,
+            },
             { id: "room", label: "룸꾸미기", icon: Palette },
             { id: "jukebox", label: "BGM", icon: Music },
           ].map((tab) => {
@@ -358,167 +517,341 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
         {/* --- 탭 1: 홈 / 미니룸 기본 --- */}
         {activeTab === "home" && (
           <div className="space-y-3.5 animate-fade-in">
-            {/* 오늘의 상태 메시지 변경 카드 */}
-            <TossCard
-              title="💬 오늘의 기분 & 말풍선 바꾸기"
-              subtitle="미니룸 속 미니미 머리 위에 띄울 한마디를 골라보세요"
-            >
-              <div className="grid grid-cols-3 gap-1.5 pt-1">
-                {MOOD_PRESETS.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => {
-                      setMoodText(m.status);
-                      confetti({ particleCount: 30, spread: 50, origin: { y: 0.6 } });
-                    }}
-                    className={`p-2 rounded-xl text-left border transition cursor-pointer flex flex-col justify-between ${
-                      moodText === m.status
-                        ? "bg-orange-50 border-orange-400 text-orange-950 shadow-2xs"
-                        : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    <span className="text-lg">{m.emoji}</span>
-                    <span className="text-xs font-extrabold mt-1">{m.label}</span>
-                  </button>
-                ))}
-              </div>
-            </TossCard>
-
-            {/* 방명록 최근 소식 하이라이트 카드 (★ 키포인트 기능 바로가기) */}
-            <TossCard
-              title={`📜 최근 방명록 (${guestbookEntries.length})`}
-              subtitle="일촌들이 남긴 따뜻한 글과 오리알 선물이에요"
-              badge={
-                <TossBadge variant="orange">
-                  새 글 {guestbookEntries.length}개
-                </TossBadge>
-              }
-            >
-              <div className="space-y-2 pt-1">
-                {guestbookEntries.slice(0, 2).map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="p-2.5 bg-amber-50/60 border border-amber-200/80 rounded-xl text-xs space-y-1"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-black text-gray-900">{entry.author}</span>
-                        <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.2 rounded">
-                          {entry.ilchonRelation}
-                        </span>
-                        {entry.duckEggGift ? (
-                          <span className="text-[10px] font-black text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded flex items-center gap-0.5">
-                            <span>🥚</span>
-                            <span>오리알</span>
-                          </span>
-                        ) : null}
-                      </div>
-                      <span className="text-[10px] text-gray-400">{entry.createdAt.slice(5)}</span>
-                    </div>
-                    <p className="text-gray-700 leading-snug line-clamp-1">
-                      {entry.isSecret ? "🔒 비밀글입니다." : entry.content}
-                    </p>
-                  </div>
-                ))}
-
-                <div className="pt-1">
-                  <TossButton
-                    variant="secondary"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => switchTab("guestbook")}
-                  >
-                    <BookOpen className="w-3.5 h-3.5 mr-1 inline" />
-                    <span>방명록 전체보기 & 새 글 쓰기 ({guestbookEntries.length})</span>
-                  </TossButton>
-                </div>
-              </div>
-            </TossCard>
-
-            {/* 한 줄 일촌평 섹션 */}
-            <TossCard
-              title={`💌 한 줄 일촌평 (${ilchonComments.length})`}
-              subtitle="방명록 대신 한 줄로 마음을 전하던 그 시절 일촌평"
-            >
-              {/* 일촌평 입력 폼 */}
-              <form onSubmit={handleAddIlchonComment} className="flex gap-2 mb-3">
-                <input
-                  type="text"
-                  placeholder="닉네임"
-                  value={inputAuthor}
-                  onChange={(e) => setInputAuthor(e.target.value)}
-                  className="w-24 px-2.5 py-2 text-xs border border-gray-300 rounded-xl bg-white focus:outline-hidden focus:border-[#FF7710]"
-                />
-                <input
-                  type="text"
-                  placeholder="일촌평을 남겨주세요 (ex: 퍼가요~♡)"
-                  value={inputContent}
-                  onChange={(e) => setInputContent(e.target.value)}
-                  className="flex-1 px-3 py-2 text-xs border border-gray-300 rounded-xl bg-white focus:outline-hidden focus:border-[#FF7710]"
-                />
-                <button
-                  type="submit"
-                  className="px-3.5 py-2 bg-[#FF7710] hover:bg-[#ea580c] text-white rounded-xl text-xs font-bold transition shrink-0 cursor-pointer"
+            {visitingFriend ? (
+              /* 방문 중인 일촌 홈피 정보 & 액션 카드 */
+              <>
+                <TossCard
+                  title={`🏡 ${visitingFriend.ownerName} 님의 미니홈피`}
+                  subtitle={`일촌 호칭: ${visitingFriend.ilchonTitle} · "${visitingFriend.intro}"`}
+                  badge={<TossBadge variant="blue">방문 중</TossBadge>}
                 >
-                  등록
-                </button>
-              </form>
-
-              {/* 일촌평 리스트 */}
-              <div className="space-y-2">
-                {ilchonComments.map((c) => (
-                  <div
-                    key={c.id}
-                    className="p-2.5 bg-gray-50 border border-gray-200/80 rounded-xl text-xs flex items-start justify-between gap-2"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.2 rounded">
-                          {c.ilchonName}
+                  <div className="space-y-3 pt-1">
+                    <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl text-xs space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-black text-blue-950 flex items-center gap-1">
+                          <span>💬 오늘의 한마디</span>
                         </span>
-                        <span className="font-bold text-gray-900">{c.author}</span>
+                        <span className="text-[10px] text-blue-600 font-bold">
+                          Today {visitingFriend.todayCount} / Total {visitingFriend.totalCount}
+                        </span>
                       </div>
-                      <p className="text-gray-700 leading-snug">{c.content}</p>
+                      <p className="text-gray-800 font-medium">"{visitingFriend.moodText}"</p>
                     </div>
-                    <span className="text-[10px] text-gray-400 shrink-0">{c.time}</span>
+
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => switchTab("guestbook")}
+                        className="p-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black shadow-xs transition cursor-pointer flex flex-col items-center justify-center gap-1 active:scale-95"
+                      >
+                        <BookOpen className="w-4 h-4" />
+                        <span>방명록 쓰기</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleNextPado}
+                        className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-xs transition cursor-pointer flex flex-col items-center justify-center gap-1 active:scale-95"
+                      >
+                        <Waves className="w-4 h-4" />
+                        <span>다음 파도타기</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleBackToMyHome}
+                        className="p-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-black shadow-xs transition cursor-pointer flex flex-col items-center justify-center gap-1 active:scale-95"
+                      >
+                        <Home className="w-4 h-4" />
+                        <span>내 홈피 복귀</span>
+                      </button>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </TossCard>
+                </TossCard>
 
-            {/* 흑백 감성 다이어리 템플릿 카드 */}
-            <TossCard
-              title="📖 흑백 감성 다이어리"
-              subtitle="추억의 Y2K 감성 명문장 템플릿"
-            >
-              <div className="p-4 bg-[#1e293b] text-white rounded-2xl shadow-inner font-serif space-y-2 border border-slate-700">
-                <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-700 pb-2">
-                  <span>2005.10.12 WED</span>
-                  <span>비공개 스크랩 금지</span>
-                </div>
-                <p className="text-sm leading-relaxed text-slate-100 italic py-2 whitespace-pre-line">
-                  "{diaryText}"
-                </p>
-                <div className="text-right text-[11px] text-slate-400">
-                  - {nickname}의 일기장에서 -
-                </div>
-              </div>
+                {/* 친구의 최근 방명록 */}
+                <TossCard
+                  title={`📜 ${visitingFriend.ownerName} 님의 최근 방명록 (${visitingFriend.guestbook.length})`}
+                  subtitle="친구에게 전하고 싶은 말을 남겨보세요!"
+                  badge={
+                    <TossBadge variant="orange">
+                      새 글 {visitingFriend.guestbook.length}개
+                    </TossBadge>
+                  }
+                >
+                  <div className="space-y-2 pt-1">
+                    {visitingFriend.guestbook.slice(0, 2).map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="p-2.5 bg-amber-50/60 border border-amber-200/80 rounded-xl text-xs space-y-1"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-black text-gray-900">{entry.author}</span>
+                            <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.2 rounded">
+                              {entry.ilchonRelation}
+                            </span>
+                            {entry.duckEggGift ? (
+                              <span className="text-[10px] font-black text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                                <span>🥚</span>
+                                <span>오리알</span>
+                              </span>
+                            ) : null}
+                          </div>
+                          <span className="text-[10px] text-gray-400">{entry.createdAt.slice(5)}</span>
+                        </div>
+                        <p className="text-gray-700 leading-snug line-clamp-1">
+                          {entry.isSecret ? "🔒 비밀글입니다." : entry.content}
+                        </p>
+                      </div>
+                    ))}
 
-              <div className="pt-3 space-y-1.5">
-                <h5 className="text-xs font-bold text-gray-700">명문장 랜덤 불러오기</h5>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {RETRO_CY_QUOTES.slice(0, 4).map((q, idx) => (
+                    <div className="pt-1">
+                      <TossButton
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => switchTab("guestbook")}
+                      >
+                        <BookOpen className="w-3.5 h-3.5 mr-1 inline" />
+                        <span>{visitingFriend.ownerName} 님 방명록에 새 글 남기기 ✏️</span>
+                      </TossButton>
+                    </div>
+                  </div>
+                </TossCard>
+
+                {/* 다른 일촌으로 즉시 이동 카드 */}
+                <TossCard
+                  title="🌊 다른 일촌으로 파도타기"
+                  subtitle="다른 친구들의 미니홈피로 바로 건너가보세요!"
+                >
+                  <div className="grid grid-cols-3 gap-1.5 pt-1">
+                    {friendsList
+                      .filter((f) => f.id !== visitingFriend.id)
+                      .map((f) => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onClick={() => handleSurfingTo(f)}
+                          className="p-2 bg-slate-50 hover:bg-orange-50 border border-slate-200 rounded-xl text-center transition cursor-pointer flex flex-col items-center gap-0.5 active:scale-95"
+                        >
+                          <span className="text-base">{f.avatarEmoji}</span>
+                          <span className="text-xs font-black text-gray-800">{f.ownerName}</span>
+                          <span className="text-[10px] text-orange-600 font-bold">{f.ilchonTitle}</span>
+                        </button>
+                      ))}
+                  </div>
+                </TossCard>
+              </>
+            ) : (
+              /* 내 홈피일 때: 기분 변경 & 파도타기 탐험 카드 & 방명록/일촌평/다이어리 */
+              <>
+                <TossCard
+                  title="💬 오늘의 기분 & 말풍선 바꾸기"
+                  subtitle="미니룸 속 미니미 머리 위에 띄울 한마디를 골라보세요"
+                >
+                  <div className="grid grid-cols-3 gap-1.5 pt-1">
+                    {MOOD_PRESETS.map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => {
+                          setMoodText(m.status);
+                          confetti({ particleCount: 30, spread: 50, origin: { y: 0.6 } });
+                        }}
+                        className={`p-2 rounded-xl text-left border transition cursor-pointer flex flex-col justify-between ${
+                          moodText === m.status
+                            ? "bg-orange-50 border-orange-400 text-orange-950 shadow-2xs"
+                            : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <span className="text-lg">{m.emoji}</span>
+                        <span className="text-xs font-extrabold mt-1">{m.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </TossCard>
+
+                {/* ★ 1번: 일촌 파도타기 탐험 카드 */}
+                <TossCard
+                  title="🌊 일촌 파도타기 탐험 (4명의 단짝 일촌)"
+                  subtitle="추억의 일촌들 미니홈피로 파도타기를 떠나 방명록과 오리알을 남겨보세요!"
+                  badge={
                     <button
-                      key={idx}
-                      onClick={() => setDiaryText(q)}
-                      className="p-2 bg-gray-50 hover:bg-orange-50 text-[11px] text-gray-700 rounded-xl border border-gray-200 text-left line-clamp-1 transition cursor-pointer"
+                      onClick={handleRandomPado}
+                      className="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-black transition cursor-pointer flex items-center gap-1 active:scale-95"
                     >
-                      {q.slice(0, 18)}...
+                      <Shuffle className="w-2.5 h-2.5" />
+                      <span>랜덤 파도타기</span>
                     </button>
-                  ))}
-                </div>
-              </div>
-            </TossCard>
+                  }
+                >
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    {friendsList.map((f) => (
+                      <div
+                        key={f.id}
+                        className="p-2.5 bg-gradient-to-br from-slate-50 to-orange-50/30 border border-slate-200/90 rounded-xl flex flex-col justify-between gap-2 hover:border-orange-300 transition"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className="text-base">{f.avatarEmoji}</span>
+                            <div className="min-w-0">
+                              <h4 className="font-black text-xs text-gray-900 truncate">
+                                {f.ownerName}
+                              </h4>
+                              <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1 py-0.2 rounded">
+                                {f.ilchonTitle}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-gray-500 line-clamp-1">"{f.intro}"</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleSurfingTo(f)}
+                          className="w-full py-1 bg-white hover:bg-orange-500 hover:text-white text-orange-700 border border-orange-200 rounded-lg text-[11px] font-black transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs active:scale-95"
+                        >
+                          <span>놀러가기 🌊</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </TossCard>
+
+                {/* 방명록 최근 소식 하이라이트 카드 (★ 키포인트 기능 바로가기) */}
+                <TossCard
+                  title={`📜 최근 방명록 (${guestbookEntries.length})`}
+                  subtitle="일촌들이 남긴 따뜻한 글과 오리알 선물이에요"
+                  badge={
+                    <TossBadge variant="orange">
+                      새 글 {guestbookEntries.length}개
+                    </TossBadge>
+                  }
+                >
+                  <div className="space-y-2 pt-1">
+                    {guestbookEntries.slice(0, 2).map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="p-2.5 bg-amber-50/60 border border-amber-200/80 rounded-xl text-xs space-y-1"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-black text-gray-900">{entry.author}</span>
+                            <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.2 rounded">
+                              {entry.ilchonRelation}
+                            </span>
+                            {entry.duckEggGift ? (
+                              <span className="text-[10px] font-black text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                                <span>🥚</span>
+                                <span>오리알</span>
+                              </span>
+                            ) : null}
+                          </div>
+                          <span className="text-[10px] text-gray-400">{entry.createdAt.slice(5)}</span>
+                        </div>
+                        <p className="text-gray-700 leading-snug line-clamp-1">
+                          {entry.isSecret ? "🔒 비밀글입니다." : entry.content}
+                        </p>
+                      </div>
+                    ))}
+
+                    <div className="pt-1">
+                      <TossButton
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => switchTab("guestbook")}
+                      >
+                        <BookOpen className="w-3.5 h-3.5 mr-1 inline" />
+                        <span>방명록 전체보기 & 새 글 쓰기 ({guestbookEntries.length})</span>
+                      </TossButton>
+                    </div>
+                  </div>
+                </TossCard>
+
+                {/* 한 줄 일촌평 섹션 */}
+                <TossCard
+                  title={`💌 한 줄 일촌평 (${ilchonComments.length})`}
+                  subtitle="방명록 대신 한 줄로 마음을 전하던 그 시절 일촌평"
+                >
+                  {/* 일촌평 입력 폼 */}
+                  <form onSubmit={handleAddIlchonComment} className="flex gap-2 mb-3">
+                    <input
+                      type="text"
+                      placeholder="닉네임"
+                      value={inputAuthor}
+                      onChange={(e) => setInputAuthor(e.target.value)}
+                      className="w-24 px-2.5 py-2 text-xs border border-gray-300 rounded-xl bg-white focus:outline-hidden focus:border-[#FF7710]"
+                    />
+                    <input
+                      type="text"
+                      placeholder="일촌평을 남겨주세요 (ex: 퍼가요~♡)"
+                      value={inputContent}
+                      onChange={(e) => setInputContent(e.target.value)}
+                      className="flex-1 px-3 py-2 text-xs border border-gray-300 rounded-xl bg-white focus:outline-hidden focus:border-[#FF7710]"
+                    />
+                    <button
+                      type="submit"
+                      className="px-3.5 py-2 bg-[#FF7710] hover:bg-[#ea580c] text-white rounded-xl text-xs font-bold transition shrink-0 cursor-pointer"
+                    >
+                      등록
+                    </button>
+                  </form>
+
+                  {/* 일촌평 리스트 */}
+                  <div className="space-y-2">
+                    {ilchonComments.map((c) => (
+                      <div
+                        key={c.id}
+                        className="p-2.5 bg-gray-50 border border-gray-200/80 rounded-xl text-xs flex items-start justify-between gap-2"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.2 rounded">
+                              {c.ilchonName}
+                            </span>
+                            <span className="font-bold text-gray-900">{c.author}</span>
+                          </div>
+                          <p className="text-gray-700 leading-snug">{c.content}</p>
+                        </div>
+                        <span className="text-[10px] text-gray-400 shrink-0">{c.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                </TossCard>
+
+                {/* 흑백 감성 다이어리 템플릿 카드 */}
+                <TossCard
+                  title="📖 흑백 감성 다이어리"
+                  subtitle="추억의 Y2K 감성 명문장 템플릿"
+                >
+                  <div className="p-4 bg-[#1e293b] text-white rounded-2xl shadow-inner font-serif space-y-2 border border-slate-700">
+                    <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-700 pb-2">
+                      <span>2005.10.12 WED</span>
+                      <span>비공개 스크랩 금지</span>
+                    </div>
+                    <p className="text-sm leading-relaxed text-slate-100 italic py-2 whitespace-pre-line">
+                      "{diaryText}"
+                    </p>
+                    <div className="text-right text-[11px] text-slate-400">
+                      - {nickname}의 일기장에서 -
+                    </div>
+                  </div>
+
+                  <div className="pt-3 space-y-1.5">
+                    <h5 className="text-xs font-bold text-gray-700">명문장 랜덤 불러오기</h5>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {RETRO_CY_QUOTES.slice(0, 4).map((q, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setDiaryText(q)}
+                          className="p-2 bg-gray-50 hover:bg-orange-50 text-[11px] text-gray-700 rounded-xl border border-gray-200 text-left line-clamp-1 transition cursor-pointer"
+                        >
+                          {q.slice(0, 18)}...
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </TossCard>
+              </>
+            )}
           </div>
         )}
 
@@ -529,13 +862,17 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
             <div className="p-3.5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl text-white shadow-sm flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="text-sm font-black">📜 추억의 감성 방명록</span>
+                  <span className="text-sm font-black">
+                    {visitingFriend ? `📜 ${visitingFriend.ownerName} 님의 방명록` : "📜 추억의 감성 방명록"}
+                  </span>
                   <span className="px-1.5 py-0.2 bg-white/25 rounded-md text-[10px] font-bold">
-                    총 {guestbookEntries.length}개
+                    총 {(visitingFriend ? visitingFriend.guestbook : guestbookEntries).length}개
                   </span>
                 </div>
                 <p className="text-[11px] text-orange-100 font-medium">
-                  친구들의 방명록과 오리알 선물 도착 목록이에요
+                  {visitingFriend
+                    ? `${visitingFriend.ownerName} 님에게 따뜻한 한마디와 오리알을 남겨주세요`
+                    : "친구들의 방명록과 오리알 선물 도착 목록이에요"}
                 </p>
               </div>
               <div className="px-2.5 py-1 bg-white/20 backdrop-blur-xs rounded-xl text-xs font-black flex items-center gap-1">
@@ -546,8 +883,16 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
 
             {/* 방명록 작성 폼 카드 */}
             <TossCard
-              title="✏️ 방명록 남기기"
-              subtitle="미니홈피 주인장에게 따뜻한 한마디와 오리알을 선물하세요"
+              title={
+                visitingFriend
+                  ? `✏️ ${visitingFriend.ownerName} 님에게 방명록 쓰기`
+                  : "✏️ 방명록 남기기"
+              }
+              subtitle={
+                visitingFriend
+                  ? `${visitingFriend.ilchonTitle} ${visitingFriend.ownerName} 님의 미니홈피에 글을 남겨보세요`
+                  : "미니홈피 주인장에게 따뜻한 한마디와 오리알을 선물하세요"
+              }
             >
               <form onSubmit={handleAddGuestbook} className="space-y-3 pt-1">
                 {/* 닉네임 & 일촌 호칭 */}
@@ -688,7 +1033,11 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                       onChange={(e) => setGbSendEgg(e.target.checked)}
                       className="w-4 h-4 accent-[#FF7710] rounded"
                     />
-                    <span>🥚 오리알 1개 선물하기</span>
+                    <span>
+                      {visitingFriend
+                        ? `🥚 오리알 1개 선물하기 (보유: ${eggCount}개)`
+                        : "🥚 오리알 1개 선물 동봉하기"}
+                    </span>
                   </label>
 
                   <label className="flex items-center gap-1.5 cursor-pointer font-bold text-gray-600">
@@ -705,7 +1054,11 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                 {/* 등록 버튼 */}
                 <TossButton variant="primary" size="md" className="w-full">
                   <Send className="w-4 h-4 mr-1.5 inline" />
-                  <span>방명록 등록하기</span>
+                  <span>
+                    {visitingFriend
+                      ? `${visitingFriend.ownerName} 님에게 방명록 남기기`
+                      : "방명록 등록하기"}
+                  </span>
                 </TossButton>
               </form>
             </TossCard>
@@ -714,12 +1067,13 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <h3 className="text-xs font-black text-gray-800">
-                  방명록 목록 ({guestbookEntries.length})
+                  {visitingFriend ? `${visitingFriend.ownerName} 님의 방명록 목록` : "방명록 목록"} (
+                  {(visitingFriend ? visitingFriend.guestbook : guestbookEntries).length})
                 </h3>
                 <span className="text-[11px] text-gray-400">최신순 정렬</span>
               </div>
 
-              {guestbookEntries.map((entry) => {
+              {(visitingFriend ? visitingFriend.guestbook : guestbookEntries).map((entry) => {
                 const isUnlocked = !entry.isSecret || unlockedSecretIds.includes(entry.id);
                 const avatarIcon =
                   entry.avatarType === "girl"
@@ -1213,6 +1567,172 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
           </TossButton>
         </div>
       </main>
+
+      {/* 일촌 파도타기 (Surfing) 탐험 바텀시트 모달 */}
+      {showPadoModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in"
+          onClick={() => setShowPadoModal(false)}
+        >
+          <div
+            className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[85vh] animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 모달 헤더 */}
+            <div className="p-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <Waves className="w-5 h-5 text-sky-200" />
+                  <h3 className="text-base font-black">🌊 일촌 파도타기 탐험</h3>
+                </div>
+                <p className="text-[11px] text-blue-100 mt-0.5">
+                  친구들의 개성 넘치는 미니홈피로 파도를 타고 떠나보세요!
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPadoModal(false)}
+                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer active:scale-95"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 모달 컨텐츠 */}
+            <div className="p-4 overflow-y-auto space-y-3.5 flex-1">
+              {/* 빠른 액션 버튼: 랜덤 파도타기 & 내 홈피 복귀 */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleRandomPado}
+                  className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-2xl text-xs font-black shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                >
+                  <Shuffle className="w-4 h-4 text-yellow-300" />
+                  <span>🎲 랜덤 파도타기</span>
+                </button>
+
+                {visitingFriend ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleBackToMyHome();
+                      setShowPadoModal(false);
+                    }}
+                    className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl text-xs font-black shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <Home className="w-4 h-4 text-orange-500" />
+                    <span>🏠 내 홈피로 복귀</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const first = friendsList[0];
+                      if (first) handleSurfingTo(first);
+                    }}
+                    className="p-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl text-xs font-black shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                    <span>첫 번째 친구 방문</span>
+                  </button>
+                )}
+              </div>
+
+              {/* 일촌 리스트 목록 */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs font-extrabold text-gray-700 px-1">
+                  <span>추억의 단짝 일촌들 ({friendsList.length}명)</span>
+                  <span className="text-[10px] text-gray-400">클릭 시 즉시 방문</span>
+                </div>
+
+                <div className="space-y-2">
+                  {friendsList.map((f) => {
+                    const isCurrent = visitingFriend?.id === f.id;
+                    const friendTheme = MINIROOM_THEMES.find((t) => t.id === f.themeId);
+
+                    return (
+                      <div
+                        key={f.id}
+                        onClick={() => handleSurfingTo(f)}
+                        className={`p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between gap-3 ${
+                          isCurrent
+                            ? "bg-blue-50/80 border-blue-400 shadow-xs"
+                            : "bg-white hover:bg-orange-50/40 border-gray-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <span className="text-2xl shrink-0 p-1.5 bg-gray-100 rounded-2xl">
+                            {f.avatarEmoji}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-xs font-black text-gray-900 truncate">
+                                {f.ownerName}
+                              </span>
+                              <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.2 rounded-md">
+                                {f.ilchonTitle}
+                              </span>
+                              {isCurrent && (
+                                <span className="text-[10px] font-black text-blue-700 bg-blue-100 px-1.5 py-0.2 rounded-md">
+                                  방문 중 📍
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-gray-600 truncate mt-0.5 font-medium">
+                              "{f.intro}"
+                            </p>
+                            <div className="flex items-center gap-2 text-[10px] text-gray-400 mt-1">
+                              <span>🎨 {friendTheme?.name || "기본 룸"}</span>
+                              <span>·</span>
+                              <span>📜 방명록 {f.guestbook.length}개</span>
+                              <span>·</span>
+                              <span>Today {f.todayCount}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSurfingTo(f);
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer shrink-0 active:scale-95 ${
+                            isCurrent
+                              ? "bg-blue-600 text-white"
+                              : "bg-orange-500 hover:bg-orange-600 text-white shadow-2xs"
+                          }`}
+                        >
+                          {isCurrent ? "구경 중" : "방문 🌊"}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 하단 꿀팁 */}
+              <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed flex items-start gap-1.5">
+                <span className="text-base shrink-0">💡</span>
+                <span>
+                  일촌 미니홈피에 방문하여 <b>[방명록]</b> 탭에서 글을 남기거나 보유한 <b>오리알(🥚)</b>을 선물해보세요! 친구의 방명록에 따뜻한 추억이 기록됩니다.
+                </span>
+              </div>
+            </div>
+
+            {/* 모달 닫기 버튼 */}
+            <div className="p-3 bg-gray-50 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setShowPadoModal(false)}
+                className="w-full py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 보상형 광고 모달 */}
       <RewardedAdModal

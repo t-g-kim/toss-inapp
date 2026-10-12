@@ -242,3 +242,144 @@ export const DEFAULT_GUESTBOOK_ENTRIES: GuestbookEntry[] = [
     sticker: "love",
   },
 ];
+
+export interface FriendMiniroom {
+  id: string;
+  ownerName: string;
+  ilchonTitle: string;
+  homeTitle: string;
+  moodText: string;
+  themeId: string;
+  minimiId: string;
+  bgmId: string;
+  placedProps: string[];
+  todayCount: number;
+  totalCount: number;
+  intro: string;
+  guestbook: GuestbookEntry[];
+}
+
+export const FRIEND_MINIROOMS: FriendMiniroom[] = [
+  {
+    id: "friend_jjanggu",
+    ownerName: "짱구",
+    ilchonTitle: "영혼의 단짝",
+    homeTitle: "†..MC짱구의 힙합 전사 구역..†",
+    moodText: "음악만이 나라가 허락한 유일한 마약 🎧",
+    themeId: "night_cyber",
+    minimiId: "hiphop_dandy",
+    bgmId: "bgm_5",
+    placedProps: ["crt_pc", "turntable", "guitar"],
+    todayCount: 1204,
+    totalCount: 42910,
+    intro: "신발은 팀버랜드, 바지는 힙합 통바지. 일촌평 달면 100% 맞일촌 간다.",
+    guestbook: [
+      {
+        id: "fb_1_1",
+        no: 99,
+        author: "철수",
+        ilchonRelation: "동네 친구",
+        avatarType: "rocker",
+        content: "야 오늘 버즈 신곡 뮤비 봤냐? 민경훈 가죽자켓 미쳤다 ㅋㅋㅋ",
+        createdAt: "2005.10.12 16:20",
+        sticker: "bgm",
+        duckEggGift: 1,
+        reply: { author: "짱구", content: "당연히 봤지 내일 코노에서 가시 부른다", createdAt: "15분 전" },
+      },
+      {
+        id: "fb_1_2",
+        no: 98,
+        author: "유진",
+        ilchonRelation: "기억속 첫사랑",
+        avatarType: "girl",
+        content: "오늘 숙제 뭐였지? 수학 84페이지 맞나? 알려줘!",
+        createdAt: "2005.10.12 13:40",
+        sticker: "hi",
+        duckEggGift: 1,
+      },
+    ],
+  },
+  {
+    id: "friend_yujin",
+    ownerName: "유진",
+    ilchonTitle: "기억속 첫사랑",
+    homeTitle: "🌸 유진이의 핑크빛 다이어리 🌸",
+    moodText: "오늘 하루도 맑음 뒤 설렘 가득..♥",
+    themeId: "strawberry_pink",
+    minimiId: "uniform_girl",
+    bgmId: "bgm_3",
+    placedProps: ["retro_bed", "teddy_bear", "diary_desk"],
+    todayCount: 890,
+    totalCount: 31540,
+    intro: "도서관 자리 맡아줄 사람 구함 ㅎㅎ 들렀다 갈 때 오리알 하나씩 두고 가기!",
+    guestbook: [
+      {
+        id: "fb_2_1",
+        no: 120,
+        author: "소희",
+        ilchonRelation: "절친",
+        avatarType: "cat",
+        content: "유진아 오늘 독서실 끝나고 와플 먹으러 가자! 내가 쏠게 >_<",
+        createdAt: "2005.10.12 15:10",
+        sticker: "love",
+        duckEggGift: 2,
+        reply: { author: "유진", content: "콜!! 딸기 생크림 와플 먹을래 히히", createdAt: "30분 전" },
+      },
+    ],
+  },
+  {
+    id: "friend_chulsoo",
+    ownerName: "철수",
+    ilchonTitle: "락스타 민경훈",
+    homeTitle: "🎸 버즈 민경훈 가시 100만번 완창..🎸",
+    moodText: "ㄴr는 ㄱr끔 눈물을 흘린ㄷr...💧",
+    themeId: "orange_classic",
+    minimiId: "rocker_chic",
+    bgmId: "bgm_2",
+    placedProps: ["guitar", "turntable", "stand_mirror"],
+    todayCount: 560,
+    totalCount: 19800,
+    intro: "홍대 인디 클럽 오디션 D-3. 기타 줄 갈았다. 파도타기 환영!",
+    guestbook: [
+      {
+        id: "fb_3_1",
+        no: 65,
+        author: "짱구",
+        ilchonRelation: "영혼의 단짝",
+        avatarType: "hiphop",
+        content: "철수야 기타 줄 튜닝이나 똑바로 해라 ㅋㅋㅋ 파도타고 왔다 감",
+        createdAt: "2005.10.12 11:00",
+        sticker: "pado",
+        duckEggGift: 1,
+      },
+    ],
+  },
+  {
+    id: "friend_cat",
+    ownerName: "소희",
+    ilchonTitle: "냥집사 동네친구",
+    homeTitle: "🐾 고양이 세 마리와 나른한 오후 🐾",
+    moodText: "골골송 들으며 이불 속 뒹굴뒹굴 🐱",
+    themeId: "sky_blue",
+    minimiId: "cat_pajama",
+    bgmId: "bgm_1",
+    placedProps: ["teddy_bear", "crt_pc", "room_plant"],
+    todayCount: 712,
+    totalCount: 24300,
+    intro: "우리 집 고양이 츄르 대신 오리알 받아요 🥚 오리알 쏘고 소원 빌기!",
+    guestbook: [
+      {
+        id: "fb_4_1",
+        no: 88,
+        author: "익명",
+        ilchonRelation: "랜선 집사",
+        avatarType: "boy",
+        content: "고양이 사진 갤러리에 더 올려주세요 ㅠㅠ 너무 귀여워요",
+        createdAt: "2005.10.12 09:30",
+        sticker: "scrap",
+        duckEggGift: 3,
+        reply: { author: "소희", content: "내일 냥이 낮잠자는 사진 대방출할게요!", createdAt: "2시간 전" },
+      },
+    ],
+  },
+];
