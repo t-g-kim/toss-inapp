@@ -173,7 +173,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 min-w-0 ${
+              className={`py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 min-w-0 overflow-hidden ${
                 activeTab === tab.id
                   ? "bg-white text-toss-text shadow-sm"
                   : "text-toss-muted hover:text-toss-subtext"
@@ -401,7 +401,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             </TossCard>
 
             {/* Bottom Summary Bar */}
-            <div className="bg-white p-4 rounded-2xl border border-toss-border shadow-sm flex items-center justify-between gap-2 min-w-0">
+            <div className="bg-white p-4 rounded-2xl border border-toss-border shadow-sm flex items-center justify-between gap-3 min-w-0">
               <div className="min-w-0 flex-1">
                 <span className="text-xs text-toss-muted block whitespace-nowrap">총 부품 견적 합계</span>
                 <span className="text-lg sm:text-xl font-black text-toss-text whitespace-nowrap">
@@ -411,10 +411,11 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
               <TossButton
                 variant="primary"
                 size="md"
+                fullWidth={false}
                 onClick={() => setActiveTab("bench")}
-                className="whitespace-nowrap shrink-0"
+                className="whitespace-nowrap shrink-0 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl"
               >
-                <Zap className="w-4 h-4 mr-1 inline shrink-0" /> 성능 벤치 실행
+                <Zap className="w-4 h-4 mr-1.5 inline shrink-0" /> 성능 벤치 실행
               </TossButton>
             </div>
           </div>
