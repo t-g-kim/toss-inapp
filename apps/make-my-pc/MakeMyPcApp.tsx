@@ -17,6 +17,7 @@ import {
   USER_COUPANG_PARTNERS_URL,
 } from "./catalog";
 import { PurchaseModal } from "./PurchaseModal";
+import { Pc3DViewer } from "./Pc3DViewer";
 import {
   BuildState,
   KEYS,
@@ -38,6 +39,7 @@ import {
   AlertTriangle,
   Play,
   RotateCcw,
+  Rotate3d,
   Sparkles,
   Gamepad2,
   Receipt,
@@ -56,7 +58,7 @@ interface MakeMyPcAppProps {
 }
 
 export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
-  const [activeTab, setActiveTab] = useState<"build" | "bench" | "quote">("build");
+  const [activeTab, setActiveTab] = useState<"build" | "view3d" | "bench" | "quote">("build");
   const [activeCategory, setActiveCategory] = useState<keyof BuildState>("cpu");
   const [build, setBuild] = useState<BuildState>(PRESET_BUILDS[0].parts);
   const [benchRunning, setBenchRunning] = useState(false);
@@ -156,13 +158,14 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
         }
       />
 
-      {/* Top 3-Tab Navigator */}
-      <div className="sticky top-14 z-30 bg-white/90 backdrop-blur-md border-b border-toss-border/80 px-3 sm:px-4 py-2">
-        <div className="grid grid-cols-3 gap-1 p-1 bg-toss-bg rounded-2xl max-w-md mx-auto">
+      {/* Top 4-Tab Navigator */}
+      <div className="sticky top-14 z-30 bg-white/90 backdrop-blur-md border-b border-toss-border/80 px-2 sm:px-4 py-2">
+        <div className="grid grid-cols-4 gap-1 p-1 bg-toss-bg rounded-2xl max-w-md mx-auto">
           {[
             { id: "build", label: "부품 조립", icon: <Layers className="w-3.5 h-3.5 shrink-0" /> },
+            { id: "view3d", label: "3D 모델", icon: <Rotate3d className="w-3.5 h-3.5 shrink-0" /> },
             { id: "bench", label: "성능 벤치", icon: <Zap className="w-3.5 h-3.5 shrink-0" /> },
-            { id: "quote", label: "견적 영수증", icon: <Receipt className="w-3.5 h-3.5 shrink-0" /> },
+            { id: "quote", label: "견적서", icon: <Receipt className="w-3.5 h-3.5 shrink-0" /> },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -288,6 +291,24 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
               </div>
             </TossCard>
 
+            {/* Interactive 3D Real-time Rig Preview */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-bold text-toss-text flex items-center gap-1.5">
+                  <Rotate3d className="w-4 h-4 text-toss-blue shrink-0" />
+                  <span>실시간 3D 조립 시뮬레이션</span>
+                </span>
+                <button
+                  onClick={() => setActiveTab("view3d")}
+                  className="text-[11px] text-toss-blue font-bold flex items-center gap-0.5 hover:underline cursor-pointer"
+                >
+                  <span>3D 크게 보기</span>
+                  <ChevronRight className="w-3 h-3 shrink-0" />
+                </button>
+              </div>
+              <Pc3DViewer build={build} height={250} />
+            </div>
+
             {/* Category Selector Chips */}
             <div className="w-full max-w-full overflow-hidden">
               <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
@@ -394,7 +415,93 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
           </div>
         )}
 
-        {/* TAB 2: BENCHMARK & FPS */}
+        {/* TAB 2: FULL 3D MODEL & RIG EXPLORER */}
+        {activeTab === "view3d" && (
+          <div className="space-y-4 animate-fade-in">
+            <Pc3DViewer build={build} height={380} />
+
+            {/* 3D Hardware Spec Callouts */}
+            <TossCard
+              title="🔍 3D 실시간 장착 하드웨어 규격"
+              subtitle="선택하신 부품의 실제 크기·길이·쿨러 높이가 1:1 비율로 시뮬레이션됩니다"
+              badge={
+                issues.length === 0 ? (
+                  <TossBadge variant="green" className="whitespace-nowrap">간섭 없음</TossBadge>
+                ) : (
+                  <TossBadge variant="red" className="whitespace-nowrap">간섭 발생</TossBadge>
+                )
+              }
+            >
+              <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                <div className="p-3 bg-toss-bg rounded-xl space-y-1">
+                  <span className="text-[10px] text-toss-muted block whitespace-nowrap">그래픽카드 실측</span>
+                  <span className="font-extrabold text-toss-text block truncate whitespace-nowrap">
+                    {getPartOption("gpu", build.gpu)?.name || "내장 그래픽"}
+                  </span>
+                  <span className="text-[10px] text-toss-blue font-bold block whitespace-nowrap">
+                    길이 {getPartOption("gpu", build.gpu)?.len || 0}mm / 팬{" "}
+                    {(getPartOption("gpu", build.gpu)?.len || 0) > 300 ? "3팬" : "2팬"}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-toss-bg rounded-xl space-y-1">
+                  <span className="text-[10px] text-toss-muted block whitespace-nowrap">CPU 쿨러 규격</span>
+                  <span className="font-extrabold text-toss-text block truncate whitespace-nowrap">
+                    {getPartOption("cooler", build.cooler)?.name || "기본 쿨러"}
+                  </span>
+                  <span className="text-[10px] text-amber-600 font-bold block whitespace-nowrap">
+                    {getPartOption("cooler", build.cooler)?.type === "aio"
+                      ? `${getPartOption("cooler", build.cooler)?.rad}mm 수랭 라디`
+                      : `높이 ${getPartOption("cooler", build.cooler)?.height}mm 타워`}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-toss-bg rounded-xl space-y-1">
+                  <span className="text-[10px] text-toss-muted block whitespace-nowrap">메인보드 폼팩터</span>
+                  <span className="font-extrabold text-toss-text block truncate whitespace-nowrap">
+                    {getPartOption("mb", build.mb)?.name || "미선택"}
+                  </span>
+                  <span className="text-[10px] text-indigo-600 font-bold block whitespace-nowrap">
+                    {getPartOption("mb", build.mb)?.form} 규격 ({getPartOption("mb", build.mb)?.socket})
+                  </span>
+                </div>
+
+                <div className="p-3 bg-toss-bg rounded-xl space-y-1">
+                  <span className="text-[10px] text-toss-muted block whitespace-nowrap">PC 케이스 수용성</span>
+                  <span className="font-extrabold text-toss-text block truncate whitespace-nowrap">
+                    {getPartOption("case", build.case)?.name || "기본 케이스"}
+                  </span>
+                  <span className="text-[10px] text-emerald-600 font-bold block whitespace-nowrap">
+                    최대 GPU {getPartOption("case", build.case)?.maxGpuLen}mm 수용
+                  </span>
+                </div>
+              </div>
+            </TossCard>
+
+            {/* Quick Actions */}
+            <div className="space-y-2">
+              <TossButton
+                variant="primary"
+                size="lg"
+                onClick={() => setActiveTab("bench")}
+                className="whitespace-nowrap"
+              >
+                <Zap className="w-4 h-4 mr-1.5 inline shrink-0" /> 이 구성으로 3D 벤치마크 돌리기
+              </TossButton>
+
+              <TossButton
+                variant="secondary"
+                size="md"
+                onClick={() => setActiveTab("build")}
+                className="whitespace-nowrap"
+              >
+                <Layers className="w-4 h-4 mr-1 inline shrink-0" /> 부품 교체하러 가기
+              </TossButton>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: BENCHMARK & FPS */}
         {activeTab === "bench" && (
           <div className="space-y-4 animate-fade-in">
             {/* Benchmark Runner Banner */}
