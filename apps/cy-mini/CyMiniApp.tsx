@@ -5,7 +5,7 @@
  * - 도토리 충전 보상형 광고 & 990원 프리미엄 스킨 소장 결제 연동
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CY_BGMS,
   MINIROOM_THEMES,
@@ -27,7 +27,6 @@ import {
   TossBadge,
   RewardedAdModal,
   TossPayModal,
-  AdBanner,
 } from "@shared/index";
 import confetti from "canvas-confetti";
 import {
@@ -85,6 +84,33 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
   const [unlockedGoldSkin, setUnlockedGoldSkin] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [unlockedVipFont, setUnlockedVipFont] = useState(false);
+
+  // 토스 네이티브 내비게이션 바 뒤로가기 버튼과 브라우저 히스토리 스택 동기화
+  useEffect(() => {
+    try {
+      window.history.replaceState({ tab: "home" }, "");
+    } catch {}
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state && typeof e.state.tab === "string") {
+        setActiveTab(e.state.tab);
+      } else {
+        setActiveTab("home");
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const switchTab = (tab: "home" | "room" | "jukebox" | "diary") => {
+    if (tab !== activeTab) {
+      try {
+        window.history.pushState({ tab }, "");
+      } catch {}
+      setActiveTab(tab);
+    }
+  };
 
   // 파도타기 (TODAY 올리기)
   const handlePadoRide = () => {
@@ -158,44 +184,44 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
 
   return (
     <div className="min-h-screen bg-[#F4F4F4] text-[#191F28] pb-24 font-sans select-none antialiased">
-      {/* 1. 상단 레트로 헤더 */}
-      <header className="sticky top-0 z-30 bg-[#FF7710] text-white px-4 py-3 shadow-md flex items-center justify-between border-b-2 border-[#ea580c]">
-        <div className="flex items-center gap-2 min-w-0">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="p-1 -ml-1 text-white/90 hover:text-white rounded-full transition cursor-pointer"
-              aria-label="뒤로가기"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-          )}
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h1 className="text-base font-black tracking-tight whitespace-nowrap">
-                미니룸
-              </h1>
-              <span className="px-1.5 py-0.2 bg-white/20 text-white rounded text-[10px] font-bold">
-                MINIROOM
-              </span>
+      {/* 메인 컨텐츠 영역 */}
+      <main className="max-w-lg mx-auto p-3.5 space-y-3.5">
+        {/* 상단 인라인 레트로 타이틀 바 (토스 네이티브 내비게이션 바와 중복 방지: 상단 고정 헤더를 제거하고 인라인 배치) */}
+        <div className="pt-2 pb-1 px-1 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="p-1 -ml-1 text-gray-500 hover:text-gray-900 rounded-full transition cursor-pointer"
+                aria-label="뒤로가기"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-xl font-black text-gray-900 tracking-tight whitespace-nowrap">
+                  미니룸
+                </h1>
+                <span className="px-1.5 py-0.5 bg-[#FF7710] text-white rounded-md text-[10px] font-black">
+                  MINIROOM
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 font-medium">
+                추억의 감성 도트 미니홈피 & 레트로 BGM
+              </p>
             </div>
-            <p className="text-[11px] text-orange-100 font-medium truncate">
-              추억의 미니홈피와 레트로 BGM
-            </p>
           </div>
+
+          {/* 파도타기 버튼 */}
+          <button
+            onClick={handlePadoRide}
+            className="px-3 py-1.5 bg-[#FF7710] hover:bg-[#ea580c] text-white font-black text-xs rounded-xl shadow-xs transition cursor-pointer active:scale-95 flex items-center gap-1"
+          >
+            <span>🌊 파도타기</span>
+          </button>
         </div>
 
-        {/* 파도타기 버튼 */}
-        <button
-          onClick={handlePadoRide}
-          className="px-3 py-1.5 bg-white text-[#FF7710] hover:bg-orange-50 font-black text-xs rounded-xl shadow-xs transition cursor-pointer active:scale-95 flex items-center gap-1"
-        >
-          <span>🌊 파도타기</span>
-        </button>
-      </header>
-
-      {/* 2. 메인 컨텐츠 영역 */}
-      <main className="max-w-lg mx-auto p-3.5 space-y-3.5">
         {/* 미니룸 상시 렌더링 뷰어 */}
         <MiniroomViewer
           theme={selectedTheme}
@@ -221,7 +247,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => switchTab(tab.id as any)}
                 className={`py-2 rounded-xl text-xs font-bold transition flex flex-col items-center gap-0.5 cursor-pointer ${
                   isActive
                     ? "bg-[#FF7710] text-white shadow-xs"
@@ -576,14 +602,22 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
               🎉 도토리 10개가 충전되어 <b>황금 미니미 & 프리미엄 BGM</b>이 활성화되었습니다!
             </div>
           ) : (
-            <div className="pt-2 text-center">
+            <div className="pt-2 text-center space-y-2">
+              <div className="bg-purple-50/80 border border-purple-200/90 rounded-xl p-2.5 text-[11px] text-purple-950 flex items-center gap-2 text-left">
+                <span className="px-1.5 py-0.5 bg-purple-600 text-white rounded text-[9px] font-black shrink-0">
+                  사전 고지
+                </span>
+                <span className="leading-tight">
+                  5초 분량의 광고를 시청하면 도토리 10개가 즉시 무료로 지급됩니다.
+                </span>
+              </div>
               <TossButton
                 variant="secondary"
                 size="md"
                 onClick={() => setIsAdOpen(true)}
               >
                 <Sparkles className="w-4 h-4 mr-1 text-purple-600 inline" />
-                <span>광고 보고 도토리 10개 받기</span>
+                <span>[광고] 5초 시청 후 무료 충전</span>
               </TossButton>
             </div>
           )}
@@ -624,14 +658,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
             <span>내 미니룸 초대장 복사 & 친구에게 공유</span>
           </TossButton>
         </div>
-
-        {/* 하단 레트로 소품 기획전 배너 */}
-        <AdBanner
-          title="추억의 Y2K 레트로 빈티지 소품전"
-          subtitle="빈티지 캠코더·토이카메라·레트로 이어폰 특가"
-          actionText="특가 보기"
-          url="https://link.coupang.com/a/hJYE2tA1Lw"
-        />
       </main>
 
       {/* 보상형 광고 모달 */}
