@@ -685,22 +685,43 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                     <div
                       key={opt.id}
                       onClick={() => handleSelectPart(activeCategory, opt.id)}
-                      className={`p-3.5 rounded-2xl border cursor-pointer transition flex items-center justify-between gap-3 min-w-0 ${
+                      className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between gap-2.5 min-w-0 ${
                         isChecked
-                          ? "border-toss-blue bg-blue-50/50 shadow-xs ring-1 ring-blue-100"
+                          ? "border-toss-blue bg-blue-50/60 shadow-xs ring-1 ring-blue-200"
                           : "border-toss-border bg-white hover:bg-gray-50"
                       }`}
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="font-bold text-sm text-toss-text truncate whitespace-nowrap">{opt.name}</span>
-                          {isChecked && <TossBadge variant="blue" size="sm" className="whitespace-nowrap shrink-0">선택됨</TossBadge>}
+                      {/* Radio/Check Selection indicator */}
+                      <div
+                        className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 border transition-all ${
+                          isChecked
+                            ? "bg-toss-blue border-toss-blue text-white shadow-2xs"
+                            : "border-gray-300 bg-gray-50/50"
+                        }`}
+                      >
+                        {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                      </div>
+
+                      <div className="min-w-0 flex-1 overflow-hidden">
+                        <div className="flex items-center gap-1.5 min-w-0 flex-nowrap">
+                          <span
+                            className={`font-bold text-sm truncate min-w-0 flex-1 ${
+                              isChecked ? "text-toss-blue font-extrabold" : "text-toss-text"
+                            }`}
+                          >
+                            {opt.name}
+                          </span>
+                          {isChecked && (
+                            <TossBadge variant="blue" size="sm" className="shrink-0 whitespace-nowrap">
+                              선택됨
+                            </TossBadge>
+                          )}
                         </div>
                         {opt.sub && (
                           <p className="text-[11px] text-toss-muted mt-0.5 truncate whitespace-nowrap">{opt.sub}</p>
                         )}
                       </div>
-                      <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                      <div className="text-right shrink-0 flex flex-col items-end gap-1 min-w-[76px]">
                         <span className="font-extrabold text-sm text-toss-text block whitespace-nowrap">
                           {opt.price === 0 ? "무료" : `₩${opt.price.toLocaleString("ko-KR")}`}
                         </span>

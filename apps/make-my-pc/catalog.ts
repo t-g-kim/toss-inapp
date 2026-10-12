@@ -206,7 +206,7 @@ export const SUB_CATEGORIES: Record<string, SubCategoryDef[]> = {
   ],
 };
 
-export const CATALOG_SYNC_KEY = "toss_make_my_pc_catalog_v1";
+export const CATALOG_SYNC_KEY = "toss_make_my_pc_catalog_v2";
 export const DEFAULT_CATALOG_DATE = latestCatalogData?.updatedAt
   ? new Date(latestCatalogData.updatedAt).toISOString().slice(0, 10).replace(/-/g, ".")
   : "2026.10";
@@ -402,11 +402,28 @@ function mergeWithLatestCatalog(base: Record<string, PartCategory>): Record<stri
     const mergedOptions = category.options.map((opt) => {
       const match = latestCat.options.find((o) => o.id === opt.id);
       if (match) {
+        // 엄격한 신뢰도 검증 (Plausibility Validation):
+        // 부품 기준 가격(opt.price) 대비 비정상적 오차(0.6배 미만 or 1.45배 초과)인 경우
+        // 되팔이/해외구매대행 뻥튀기 및 악세서리 오매칭으로 판단하여 안전한 기준 정가로 롤백합니다.
+        let verifiedPrice = opt.price;
+        if (opt.price === 0) {
+          verifiedPrice = 0;
+        } else if (typeof match.price === "number" && match.price > 0) {
+          const ratio = match.price / opt.price;
+          if (ratio >= 0.6 && ratio <= 1.45) {
+            verifiedPrice = match.price;
+          } else {
+            console.warn(
+              `[Catalog] 비정상 시세 필터링됨: ${opt.name} (수집가: ₩${match.price.toLocaleString()}원 -> 표준정가: ₩${opt.price.toLocaleString()}원)`
+            );
+          }
+        }
+
         return {
           ...opt,
-          price: match.price || opt.price,
+          price: verifiedPrice,
           buyUrl: match.buyUrl || opt.buyUrl || USER_COUPANG_PARTNERS_URL,
-          danawaPrice: (match as any).danawaPrice || opt.danawaPrice,
+          danawaPrice: typeof (match as any).danawaPrice === "number" ? (match as any).danawaPrice : verifiedPrice,
           danawaUrl: (match as any).danawaUrl || opt.danawaUrl,
         };
       }

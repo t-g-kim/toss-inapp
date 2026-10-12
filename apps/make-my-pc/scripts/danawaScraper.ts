@@ -78,15 +78,22 @@ export async function fetchDanawaLowestPrice(
       return { query, price: null, danawaUrl, source: "danawa", timestamp: new Date().toISOString() };
     }
 
-    // 기준 가격이 있는 경우 정상 범위(0.3배 ~ 2.5배) 내의 단품 매칭 우선
-    let selected = candidates[0];
+    // 기준 가격이 있는 경우 정상 범위(0.6배 ~ 1.45배) 내의 단품 매칭 우선
+    let selected: { title: string; price: number } | null = candidates[0];
     if (referencePrice && referencePrice > 0) {
       const plausible = candidates.filter(
-        (c) => c.price >= referencePrice * 0.35 && c.price <= referencePrice * 2.5
+        (c) => c.price >= referencePrice * 0.6 && c.price <= referencePrice * 1.45
       );
       if (plausible.length > 0) {
         selected = plausible[0];
+      } else {
+        // 정상 범위를 벗어난 경우 (되팔이 뻥튀기 or 케이블/브라켓 오매칭) 채택하지 않음
+        selected = null;
       }
+    }
+
+    if (!selected) {
+      return { query, price: null, danawaUrl, source: "danawa", timestamp: new Date().toISOString() };
     }
 
     return {

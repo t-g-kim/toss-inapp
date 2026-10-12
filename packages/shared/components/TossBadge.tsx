@@ -4,12 +4,14 @@ interface TossBadgeProps {
   children: React.ReactNode;
   variant?: "blue" | "green" | "red" | "orange" | "purple" | "gray";
   size?: "sm" | "md";
+  className?: string;
 }
 
 export const TossBadge: React.FC<TossBadgeProps> = ({
   children,
   variant = "blue",
   size = "md",
+  className = "",
 }) => {
   const variantStyles = {
     blue: "bg-toss-blueLight text-toss-blue border-blue-200/50",
@@ -26,7 +28,9 @@ export const TossBadge: React.FC<TossBadgeProps> = ({
   };
 
   return (
-    <span className={`inline-flex items-center gap-1 ${variantStyles[variant]} ${sizeStyles[size]}`}>
+    <span
+      className={`inline-flex items-center gap-1 shrink-0 whitespace-nowrap select-none ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+    >
       {children}
     </span>
   );
