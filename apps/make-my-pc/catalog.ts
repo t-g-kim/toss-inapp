@@ -1,3 +1,5 @@
+import latestCatalogData from "./catalog-latest.json";
+
 export const BASE_DRAW = 55; // 메인보드, 팬, 기타 기본 전력 소모
 
 export interface PartOption {
@@ -20,6 +22,8 @@ export interface PartOption {
   maxRad?: number;
   legacy?: boolean;
   buyUrl?: string; // 옵션별 전용 직링크 (쿠팡 파트너스 등)
+  danawaPrice?: number;
+  danawaUrl?: string;
 }
 
 export interface PurchaseLinks {
@@ -32,13 +36,13 @@ export interface PurchaseLinks {
 
 export const USER_COUPANG_PARTNERS_URL = "https://link.coupang.com/a/hJYE2tA1Lw";
 
-export const getPurchaseLinks = (partName: string): PurchaseLinks => {
+export const getPurchaseLinks = (partName: string, customBuyUrl?: string, customDanawaUrl?: string): PurchaseLinks => {
   const q = encodeURIComponent(partName);
   return {
     partName,
     naver: `https://search.shopping.naver.com/search/all?query=${q}`,
-    danawa: `https://search.danawa.com/dsearch.php?query=${q}`,
-    coupang: USER_COUPANG_PARTNERS_URL,
+    danawa: customDanawaUrl || `https://search.danawa.com/dsearch.php?query=${q}`,
+    coupang: customBuyUrl || USER_COUPANG_PARTNERS_URL,
     compuzone: `https://www.compuzone.co.kr/search/search.php?SearchType=all&SearchText=${q}`,
   };
 };
@@ -50,7 +54,9 @@ export interface PartCategory {
 }
 
 export const CATALOG_SYNC_KEY = "toss_make_my_pc_catalog_v1";
-export const DEFAULT_CATALOG_DATE = "2026.10 (실시간 연동)";
+export const DEFAULT_CATALOG_DATE = latestCatalogData?.updatedAt
+  ? new Date(latestCatalogData.updatedAt).toISOString().slice(0, 10).replace(/-/g, ".")
+  : "2026.10";
 
 export const loadStoredCatalog = (): Record<string, PartCategory> | null => {
   if (typeof window === "undefined") return null;
@@ -76,7 +82,7 @@ export const saveStoredCatalog = (data: { updatedAt: string; categories: Record<
   }
 };
 
-export const PARTS: Record<string, PartCategory> = {
+const RAW_PARTS: Record<string, PartCategory> = {
   cpu: {
     label: "CPU (프로세서)",
     options: [
@@ -164,6 +170,42 @@ export const PARTS: Record<string, PartCategory> = {
     ],
   },
 };
+
+function mergeWithLatestCatalog(base: Record<string, PartCategory>): Record<string, PartCategory> {
+  const latestCats = (latestCatalogData as any)?.categories as Record<string, PartCategory> | undefined;
+  if (!latestCats) return base;
+
+  const result: Record<string, PartCategory> = {};
+  for (const [key, category] of Object.entries(base)) {
+    const latestCat = latestCats[key];
+    if (!latestCat?.options) {
+      result[key] = category;
+      continue;
+    }
+
+    const mergedOptions = category.options.map((opt) => {
+      const match = latestCat.options.find((o) => o.id === opt.id);
+      if (match) {
+        return {
+          ...opt,
+          price: match.price || opt.price,
+          buyUrl: match.buyUrl || opt.buyUrl || USER_COUPANG_PARTNERS_URL,
+          danawaPrice: (match as any).danawaPrice || opt.danawaPrice,
+          danawaUrl: (match as any).danawaUrl || opt.danawaUrl,
+        };
+      }
+      return opt;
+    });
+
+    result[key] = {
+      ...category,
+      options: mergedOptions,
+    };
+  }
+  return result;
+}
+
+export const PARTS: Record<string, PartCategory> = mergeWithLatestCatalog(RAW_PARTS);
 
 export const PRESET_BUILDS = [
   {

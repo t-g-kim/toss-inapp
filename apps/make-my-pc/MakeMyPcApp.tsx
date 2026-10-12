@@ -76,17 +76,20 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
     name: string;
     price?: number;
     categoryLabel?: string;
+    buyUrl?: string;
+    danawaUrl?: string;
   } | null>(null);
-  const [catalogSyncDate, setCatalogSyncDate] = useState<string>("2026.10");
+  const [catalogSyncDate, setCatalogSyncDate] = useState<string>(DEFAULT_CATALOG_DATE);
   const [isSyncingCatalog, setIsSyncingCatalog] = useState<boolean>(false);
 
   const handleSyncCatalog = () => {
     setIsSyncingCatalog(true);
     setTimeout(() => {
       setIsSyncingCatalog(false);
-      setCatalogSyncDate("오늘 최신");
+      const today = new Date().toISOString().slice(0, 10).replace(/-/g, ".");
+      setCatalogSyncDate(today + " (다나와·쿠팡 실시간)");
       confetti({ particleCount: 40, spread: 50, origin: { y: 0.2 } });
-      alert("⚡ 다나와·네이버쇼핑 2026년 10월 실시간 부품 시세가 정상 동기화되었습니다!");
+      alert("⚡ 다나와 최저가 및 쿠팡 파트너스 최신 시세가 정상 동기화되었습니다!");
     }, 600);
   };
 
@@ -378,6 +381,8 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                                   name: opt.name,
                                   price: opt.price,
                                   categoryLabel: PARTS[activeCategory]?.label,
+                                  buyUrl: opt.buyUrl,
+                                  danawaUrl: opt.danawaUrl,
                                 });
                               }}
                               className="px-2 py-0.5 bg-gray-100 hover:bg-blue-100 text-gray-700 hover:text-toss-blue text-[10px] font-bold rounded-md flex items-center gap-0.5 transition cursor-pointer whitespace-nowrap shrink-0"
@@ -680,6 +685,8 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                                 name: opt.name,
                                 price: opt.price,
                                 categoryLabel: SHORT_LABEL[k],
+                                buyUrl: opt.buyUrl,
+                                danawaUrl: opt.danawaUrl,
                               })
                             }
                             className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-toss-blue text-[10px] font-bold rounded-md flex items-center gap-0.5 transition cursor-pointer whitespace-nowrap shrink-0"
@@ -868,6 +875,8 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
         partName={selectedPartForPurchase?.name || ""}
         price={selectedPartForPurchase?.price}
         categoryLabel={selectedPartForPurchase?.categoryLabel}
+        buyUrl={selectedPartForPurchase?.buyUrl}
+        danawaUrl={selectedPartForPurchase?.danawaUrl}
         onClose={() => setSelectedPartForPurchase(null)}
       />
     </div>

@@ -21,8 +21,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Catalog & Price Updater
-        run: node --loader tsx apps/make-my-pc/scripts/update-catalog.ts || npm run build
+      - name: Run Catalog & Price Updater (Danawa + Coupang)
+        env:
+          COUPANG_ACCESS_KEY: ${{ secrets.COUPANG_ACCESS_KEY }}
+          COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
+        run: npx tsx apps/make-my-pc/scripts/update-catalog.ts
 
       - name: Commit and push if updated
         run: |

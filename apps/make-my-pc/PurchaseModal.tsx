@@ -7,6 +7,8 @@ interface PurchaseModalProps {
   partName: string;
   price?: number;
   categoryLabel?: string;
+  buyUrl?: string;
+  danawaUrl?: string;
   onClose: () => void;
 }
 
@@ -15,11 +17,13 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   partName,
   price,
   categoryLabel,
+  buyUrl,
+  danawaUrl,
   onClose,
 }) => {
   if (!isOpen) return null;
 
-  const links = getPurchaseLinks(partName);
+  const links = getPurchaseLinks(partName, buyUrl, danawaUrl);
 
   const platforms = [
     {
