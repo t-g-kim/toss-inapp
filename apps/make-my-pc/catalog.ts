@@ -34,28 +34,39 @@ export interface PurchaseLinks {
   compuzone: string;
 }
 
-export const USER_COUPANG_PARTNERS_URL = "https://link.coupang.com/a/hJYE2tA1Lw";
+export const USER_COUPANG_SUBID = "AF6914951";
+export const USER_COUPANG_PARTNERS_URL = `https://link.coupang.com/re/AFFSRP?lptag=${USER_COUPANG_SUBID}&pageKey=%EC%A1%B0%EB%A6%BDPC`;
 
 export const getCleanSearchQuery = (name: string): string => {
   if (!name) return "";
-  // 괄호 안의 불필요한 부가정보(예: (라파엘), (정품), (벌크)) 정리하여 쇼핑 검색 정확도 극대화
-  return name.replace(/\s*\([^\)]*\)/g, " ").replace(/\s+/g, " ").trim();
+  let clean = name;
+  // 1. 괄호 안의 불필요한 부가정보(예: (라파엘), (정품), (벌크), (16G x2), (블랙) 등) 정리
+  clean = clean.replace(/\s*\([^\)]*\)/g, " ");
+  // 2. 쇼핑 검색 방해 키워드 제거
+  clean = clean.replace(/\b(미들타워|미니타워|빅타워|대원씨티에스|서린|풀체인지)\b/g, " ");
+  // 3. RAM 전형적 표기 간소화: 32GB DDR5-6000 CL30 -> DDR5 32GB 6000
+  const mRam = clean.match(/(\d+GB)\s+(DDR\d+)[^\d]*(\d+)/i);
+  if (mRam) {
+    clean = `${mRam[2]} ${mRam[1]} ${mRam[3]}`;
+  }
+  // 4. 연속 공백 및 앞뒤 공백 제거
+  return clean.replace(/\s+/g, " ").trim();
 };
 
 export const getPurchaseLinks = (partName: string, customBuyUrl?: string, customDanawaUrl?: string): PurchaseLinks => {
   const cleanName = getCleanSearchQuery(partName) || partName;
   const q = encodeURIComponent(cleanName);
   
-  // 쿠팡 전용 상품 직링크가 지정되어 있지 않거나 범용 파트너스 링크인 경우 해당 상품명을 직접 검색하는 URL로 연결
+  // 쿠팡 공식 파트너스 검색 딥링크 (사용자 파트너스 SubID: AF6914951 탑재)
   const isGenericAffiliate = !customBuyUrl || customBuyUrl.includes("link.coupang.com/a/hJYE2tA1Lw");
-  const coupangSearchUrl = `https://www.coupang.com/np/search?component=&q=${q}&channel=user`;
+  const coupangSearchUrl = `https://link.coupang.com/re/AFFSRP?lptag=${USER_COUPANG_SUBID}&pageKey=${q}`;
 
   return {
     partName,
     naver: `https://search.shopping.naver.com/search/all?query=${q}`,
     danawa: customDanawaUrl || `https://search.danawa.com/dsearch.php?query=${q}`,
     coupang: isGenericAffiliate ? coupangSearchUrl : customBuyUrl,
-    compuzone: `https://www.compuzone.co.kr/search/search.php?SearchType=all&SearchText=${q}`,
+    compuzone: `https://www.compuzone.co.kr/search/search.htm?SearchProductKey=${q}`,
   };
 };
 

@@ -7,7 +7,10 @@
 
 import crypto from "crypto";
 
-export const DEFAULT_USER_COUPANG_URL = "https://link.coupang.com/a/hJYE2tA1Lw";
+export const COUPANG_ACCESS_KEY = process.env.COUPANG_ACCESS_KEY || "a4a8fd9a-06a4-45b2-8488-7e23adf8ecb8";
+export const COUPANG_SECRET_KEY = process.env.COUPANG_SECRET_KEY || "ab27f4df23ddac60be0e787027163c665b1ecd01";
+export const COUPANG_SUBID = "AF6914951";
+export const DEFAULT_USER_COUPANG_URL = "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%A1%B0%EB%A6%BDPC";
 
 export interface CoupangProductResult {
   query: string;
@@ -48,23 +51,10 @@ export async function fetchCoupangLowestPrice(
   envAccessKey?: string,
   envSecretKey?: string
 ): Promise<CoupangProductResult> {
-  const accessKey = envAccessKey || process.env.COUPANG_ACCESS_KEY;
-  const secretKey = envSecretKey || process.env.COUPANG_SECRET_KEY;
+  const accessKey = envAccessKey || COUPANG_ACCESS_KEY;
+  const secretKey = envSecretKey || COUPANG_SECRET_KEY;
 
-  // API 키가 없는 경우 사용자 파트너스 링크로 Fallback
-  if (!accessKey || !secretKey) {
-    return {
-      query: keyword,
-      price: null,
-      productName: null,
-      productUrl: DEFAULT_USER_COUPANG_URL,
-      source: "coupang",
-      isApiLinked: false,
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  const urlPath = "/v2/providers/affiliate_open_api/apis/openapi/v1/products/search";
+  const urlPath = "/v2/providers/affiliate_open_api/apis/openapi/products/search";
   const queryStr = `keyword=${encodeURIComponent(keyword)}&limit=3`;
   const fullUrl = `https://api-gateway.coupang.com${urlPath}?${queryStr}`;
 

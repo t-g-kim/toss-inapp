@@ -13,8 +13,10 @@ import {
   PartOption,
   SUB_CATEGORIES,
   getPurchaseLinks,
+  getCleanSearchQuery,
   DEFAULT_CATALOG_DATE,
   USER_COUPANG_PARTNERS_URL,
+  USER_COUPANG_SUBID,
 } from "./catalog";
 import { PurchaseModal } from "./PurchaseModal";
 import { Pc3DViewer } from "./Pc3DViewer";
@@ -1127,15 +1129,15 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             >
               <div className="space-y-2 pt-1 text-xs">
                 {/* 1. Featured Coupang Partners Link (User Revenue) */}
-                {/* 1. Featured Coupang Rocket Search Link */}
                 <button
                   onClick={() => {
                     const cpuName = getPartOption("cpu", build.cpu)?.name || "";
                     const gpuName = getPartOption("gpu", build.gpu)?.name || "";
-                    const cleanCpu = cpuName.replace(/\s*\([^\)]*\)/g, "").trim();
-                    const cleanGpu = gpuName.replace(/\s*\([^\)]*\)/g, "").trim();
+                    const cleanCpu = getCleanSearchQuery(cpuName);
+                    const cleanGpu = getCleanSearchQuery(gpuName);
                     const query = `${cleanCpu} ${cleanGpu}`.trim() || "조립PC 부품";
-                    window.open(`https://www.coupang.com/np/search?component=&q=${encodeURIComponent(query)}&channel=user`, "_blank", "noopener,noreferrer");
+                    const coupangUrl = `https://link.coupang.com/re/AFFSRP?lptag=${USER_COUPANG_SUBID}&pageKey=${encodeURIComponent(query)}`;
+                    window.open(coupangUrl, "_blank", "noopener,noreferrer");
                   }}
                   className="w-full p-3 bg-gradient-to-r from-rose-50 to-pink-50 hover:from-rose-100/80 hover:to-pink-100/80 border border-rose-200/90 rounded-2xl text-left transition flex items-center justify-between group cursor-pointer shadow-2xs"
                 >
@@ -1159,22 +1161,22 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                   </div>
                 </button>
 
-                {/* 2. Danawa & Naver 2-Column Grid */}
-                <div className="grid grid-cols-2 gap-2">
+                {/* 2. Danawa, Compuzone, Naver 3-Column Grid */}
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => {
                       const cpuName = getPartOption("cpu", build.cpu)?.name || "";
                       const gpuName = getPartOption("gpu", build.gpu)?.name || "";
-                      const cleanCpu = cpuName.replace(/\s*\([^\)]*\)/g, "").trim();
-                      const cleanGpu = gpuName.replace(/\s*\([^\)]*\)/g, "").trim();
+                      const cleanCpu = getCleanSearchQuery(cpuName);
+                      const cleanGpu = getCleanSearchQuery(gpuName);
                       const query = `${cleanCpu} ${cleanGpu}`.trim() || "조립PC 견적";
                       window.open(`https://search.danawa.com/dsearch.php?query=${encodeURIComponent(query)}`, "_blank");
                     }}
                     className="p-2.5 bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/80 rounded-xl text-left transition flex items-center justify-between group cursor-pointer min-w-0"
                   >
                     <div className="min-w-0 flex-1 pr-1">
-                      <span className="text-[10px] font-extrabold text-blue-600 block truncate whitespace-nowrap">다나와 PC 견적</span>
-                      <span className="text-xs font-bold text-gray-900 group-hover:text-toss-blue truncate whitespace-nowrap">다나와 최저가</span>
+                      <span className="text-[10px] font-extrabold text-blue-600 block truncate whitespace-nowrap">다나와</span>
+                      <span className="text-xs font-bold text-gray-900 group-hover:text-toss-blue truncate whitespace-nowrap">최저가 비교</span>
                     </div>
                     <ExternalLink className="w-3 h-3 text-blue-600 shrink-0" />
                   </button>
@@ -1183,15 +1185,33 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                     onClick={() => {
                       const cpuName = getPartOption("cpu", build.cpu)?.name || "";
                       const gpuName = getPartOption("gpu", build.gpu)?.name || "";
-                      const cleanCpu = cpuName.replace(/\s*\([^\)]*\)/g, "").trim();
-                      const cleanGpu = gpuName.replace(/\s*\([^\)]*\)/g, "").trim();
+                      const cleanCpu = getCleanSearchQuery(cpuName);
+                      const cleanGpu = getCleanSearchQuery(gpuName);
+                      const query = `${cleanCpu} ${cleanGpu}`.trim() || "조립PC";
+                      window.open(`https://www.compuzone.co.kr/search/search.htm?SearchProductKey=${encodeURIComponent(query)}`, "_blank");
+                    }}
+                    className="p-2.5 bg-purple-50/70 hover:bg-purple-100/70 border border-purple-200/80 rounded-xl text-left transition flex items-center justify-between group cursor-pointer min-w-0"
+                  >
+                    <div className="min-w-0 flex-1 pr-1">
+                      <span className="text-[10px] font-extrabold text-purple-600 block truncate whitespace-nowrap">컴퓨존</span>
+                      <span className="text-xs font-bold text-gray-900 group-hover:text-purple-700 truncate whitespace-nowrap">정품몰 검색</span>
+                    </div>
+                    <ExternalLink className="w-3 h-3 text-purple-600 shrink-0" />
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const cpuName = getPartOption("cpu", build.cpu)?.name || "";
+                      const gpuName = getPartOption("gpu", build.gpu)?.name || "";
+                      const cleanCpu = getCleanSearchQuery(cpuName);
+                      const cleanGpu = getCleanSearchQuery(gpuName);
                       const query = `${cleanCpu} ${cleanGpu}`.trim() || "조립PC";
                       window.open(`https://search.shopping.naver.com/search/all?query=${encodeURIComponent(query)}`, "_blank");
                     }}
                     className="p-2.5 bg-emerald-50/70 hover:bg-emerald-100/70 border border-emerald-200/80 rounded-xl text-left transition flex items-center justify-between group cursor-pointer min-w-0"
                   >
                     <div className="min-w-0 flex-1 pr-1">
-                      <span className="text-[10px] font-extrabold text-emerald-600 block truncate whitespace-nowrap">네이버 쇼핑</span>
+                      <span className="text-[10px] font-extrabold text-emerald-600 block truncate whitespace-nowrap">네이버쇼핑</span>
                       <span className="text-xs font-bold text-gray-900 group-hover:text-emerald-700 truncate whitespace-nowrap">네이버 최저가</span>
                     </div>
                     <ExternalLink className="w-3 h-3 text-emerald-600 shrink-0" />
