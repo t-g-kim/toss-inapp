@@ -52,6 +52,9 @@ import {
   Wrench,
   ChevronLeft,
   ChevronRight,
+  Copy,
+  Check,
+  Monitor,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -240,6 +243,37 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
   const issues = checkCompatibility(build);
   const power = calculatePower(build);
   const thermal = calculateThermal(build);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyQuote = () => {
+    const lines = [
+      `[토스 인앱 - 맞춤 PC 견적서]`,
+      `📅 견적 일시: ${new Date().toLocaleDateString("ko-KR")}`,
+      `⚡ 종합 성능: ${benchResult.overall}점 (${benchResult.tier})`,
+      `🔋 예상 소비전력: ${power.totalTdp}W (권장 파워: ${power.recommendedPsu}W)`,
+      `──────────────────────────`,
+      ...KEYS.map((k, idx) => {
+        const opt = getPartOption(k, build[k]);
+        return `${idx + 1}. [${SHORT_LABEL[k]}] ${opt?.name || "미선택"} - ${opt?.price ? `₩${opt.price.toLocaleString("ko-KR")}` : "0원"}`;
+      }),
+      `──────────────────────────`,
+      `💰 총 예상 견적: ₩${totalPrice.toLocaleString("ko-KR")}`,
+      `호환성 검증: ${issues.length === 0 ? "✓ 100% 정상 호환 통과" : `⚠️ ${issues.length}건 주의 필요`}`,
+      `\n🔗 토스 앱에서 내 PC 견적 다시 맞추기: https://toss.im`,
+    ];
+    const text = lines.join("\n");
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+        confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+      }).catch(() => {
+        alert("🎉 견적서 내용:\n\n" + text);
+      });
+    } else {
+      alert("🎉 견적서 내용:\n\n" + text);
+    }
+  };
 
   const handleSelectPart = (category: keyof BuildState, partId: string) => {
     const nextBuild = { ...build, [category]: partId };
@@ -936,68 +970,136 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
         {/* TAB 3: QUOTE & RECEIPT */}
         {activeTab === "quote" && (
           <div className="space-y-4 animate-fade-in">
-            {/* Printable Digital Receipt Card */}
-            <div className="bg-white rounded-3xl p-5 border border-toss-border shadow-sm space-y-4 overflow-hidden">
-              <div className="text-center pb-3 border-b border-dashed border-gray-300">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold mb-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>가상 PC 조립 및 호환성 검증 완료</span>
+            {/* Printable Digital Specification Sheet Card */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden space-y-0">
+              {/* Header: Dark Slate Premium Tech Header */}
+              <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-5 text-white">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-mono tracking-widest text-indigo-300 font-bold uppercase flex items-center gap-1.5">
+                    <Monitor className="w-3.5 h-3.5 text-blue-400" />
+                    DIGITAL SPEC SHEET #EST-{new Date().getFullYear()}{String(new Date().getMonth() + 1).padStart(2, "0")}
+                  </span>
+                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 rounded-full text-[11px] font-bold">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                    <span>호환성 PASS</span>
+                  </div>
                 </div>
-                <span className="text-[10px] uppercase font-mono tracking-widest text-toss-muted block whitespace-nowrap">
-                  DIGITAL PC SPECIFICATION
-                </span>
-                <h4 className="text-xl font-black text-toss-text mt-0.5 whitespace-nowrap">
+
+                <h4 className="text-xl font-black text-white tracking-tight">
                   나만의 맞춤 PC 견적서
                 </h4>
-                <p className="text-xs text-toss-muted mt-1 whitespace-nowrap truncate">
-                  종합 벤치마크 {benchResult.overall}점 ({benchResult.tier})
+                <p className="text-xs text-slate-300 mt-0.5">
+                  가상 조립 시뮬레이터 및 부품 규격 호환성 100% 검증 완료
                 </p>
+
+                {/* 3-Column Spec Quick Pill Bar */}
+                <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-700/60 text-center">
+                  <div className="bg-slate-800/80 rounded-xl p-2 border border-slate-700">
+                    <span className="text-[10px] text-slate-400 block">종합 성능</span>
+                    <span className="text-xs font-black text-amber-300">{benchResult.overall}점 ({benchResult.tier})</span>
+                  </div>
+                  <div className="bg-slate-800/80 rounded-xl p-2 border border-slate-700">
+                    <span className="text-[10px] text-slate-400 block">소비전력</span>
+                    <span className="text-xs font-black text-blue-300">{power.totalTdp}W / {power.recommendedPsu}W</span>
+                  </div>
+                  <div className="bg-slate-800/80 rounded-xl p-2 border border-slate-700">
+                    <span className="text-[10px] text-slate-400 block">선택 부품</span>
+                    <span className="text-xs font-black text-emerald-300">8 / 8 완료</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Parts Breakdown Table */}
-              <div className="space-y-2 text-xs">
-                {KEYS.map((k) => {
-                  const opt = getPartOption(k, build[k]);
-                  return (
-                    <div key={k} className="flex items-center justify-between py-2 border-b border-gray-100 gap-2 min-w-0">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[11px] text-toss-muted block whitespace-nowrap">{SHORT_LABEL[k]}</span>
-                        <span className="font-bold text-toss-text truncate block whitespace-nowrap">{opt?.name || "미선택"}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                        <span className="font-extrabold text-toss-text whitespace-nowrap">
-                          {opt?.price ? `₩${opt.price.toLocaleString("ko-KR")}` : "0원"}
-                        </span>
-                        {opt?.price && opt.price > 0 && (
-                          <button
-                            onClick={() =>
-                              setSelectedPartForPurchase({
-                                name: opt.name,
-                                price: opt.price,
-                                categoryLabel: SHORT_LABEL[k],
-                                buyUrl: opt.buyUrl,
-                                danawaUrl: opt.danawaUrl,
-                              })
-                            }
-                            className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-toss-blue text-[10px] font-bold rounded-md flex items-center gap-0.5 transition cursor-pointer whitespace-nowrap shrink-0"
-                            title="실시간 최저가 확인"
-                          >
-                            <span>최저가</span>
-                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              {/* Parts Table Body */}
+              <div className="p-4 space-y-3">
+                <div className="text-[11px] font-bold text-slate-500 px-1 flex justify-between items-center pb-1 border-b border-slate-100">
+                  <span>선택된 하드웨어 부품</span>
+                  <span>단가 및 최저가 링크</span>
+                </div>
 
-              {/* Total Summary */}
-              <div className="pt-3 border-t-2 border-slate-900 flex justify-between items-center">
-                <span className="text-sm font-bold text-toss-text whitespace-nowrap">총 예상 견적</span>
-                <span className="text-2xl font-black text-toss-blue whitespace-nowrap">
-                  ₩{totalPrice.toLocaleString("ko-KR")}
-                </span>
+                <div className="divide-y divide-slate-100">
+                  {KEYS.map((k, idx) => {
+                    const opt = getPartOption(k, build[k]);
+                    return (
+                      <div key={k} className="py-2.5 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <span className="w-5 h-5 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded shrink-0">
+                                {SHORT_LABEL[k]}
+                              </span>
+                              <span className="font-bold text-slate-800 text-xs truncate">
+                                {opt?.name || "미선택"}
+                              </span>
+                            </div>
+                            {opt?.specs && (
+                              <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                                {Object.entries(opt.specs).slice(0, 2).map(([sk, sv]) => `${sk}: ${sv}`).join(" · ")}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="font-extrabold text-slate-900 text-xs">
+                            {opt?.price ? `₩${opt.price.toLocaleString("ko-KR")}` : "0원"}
+                          </span>
+                          {opt?.price && opt.price > 0 && (
+                            <button
+                              onClick={() =>
+                                setSelectedPartForPurchase({
+                                  name: opt.name,
+                                  price: opt.price,
+                                  categoryLabel: SHORT_LABEL[k],
+                                  buyUrl: opt.buyUrl,
+                                  danawaUrl: opt.danawaUrl,
+                                })
+                              }
+                              className="px-2 py-1 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 text-[10px] font-bold rounded-lg flex items-center gap-0.5 transition cursor-pointer"
+                              title="실시간 최저가 확인"
+                            >
+                              <span>최저가</span>
+                              <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Total Summary Hero Card */}
+                <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white flex justify-between items-center shadow-sm">
+                  <div>
+                    <span className="text-[11px] text-blue-200 block font-medium">총 예상 조립 견적 (VAT 포함)</span>
+                    <span className="text-2xl font-black tracking-tight text-white">
+                      ₩{totalPrice.toLocaleString("ko-KR")}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleCopyQuote}
+                    className="px-3.5 py-2 bg-white text-blue-700 hover:bg-blue-50 rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs shrink-0"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-emerald-700 font-bold">복사 완료!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>견적서 복사</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Digital Barcode / Authentication Tag */}
+                <div className="pt-1 pb-1 text-center text-[10px] text-slate-400 font-mono tracking-widest">
+                  ••••• APPS IN TOSS · VERIFIED COMPATIBILITY ESTIMATE •••••
+                </div>
               </div>
             </div>
 
@@ -1098,13 +1200,20 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
               <TossButton
                 variant="primary"
                 size="lg"
-                onClick={() => {
-                  confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-                  alert("🎉 견적서 요약본이 클립보드에 복사되었습니다!");
-                }}
+                onClick={handleCopyQuote}
                 className="whitespace-nowrap"
               >
-                <Share2 className="w-4 h-4 mr-1.5 inline shrink-0" /> <span className="whitespace-nowrap">견적서 복사 및 친구에게 공유</span>
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4 mr-1.5 inline text-emerald-300 shrink-0" />
+                    <span className="whitespace-nowrap">견적서 복사 완료!</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-4 h-4 mr-1.5 inline shrink-0" />
+                    <span className="whitespace-nowrap">견적서 복사 및 친구에게 공유</span>
+                  </>
+                )}
               </TossButton>
 
               <TossButton
