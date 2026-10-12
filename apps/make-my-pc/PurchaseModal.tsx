@@ -78,7 +78,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
           <div className="min-w-0 flex-1 pr-2">
             <div className="flex items-center gap-1.5 mb-1">
               <span className="px-2 py-0.5 bg-blue-50 text-toss-blue text-[10px] font-bold rounded-full whitespace-nowrap">
-                {categoryLabel || "부품 구매"}
+                {categoryLabel || "부품 정보"}
               </span>
               <span className="text-[11px] text-gray-500 font-medium whitespace-nowrap">실시간 최저가 검색</span>
             </div>

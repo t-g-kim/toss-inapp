@@ -976,9 +976,9 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                               })
                             }
                             className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-toss-blue text-[10px] font-bold rounded-md flex items-center gap-0.5 transition cursor-pointer whitespace-nowrap shrink-0"
-                            title="실시간 최저가 구매 링크"
+                            title="실시간 최저가 확인"
                           >
-                            <span>구매</span>
+                            <span>최저가</span>
                             <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </button>
                         )}
@@ -997,12 +997,10 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
               </div>
             </div>
 
-            {/* Real-time Purchase Hub Card */}
-            {/* Real-time Purchase Hub Card */}
+            {/* Real-time Lowest Price Hub Card */}
             <TossCard
-              title="🛒 실시간 최저가 구매처 모아보기"
-              subtitle="쿠팡 로켓배송·다나와·네이버쇼핑에서 부품별 최저가와 실시간 재고를 바로 확인하세요"
-              badge={<TossBadge variant="blue" className="whitespace-nowrap">구매 연동</TossBadge>}
+              title="🔍 실시간 최저가 모아보기"
+              subtitle="쿠팡·다나와·네이버쇼핑에서 부품별 최저가와 실시간 시세를 바로 확인하세요"
             >
               <div className="space-y-2 pt-1 text-xs">
                 {/* 1. Featured Coupang Partners Link (User Revenue) */}
