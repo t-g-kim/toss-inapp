@@ -939,6 +939,10 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             {/* Printable Digital Receipt Card */}
             <div className="bg-white rounded-3xl p-5 border border-toss-border shadow-sm space-y-4 overflow-hidden">
               <div className="text-center pb-3 border-b border-dashed border-gray-300">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold mb-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>가상 PC 조립 및 호환성 검증 완료</span>
+                </div>
                 <span className="text-[10px] uppercase font-mono tracking-widest text-toss-muted block whitespace-nowrap">
                   DIGITAL PC SPECIFICATION
                 </span>
@@ -1013,7 +1017,7 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                   <div className="min-w-0 flex-1 pr-2">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span className="text-[10px] font-extrabold px-1.5 py-0.5 bg-rose-500 text-white rounded-md whitespace-nowrap shrink-0">
-                        쿠팡 로켓
+                        [광고] 쿠팡 로켓
                       </span>
                       <span className="text-xs font-black text-rose-900 group-hover:text-rose-700 truncate whitespace-nowrap">
                         쿠팡 로켓배송 특가 & 빠른 배송
