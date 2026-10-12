@@ -23,6 +23,7 @@ interface MiniroomViewerProps {
   todayCount: number;
   totalCount: number;
   homeTitle: string;
+  eggCount?: number;
 }
 
 export const MiniroomViewer: React.FC<MiniroomViewerProps> = ({
@@ -34,6 +35,7 @@ export const MiniroomViewer: React.FC<MiniroomViewerProps> = ({
   todayCount,
   totalCount,
   homeTitle,
+  eggCount = 42,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -96,7 +98,7 @@ export const MiniroomViewer: React.FC<MiniroomViewerProps> = ({
         className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border-2 border-[#64748b] shadow-inner flex flex-col justify-between p-3"
         style={{ backgroundColor: theme.wallColor }}
       >
-        {/* 상단 미니룸 타이틀 & 도토리 뱃지 */}
+        {/* 상단 미니룸 타이틀 & 오리알 뱃지 */}
         <div className="flex items-center justify-between z-10">
           <div className="px-2.5 py-1 bg-white/90 backdrop-blur-xs rounded-full border border-gray-300/80 shadow-2xs flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-amber-500" />
@@ -106,7 +108,7 @@ export const MiniroomViewer: React.FC<MiniroomViewerProps> = ({
           </div>
 
           <div className="px-2 py-0.5 bg-amber-100/90 rounded-full text-[10px] font-black text-amber-800 border border-amber-300 shadow-2xs flex items-center gap-0.5">
-            <span>🌰 도토리 42개</span>
+            <span>🥚 오리알 {eggCount}개</span>
           </div>
         </div>
 

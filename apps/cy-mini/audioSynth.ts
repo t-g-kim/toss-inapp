@@ -44,7 +44,7 @@ class RetroAudioSynth {
       tempo: 300,
       notes: ["G3", "B3", "D4", "G4", "F3", "A3", "C4", "F4", "E3", "G3", "B3", "E4", "D3", "F3", "A3", "D4"],
     },
-    // 4. 도토리로 산 추억 (Music Box - 청아한 오르골 사운드)
+    // 4. 오리알로 산 추억 (Music Box - 청아한 오르골 사운드)
     bgm_4: {
       type: "sine",
       tempo: 340,

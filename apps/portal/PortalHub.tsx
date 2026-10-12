@@ -120,7 +120,7 @@ const APPS: MiniAppMeta[] = [
     desc: "추억의 미니홈피 도트 가구 꾸미기 & 프리스타일 Y 감성 BGM 주크박스",
     iconBg: "bg-orange-500",
     icon: <Sparkles className="w-5 h-5 text-white" />,
-    revenueType: "보상형 도토리 충전 + Y2K 팩 990원",
+    revenueType: "보상형 오리알 충전 + Y2K 팩 990원",
   },
   {
     id: "insta-clean",

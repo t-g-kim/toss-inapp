@@ -114,10 +114,28 @@ async function capture() {
     });
     console.log('PAGE TEXT PREVIEW:', bodyHtml.result?.value?.slice(0, 200));
 
-    // Screenshot 1: 홈 / 일촌평 탭 (미니룸 뷰어 & 일촌 방명록)
+    // Screenshot 1: 홈 / 미니룸 탭 (미니룸 뷰어 & 최근 방명록 하이라이트)
     console.log('Capturing Screenshot 1 (홈 & 미니룸 뷰어)...');
     const ss1 = await client.send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(ASSETS_DIR, 'screenshot_1.png'), Buffer.from(ss1.data, 'base64'));
+
+    // Switch to '방명록' tab (★ 키포인트 기능!)
+    console.log('Switching to Guestbook tab (방명록)...');
+    await client.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const buttons = Array.from(document.querySelectorAll('button'));
+          const gbTab = buttons.find(b => b.textContent.includes('방명록'));
+          if (gbTab) gbTab.click();
+        })()
+      `,
+    });
+    await sleep(1500);
+
+    // Screenshot 2: 방명록 탭 (작성 폼, 오리알 선물, 감성 스티커, 일촌 방명록 피드)
+    console.log('Capturing Screenshot 2 (방명록 피드 & 작성)...');
+    const ss2 = await client.send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path.join(ASSETS_DIR, 'screenshot_2.png'), Buffer.from(ss2.data, 'base64'));
 
     // Switch to '룸꾸미기' tab
     console.log('Switching to Room Decorating tab (룸꾸미기)...');
@@ -132,26 +150,8 @@ async function capture() {
     });
     await sleep(1500);
 
-    // Screenshot 2: 룸꾸미기 탭 (테마, 미니미, 레트로 도트 가구)
-    console.log('Capturing Screenshot 2 (룸꾸미기)...');
-    const ss2 = await client.send('Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(ASSETS_DIR, 'screenshot_2.png'), Buffer.from(ss2.data, 'base64'));
-
-    // Switch to 'BGM' tab
-    console.log('Switching to BGM tab...');
-    await client.send('Runtime.evaluate', {
-      expression: `
-        (() => {
-          const buttons = Array.from(document.querySelectorAll('button'));
-          const bgmTab = buttons.find(b => b.textContent.includes('BGM'));
-          if (bgmTab) bgmTab.click();
-        })()
-      `,
-    });
-    await sleep(1500);
-
-    // Screenshot 3: BGM 주크박스 및 레트로 카세트 플레이어
-    console.log('Capturing Screenshot 3 (BGM 주크박스)...');
+    // Screenshot 3: 룸꾸미기 탭 (테마, 미니미, 레트로 도트 가구)
+    console.log('Capturing Screenshot 3 (룸꾸미기 & 레트로 소품)...');
     const ss3 = await client.send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(ASSETS_DIR, 'screenshot_3.png'), Buffer.from(ss3.data, 'base64'));
 
