@@ -37,12 +37,17 @@ jobs:
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain apps/make-my-pc/catalog-latest.json)" ]; then
-            git add apps/make-my-pc/catalog-latest.json
-            git commit -m "chore(make-my-pc): auto-sync latest PC parts & market prices [skip ci]"
-            git pull --rebase origin main || true
-            git push origin main
+          git add apps/make-my-pc/catalog-latest.json
+          if git diff --staged --quiet; then
+            echo "✅ No price updates or changes detected in catalog-latest.json."
           else
-            echo "No price updates required."
+            echo "📦 Changes detected. Committing latest catalog..."
+            git commit -m "chore(make-my-pc): auto-sync latest PC parts & market prices [skip ci]"
+            echo "🔄 Re-syncing with remote main branch..."
+            git pull --rebase origin main || true
+            echo "🚀 Pushing catalog update to origin main..."
+            git push origin HEAD:main
+            echo "🎉 Successfully pushed latest PC catalog!"
           fi
+
 
