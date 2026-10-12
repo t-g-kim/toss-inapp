@@ -5,6 +5,7 @@ import { SalaryHeroApp } from "@apps/salary-hero/SalaryHeroApp";
 import { FortuneTarotApp } from "@apps/my-fortune-tarot/FortuneTarotApp";
 import { SubsidyCalcApp } from "@apps/subsidy-calc/SubsidyCalcApp";
 import { MakeMyPcApp } from "@apps/make-my-pc/MakeMyPcApp";
+import { RoomFitApp } from "@apps/room-fit/RoomFitApp";
 import { InstaCleanApp } from "@apps/insta-clean/InstaCleanApp";
 import { FeedPreviewApp } from "@apps/feed-preview/FeedPreviewApp";
 import { InstaTimeApp } from "@apps/insta-time/InstaTimeApp";
@@ -55,6 +56,8 @@ export const App: React.FC = () => {
         return <SubsidyCalcApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "make-my-pc":
         return <MakeMyPcApp onBack={standalone ? undefined : handleBackToPortal} />;
+      case "room-fit":
+        return <RoomFitApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "insta-clean":
         return <InstaCleanApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "feed-preview":

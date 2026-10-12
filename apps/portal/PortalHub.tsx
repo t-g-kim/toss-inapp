@@ -17,6 +17,7 @@ import {
   Clock,
   Music,
   Cpu,
+  Bed,
 } from "lucide-react";
 
 export type AppId =
@@ -25,6 +26,7 @@ export type AppId =
   | "my-fortune-tarot"
   | "subsidy-calc"
   | "make-my-pc"
+  | "room-fit"
   | "insta-clean"
   | "feed-preview"
   | "insta-time"
@@ -97,6 +99,16 @@ const APPS: MiniAppMeta[] = [
     iconBg: "bg-amber-600",
     icon: <Cpu className="w-5 h-5 text-white" />,
     revenueType: "보상형 광고 + 조립 보증서 990원",
+  },
+  {
+    id: "room-fit",
+    title: "원룸 가구 배치 3D",
+    category: "생활/인테리어",
+    badge: { text: "문 간섭 진단", variant: "blue" },
+    desc: "5·7·10평 원룸 침대·책상 가상 배치 & 방문 개폐 충돌 1초 감지",
+    iconBg: "bg-blue-600",
+    icon: <Bed className="w-5 h-5 text-white" />,
+    revenueType: "보상형 광고 + 체크리스트 990원",
   },
   {
     id: "insta-clean",
