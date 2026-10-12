@@ -17,7 +17,7 @@ import {
   Clock,
   Music,
   Cpu,
-  Monitor,
+  PcCase,
   Bed,
 } from "lucide-react";
 
@@ -99,7 +99,7 @@ const APPS: MiniAppMeta[] = [
     badge: { text: "게임 벤치마크", variant: "orange" },
     desc: "CPU·GPU 부품 호환성 체크, 100만~300만 황금 견적 & 게임 FPS 측정",
     iconBg: "bg-blue-600",
-    icon: <Monitor className="w-5 h-5 text-white" />,
+    icon: <PcCase className="w-5 h-5 text-white" />,
     revenueType: "보상형 광고 + 조립 보증서 990원",
   },
   {
