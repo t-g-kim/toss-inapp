@@ -1127,9 +1127,15 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
             >
               <div className="space-y-2 pt-1 text-xs">
                 {/* 1. Featured Coupang Partners Link (User Revenue) */}
+                {/* 1. Featured Coupang Rocket Search Link */}
                 <button
                   onClick={() => {
-                    window.open(USER_COUPANG_PARTNERS_URL, "_blank", "noopener,noreferrer");
+                    const cpuName = getPartOption("cpu", build.cpu)?.name || "";
+                    const gpuName = getPartOption("gpu", build.gpu)?.name || "";
+                    const cleanCpu = cpuName.replace(/\s*\([^\)]*\)/g, "").trim();
+                    const cleanGpu = gpuName.replace(/\s*\([^\)]*\)/g, "").trim();
+                    const query = `${cleanCpu} ${cleanGpu}`.trim() || "조립PC 부품";
+                    window.open(`https://www.coupang.com/np/search?component=&q=${encodeURIComponent(query)}&channel=user`, "_blank", "noopener,noreferrer");
                   }}
                   className="w-full p-3 bg-gradient-to-r from-rose-50 to-pink-50 hover:from-rose-100/80 hover:to-pink-100/80 border border-rose-200/90 rounded-2xl text-left transition flex items-center justify-between group cursor-pointer shadow-2xs"
                 >
@@ -1139,15 +1145,16 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                         [광고] 쿠팡 로켓
                       </span>
                       <span className="text-xs font-black text-rose-900 group-hover:text-rose-700 truncate whitespace-nowrap">
-                        쿠팡 로켓배송 특가 & 빠른 배송
+                        내 견적 부품 쿠팡 로켓배송 실시간 검색
                       </span>
                     </div>
                     <p className="text-[11px] text-rose-700/80 mt-0.5 truncate whitespace-nowrap">
-                      내일 아침 도착 보장 & 와우 회원 카드 즉시할인
+                      {getPartOption("cpu", build.cpu)?.name ? `${getPartOption("cpu", build.cpu)?.name} · ` : ""}
+                      {getPartOption("gpu", build.gpu)?.name || "주요 부품"} 로켓배송 최저가 바로가기
                     </p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0 px-2 py-1 bg-white/90 rounded-lg text-rose-600 font-bold text-[11px] border border-rose-200 shadow-2xs">
-                    <span className="whitespace-nowrap">보러가기</span>
+                    <span className="whitespace-nowrap">검색하기</span>
                     <ExternalLink className="w-3 h-3 shrink-0" />
                   </div>
                 </button>
@@ -1158,7 +1165,9 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                     onClick={() => {
                       const cpuName = getPartOption("cpu", build.cpu)?.name || "";
                       const gpuName = getPartOption("gpu", build.gpu)?.name || "";
-                      const query = `${cpuName} ${gpuName}`.trim() || "조립PC 견적";
+                      const cleanCpu = cpuName.replace(/\s*\([^\)]*\)/g, "").trim();
+                      const cleanGpu = gpuName.replace(/\s*\([^\)]*\)/g, "").trim();
+                      const query = `${cleanCpu} ${cleanGpu}`.trim() || "조립PC 견적";
                       window.open(`https://search.danawa.com/dsearch.php?query=${encodeURIComponent(query)}`, "_blank");
                     }}
                     className="p-2.5 bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/80 rounded-xl text-left transition flex items-center justify-between group cursor-pointer min-w-0"
@@ -1174,7 +1183,9 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                     onClick={() => {
                       const cpuName = getPartOption("cpu", build.cpu)?.name || "";
                       const gpuName = getPartOption("gpu", build.gpu)?.name || "";
-                      const query = `${cpuName} ${gpuName}`.trim() || "조립PC";
+                      const cleanCpu = cpuName.replace(/\s*\([^\)]*\)/g, "").trim();
+                      const cleanGpu = gpuName.replace(/\s*\([^\)]*\)/g, "").trim();
+                      const query = `${cleanCpu} ${cleanGpu}`.trim() || "조립PC";
                       window.open(`https://search.shopping.naver.com/search/all?query=${encodeURIComponent(query)}`, "_blank");
                     }}
                     className="p-2.5 bg-emerald-50/70 hover:bg-emerald-100/70 border border-emerald-200/80 rounded-xl text-left transition flex items-center justify-between group cursor-pointer min-w-0"

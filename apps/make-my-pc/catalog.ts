@@ -36,13 +36,25 @@ export interface PurchaseLinks {
 
 export const USER_COUPANG_PARTNERS_URL = "https://link.coupang.com/a/hJYE2tA1Lw";
 
+export const getCleanSearchQuery = (name: string): string => {
+  if (!name) return "";
+  // 괄호 안의 불필요한 부가정보(예: (라파엘), (정품), (벌크)) 정리하여 쇼핑 검색 정확도 극대화
+  return name.replace(/\s*\([^\)]*\)/g, " ").replace(/\s+/g, " ").trim();
+};
+
 export const getPurchaseLinks = (partName: string, customBuyUrl?: string, customDanawaUrl?: string): PurchaseLinks => {
-  const q = encodeURIComponent(partName);
+  const cleanName = getCleanSearchQuery(partName) || partName;
+  const q = encodeURIComponent(cleanName);
+  
+  // 쿠팡 전용 상품 직링크가 지정되어 있지 않거나 범용 파트너스 링크인 경우 해당 상품명을 직접 검색하는 URL로 연결
+  const isGenericAffiliate = !customBuyUrl || customBuyUrl.includes("link.coupang.com/a/hJYE2tA1Lw");
+  const coupangSearchUrl = `https://www.coupang.com/np/search?component=&q=${q}&channel=user`;
+
   return {
     partName,
     naver: `https://search.shopping.naver.com/search/all?query=${q}`,
     danawa: customDanawaUrl || `https://search.danawa.com/dsearch.php?query=${q}`,
-    coupang: customBuyUrl || USER_COUPANG_PARTNERS_URL,
+    coupang: isGenericAffiliate ? coupangSearchUrl : customBuyUrl,
     compuzone: `https://www.compuzone.co.kr/search/search.php?SearchType=all&SearchText=${q}`,
   };
 };
