@@ -47,12 +47,12 @@ def generate_logo():
     draw.rectangle([235, 280, 255, 330], fill=(2, 132, 199, 255))
     draw.rectangle([345, 280, 365, 330], fill=(2, 132, 199, 255))
 
-    # 하단 텍스트 "싸이감성"
-    font_title = get_font(52, bold=True)
-    draw.text((300, 480), "싸이감성", fill=(255, 255, 255, 255), font=font_title, anchor="mm")
+    # 하단 텍스트 "미니룸"
+    font_title = get_font(56, bold=True)
+    draw.text((300, 478), "미니룸", fill=(255, 255, 255, 255), font=font_title, anchor="mm")
 
-    font_sub = get_font(26, bold=True)
-    draw.text((300, 535), "미니홈피 & 도트 미니룸", fill=(254, 215, 170, 255), font=font_sub, anchor="mm")
+    font_sub = get_font(24, bold=True)
+    draw.text((300, 535), "도트 인테리어 & 레트로 BGM", fill=(254, 215, 170, 255), font=font_sub, anchor="mm")
 
     logo_path = os.path.join(ASSETS_DIR, "logo_600x600.png")
     img.save(logo_path, "PNG")
@@ -172,7 +172,7 @@ def render_ss3(draw, x, y, w, h):
     font_lg = get_font(20, bold=True)
     font_sm = get_font(15)
 
-    draw.text((x + 40, y + 30), "📻 2000년대 전설의 싸이 BGM 선곡", fill=(15, 23, 42), font=font_lg)
+    draw.text((x + 40, y + 30), "📻 2000년대 감성 레트로 BGM 선곡", fill=(15, 23, 42), font=font_lg)
     draw.text((x + 40, y + 60), "미니홈피 대표곡을 설정하면 사운드웨이브가 재생됩니다", fill=(100, 116, 139), font=font_sm)
 
     tracks = [
@@ -197,10 +197,10 @@ def render_ss3(draw, x, y, w, h):
 
 def main():
     generate_logo()
-    generate_screenshot("screenshot_1.png", "CYWORLD", "싸이감성 미니홈피 & 미니룸", "그 시절 우리가 사랑했던 레트로 SNS 감성", render_ss1)
-    generate_screenshot("screenshot_2.png", "미니룸", "도트 캐릭터 & 가구 소품 꾸미기", "CRT 모니터·턴테이블·곰인형으로 나만의 방 완성", render_ss2)
-    generate_screenshot("screenshot_3.png", "BGM", "전설의 싸이월드 BGM 주크박스", "프리스타일 Y·에픽하이 Fly 명곡 감성 소환", render_ss3)
-    print("🎉 All CyMini assets generated successfully!")
+    generate_screenshot("screenshot_1.png", "MINIROOM", "나만의 도트 미니룸 & 홈피", "그 시절 우리가 사랑했던 레트로 감성 공간", render_ss1)
+    generate_screenshot("screenshot_2.png", "인테리어", "도트 캐릭터 & 가구 소품 꾸미기", "CRT 모니터·턴테이블·곰인형으로 나만의 방 완성", render_ss2)
+    generate_screenshot("screenshot_3.png", "BGM", "추억의 감성 BGM 주크박스", "프리스타일 Y·에픽하이 Fly 명곡 감성 소환", render_ss3)
+    print("🎉 All Miniroom assets generated successfully!")
 
 if __name__ == "__main__":
     main()

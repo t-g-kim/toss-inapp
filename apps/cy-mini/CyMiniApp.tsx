@@ -124,12 +124,12 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
       `- 오늘의 기분: ${moodText}`,
       `- 대표 BGM: ♬ ${selectedBgm.title} - ${selectedBgm.artist}`,
       `- TODAY: ${todayCount} | TOTAL: ${totalCount}`,
-      `👉 토스에서 싸이감성 미니홈피 구경오세요!`,
+      `👉 토스에서 미니룸 구경오세요!`,
     ].join("\n");
 
     navigator.clipboard.writeText(text);
     confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
-    alert("🎉 미니홈피 초대장이 클립보드에 복사되었습니다!");
+    alert("🎉 미니룸 초대장이 클립보드에 복사되었습니다!");
   };
 
   return (
@@ -149,14 +149,14 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <h1 className="text-base font-black tracking-tight whitespace-nowrap">
-                싸이감성 미니홈피
+                미니룸
               </h1>
               <span className="px-1.5 py-0.2 bg-white/20 text-white rounded text-[10px] font-bold">
-                CYWORLD
+                MINIROOM
               </span>
             </div>
             <p className="text-[11px] text-orange-100 font-medium truncate">
-              미니룸 꾸미기와 레트로 BGM 주크박스
+              추억의 미니홈피와 레트로 BGM
             </p>
           </div>
         </div>
@@ -452,8 +452,8 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
         {activeTab === "diary" && (
           <div className="space-y-3.5 animate-fade-in">
             <TossCard
-              title="📖 흑백 감성 싸이 다이어리"
-              subtitle="추억의 싸이월드 명문장 템플릿"
+              title="📖 흑백 감성 다이어리"
+              subtitle="추억의 Y2K 감성 명문장 템플릿"
             >
               <div className="p-4 bg-[#1e293b] text-white rounded-2xl shadow-inner font-serif space-y-2 border border-slate-700">
                 <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-700 pb-2">
@@ -517,7 +517,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
 
         {/* 토스페이 소액 결제 (990원): Y2K 감성 폰트 & 가구 세트 */}
         <TossCard
-          title="✨ Y2K 싸이 폰트 & 프리미엄 도트 가구 풀세트"
+          title="✨ Y2K 레트로 폰트 & 프리미엄 도트 가구 풀세트"
           subtitle="그 시절 픽셀 폰트와 레트로 가구 8종 영구 소장"
           badge={
             <TossBadge variant="orange">
@@ -547,7 +547,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
         <div className="pt-2">
           <TossButton variant="primary" size="lg" onClick={handleShare}>
             <Share2 className="w-4 h-4 mr-1.5 inline" />
-            <span>내 미니홈피 초대장 복사 & 친구에게 공유</span>
+            <span>내 미니룸 초대장 복사 & 친구에게 공유</span>
           </TossButton>
         </div>
 
@@ -580,9 +580,9 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
           setIsPaymentOpen(false);
           setUnlockedVipFont(true);
           confetti({ particleCount: 90, spread: 70, origin: { y: 0.5 } });
-          alert("🎉 Y2K 싸이 폰트 & 가구 풀세트가 영구 소장되었습니다!");
+          alert("🎉 Y2K 레트로 폰트 & 가구 풀세트가 영구 소장되었습니다!");
         }}
-        productName="Y2K 싸이 폰트 & 프리미엄 도트 가구 풀세트"
+        productName="Y2K 레트로 폰트 & 프리미엄 도트 가구 풀세트"
         price={990}
       />
     </div>
