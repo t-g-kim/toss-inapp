@@ -27,6 +27,7 @@ export type AppId =
   | "subsidy-calc"
   | "make-my-pc"
   | "room-fit"
+  | "cy-mini"
   | "insta-clean"
   | "feed-preview"
   | "insta-time"
@@ -111,6 +112,16 @@ const APPS: MiniAppMeta[] = [
     revenueType: "보상형 광고 + 체크리스트 990원",
   },
   {
+    id: "cy-mini",
+    title: "싸이감성 미니홈피",
+    category: "레트로/SNS",
+    badge: { text: "Y2K 도토리", variant: "orange" },
+    desc: "2000년대 미니룸 도트 가구 꾸미기 & 프리스타일 Y 감성 BGM 주크박스",
+    iconBg: "bg-orange-500",
+    icon: <Sparkles className="w-5 h-5 text-white" />,
+    revenueType: "보상형 도토리 충전 + Y2K 팩 990원",
+  },
+  {
     id: "insta-clean",
     title: "인스타 줄바꿈 감성 폰트",
     category: "소셜/크리에이터",
@@ -175,10 +186,11 @@ const APPS: MiniAppMeta[] = [
 export const PortalHub: React.FC<PortalHubProps> = ({ onSelectApp }) => {
   const [filterCat, setFilterCat] = useState<string>("ALL");
 
-  const categories = ["ALL", "행운/복권", "직장인/재테크", "투자/금융 퀀트", "바이럴/심리"];
+  const categories = ["ALL", "레트로/SNS", "행운/복권", "직장인/재테크", "투자/금융 퀀트", "바이럴/심리"];
 
   const filteredApps = APPS.filter((app) => {
     if (filterCat === "ALL") return true;
+    if (filterCat === "레트로/SNS") return app.category === "레트로/SNS" || app.category === "소셜/크리에이터";
     if (filterCat === "행운/복권") return app.category === "행운/복권" || app.category === "운세/타로";
     if (filterCat === "직장인/재테크") return app.category === "직장인/재테크" || app.category === "공공복지/환급" || app.category === "짠테크/가계부";
     if (filterCat === "투자/금융 퀀트") return app.category === "투자/금융 퀀트" || app.category === "배당/패시브인컴" || app.category === "기술적 분석";
@@ -191,7 +203,7 @@ export const PortalHub: React.FC<PortalHubProps> = ({ onSelectApp }) => {
       <TossHeader
         title="토스 인앱 스튜디오"
         subtitle="Apps in Toss 수익화 프로토타입 런처"
-        rightAction={<TossBadge variant="blue">총 9개 앱</TossBadge>}
+        rightAction={<TossBadge variant="blue">총 {APPS.length}개 앱</TossBadge>}
       />
 
       <div className="p-4 space-y-4 max-w-lg mx-auto">
