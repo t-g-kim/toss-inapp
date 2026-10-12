@@ -116,7 +116,18 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
   const [unlockedVipFont, setUnlockedVipFont] = useState(false);
 
   // 8. 일촌 파도타기(Surfing) 탐험 상태
-  const [visitingFriend, setVisitingFriend] = useState<FriendMiniroom | null>(null);
+  const [visitingFriend, setVisitingFriend] = useState<FriendMiniroom | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const visitParam = new URLSearchParams(window.location.search).get("visit");
+        if (visitParam) {
+          const found = FRIEND_MINIROOMS.find((f) => f.id === visitParam);
+          if (found) return found;
+        }
+      } catch {}
+    }
+    return null;
+  });
   const [showPadoModal, setShowPadoModal] = useState(false);
   const [friendsList, setFriendsList] = useState<FriendMiniroom[]>(() => {
     if (typeof window !== "undefined") {
@@ -166,13 +177,8 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
   // 일촌 파도타기 이동
   const handleSurfingTo = (friend: FriendMiniroom) => {
     setVisitingFriend(friend);
+    setActiveTab("home");
     setShowPadoModal(false);
-    confetti({
-      particleCount: 50,
-      spread: 60,
-      origin: { y: 0.5 },
-      colors: ["#3b82f6", "#06b6d4", "#f97316", "#fbbf24"],
-    });
   };
 
   // 랜덤 일촌 파도타기
@@ -196,7 +202,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
   // 내 미니룸으로 복귀
   const handleBackToMyHome = () => {
     setVisitingFriend(null);
-    confetti({ particleCount: 40, spread: 50, origin: { y: 0.6 } });
+    setActiveTab("home");
   };
 
   // 소품 토글
@@ -375,82 +381,91 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F4F4] text-[#191F28] pb-24 font-sans select-none antialiased">
+    <div
+      className={`min-h-screen pb-24 font-sans select-none antialiased transition-colors duration-300 ${
+        visitingFriend ? visitingFriend.skin.bgClass : "bg-[#f8fafc]"
+      } ${visitingFriend ? visitingFriend.skin.containerClass : "text-gray-900"}`}
+    >
       {/* 메인 컨텐츠 영역 */}
       <main className="max-w-lg mx-auto p-3.5 space-y-3.5">
-        {/* 상단 인라인 레트로 타이틀 바 (토스 네이티브 내비게이션 바와 중복 방지: 상단 고정 헤더를 제거하고 인라인 배치) */}
-        <div className="pt-2 pb-1 px-1 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {onBack && (
-              <button
-                onClick={onBack}
-                className="p-1 -ml-1 text-gray-500 hover:text-gray-900 rounded-full transition cursor-pointer"
-                aria-label="뒤로가기"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-            )}
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-xl font-black text-gray-900 tracking-tight whitespace-nowrap">
-                  미니룸
-                </h1>
-                <span className="px-1.5 py-0.5 bg-[#FF7710] text-white rounded-md text-[10px] font-black">
-                  MINIROOM
-                </span>
-              </div>
-              <p className="text-xs text-gray-500 font-medium">
-                추억의 감성 도트 미니홈피 & 레트로 BGM
-              </p>
-            </div>
-          </div>
-
-          {/* 파도타기 버튼 */}
-          <button
-            onClick={() => setShowPadoModal(true)}
-            className="px-3 py-1.5 bg-[#FF7710] hover:bg-[#ea580c] text-white font-black text-xs rounded-xl shadow-xs transition cursor-pointer active:scale-95 flex items-center gap-1"
+        {/* 상단 헤더: 방문 모드 vs 내 홈피 모드 */}
+        {visitingFriend ? (
+          <div
+            className={`p-3 rounded-2xl border ${visitingFriend.skin.headerBg} flex items-center justify-between shadow-2xs animate-fade-in`}
           >
-            <span>🌊 파도타기</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={handleBackToMyHome}
+              className="px-2.5 py-1.5 bg-white text-gray-800 text-xs font-black rounded-xl shadow-2xs border border-gray-200 transition cursor-pointer flex items-center gap-1 active:scale-95"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>내 홈피로</span>
+            </button>
 
-        {/* 파도타기 방문 중 상단 알림 배너 */}
-        {visitingFriend && (
-          <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white p-3 rounded-2xl shadow-sm border border-blue-300/40 flex items-center justify-between gap-2 animate-fade-in">
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="px-2 py-0.5 bg-white/20 rounded-full text-[10px] font-black tracking-wide">
-                  🌊 일촌 파도타기 중
-                </span>
-                <span className="font-black text-sm truncate">
-                  {visitingFriend.ownerName} ({visitingFriend.ilchonTitle})
+            <div className="text-center min-w-0 px-2 flex-1">
+              <div className="flex items-center justify-center gap-1.5">
+                <span className="text-base">{visitingFriend.avatarEmoji}</span>
+                <span className="text-sm font-black truncate">{visitingFriend.ownerName}</span>
+                <span
+                  className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md ${visitingFriend.skin.badgeBg} ${visitingFriend.skin.badgeText}`}
+                >
+                  {visitingFriend.ilchonTitle}
                 </span>
               </div>
-              <p className="text-[11px] text-blue-100 truncate mt-0.5">
+              <p className="text-[10px] opacity-75 truncate mt-0.5">
                 "{visitingFriend.intro}"
               </p>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                type="button"
-                onClick={handleNextPado}
-                className="px-2.5 py-1.5 bg-white/20 hover:bg-white/30 text-white font-bold text-xs rounded-xl transition cursor-pointer active:scale-95 whitespace-nowrap"
-                title="다음 친구 방으로 파도타기"
-              >
-                다음 🌊
-              </button>
-              <button
-                type="button"
-                onClick={handleBackToMyHome}
-                className="px-2.5 py-1.5 bg-white text-blue-700 hover:bg-blue-50 font-black text-xs rounded-xl shadow-xs transition cursor-pointer active:scale-95 whitespace-nowrap"
-              >
-                내 홈피 🏠
-              </button>
+
+            <button
+              type="button"
+              onClick={handleNextPado}
+              className={`px-3 py-1.5 ${visitingFriend.skin.accentBg} ${visitingFriend.skin.accentText} text-xs font-black rounded-xl shadow-2xs transition cursor-pointer flex items-center gap-1 active:scale-95`}
+              title="다음 친구 방으로 파도타기"
+            >
+              <span>다음 🌊</span>
+            </button>
+          </div>
+        ) : (
+          /* 내 홈피일 때 인라인 레트로 타이틀 바 */
+          <div className="pt-2 pb-1 px-1 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className="p-1 -ml-1 text-gray-500 hover:text-gray-900 rounded-full transition cursor-pointer"
+                  aria-label="뒤로가기"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+              )}
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h1 className="text-xl font-black text-gray-900 tracking-tight whitespace-nowrap">
+                    미니룸
+                  </h1>
+                  <span className="px-1.5 py-0.5 bg-orange-600 text-white rounded-md text-[10px] font-black">
+                    MINIROOM
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 font-medium">
+                  추억의 감성 도트 미니홈피 & 레트로 BGM
+                </p>
+              </div>
             </div>
+
+            {/* 파도타기 버튼 */}
+            <button
+              onClick={() => setShowPadoModal(true)}
+              className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white font-black text-xs rounded-xl shadow-xs transition cursor-pointer active:scale-95 flex items-center gap-1"
+            >
+              <Waves className="w-3.5 h-3.5" />
+              <span>파도타기</span>
+            </button>
           </div>
         )}
 
-        {/* 미니룸 상시 렌더링 뷰어 */}
+        {/* 미니룸 상시 렌더링 뷰어 (친구 방문 시 고유 스킨/소품/미니미/사인 반영) */}
         <MiniroomViewer
           theme={
             visitingFriend
@@ -473,46 +488,84 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
           totalCount={visitingFriend ? visitingFriend.totalCount : totalCount}
           homeTitle={visitingFriend ? visitingFriend.homeTitle : homeTitle}
           eggCount={eggCount}
+          roomFrameBg={visitingFriend?.skin.roomFrameBg}
+          wallTag={visitingFriend?.skin.roomWallTag}
         />
 
-        {/* 4대 레트로 탭 메뉴 (미니룸 / 방명록 / 룸꾸미기 / BGM) */}
-        <div className="grid grid-cols-4 gap-1 bg-[#e2e8f0] p-1 rounded-2xl border border-[#cbd5e1]">
-          {[
-            { id: "home", label: "미니룸", icon: Home },
-            {
-              id: "guestbook",
-              label: "방명록",
-              icon: MessageSquare,
-              badge: visitingFriend ? visitingFriend.guestbook.length : guestbookEntries.length,
-            },
-            { id: "room", label: "룸꾸미기", icon: Palette },
-            { id: "jukebox", label: "BGM", icon: Music },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => switchTab(tab.id as any)}
-                className={`py-2 rounded-xl text-xs font-bold transition flex flex-col items-center gap-0.5 cursor-pointer relative ${
-                  isActive
-                    ? "bg-[#FF7710] text-white shadow-xs"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                <div className="relative flex items-center justify-center">
+        {/* 탭 메뉴: 방문객 모드(2개 탭) vs 내 홈피 모드(4개 탭) */}
+        {visitingFriend ? (
+          <div className="grid grid-cols-2 gap-1 bg-black/5 p-1 rounded-2xl border border-black/10">
+            {[
+              { id: "home", label: "미니룸 & 소개", icon: Home },
+              {
+                id: "guestbook",
+                label: "방명록 남기기",
+                icon: MessageSquare,
+                badge: visitingFriend.guestbook.length,
+              },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => switchTab(tab.id as any)}
+                  className={`py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer relative ${
+                    isActive
+                      ? `${visitingFriend.skin.accentBg} ${visitingFriend.skin.accentText} shadow-xs`
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
                   <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
                   {tab.badge !== undefined && (
-                    <span className="absolute -top-1.5 -right-2 px-1 py-0.2 bg-rose-500 text-white rounded-full text-[9px] font-black leading-none shadow-2xs">
+                    <span className="px-1.5 py-0.2 bg-rose-500 text-white rounded-full text-[9px] font-black leading-none ml-0.5">
                       {tab.badge}
                     </span>
                   )}
-                </div>
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200">
+            {[
+              { id: "home", label: "미니룸", icon: Home },
+              {
+                id: "guestbook",
+                label: "방명록",
+                icon: MessageSquare,
+                badge: guestbookEntries.length,
+              },
+              { id: "room", label: "룸꾸미기", icon: Palette },
+              { id: "jukebox", label: "BGM", icon: Music },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => switchTab(tab.id as any)}
+                  className={`py-2 rounded-xl text-xs font-bold transition flex flex-col items-center gap-0.5 cursor-pointer relative ${
+                    isActive
+                      ? "bg-orange-600 text-white shadow-xs"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <div className="relative flex items-center justify-center">
+                    <Icon className="w-4 h-4" />
+                    {tab.badge !== undefined && (
+                      <span className="absolute -top-1.5 -right-2 px-1 py-0.2 bg-rose-500 text-white rounded-full text-[9px] font-black leading-none shadow-2xs">
+                        {tab.badge}
+                      </span>
+                    )}
+                  </div>
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* --- 탭 1: 홈 / 미니룸 기본 --- */}
         {activeTab === "home" && (
@@ -859,27 +912,49 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
         {activeTab === "guestbook" && (
           <div className="space-y-3.5 animate-fade-in">
             {/* 상단 방명록 현황 헤더 바 */}
-            <div className="p-3.5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl text-white shadow-sm flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="text-sm font-black">
-                    {visitingFriend ? `📜 ${visitingFriend.ownerName} 님의 방명록` : "📜 추억의 감성 방명록"}
-                  </span>
-                  <span className="px-1.5 py-0.2 bg-white/25 rounded-md text-[10px] font-bold">
-                    총 {(visitingFriend ? visitingFriend.guestbook : guestbookEntries).length}개
-                  </span>
+            {visitingFriend ? (
+              <div
+                className={`p-3.5 rounded-2xl border ${visitingFriend.skin.headerBg} flex items-center justify-between shadow-2xs`}
+              >
+                <div>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-sm font-black">
+                      📜 {visitingFriend.ownerName} 님의 방명록
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.2 rounded-md text-[10px] font-bold ${visitingFriend.skin.badgeBg} ${visitingFriend.skin.badgeText}`}
+                    >
+                      총 {visitingFriend.guestbook.length}개
+                    </span>
+                  </div>
+                  <p className="text-[11px] opacity-80 font-medium">
+                    {visitingFriend.ownerName} 님에게 따뜻한 한마디와 오리알을 남겨주세요
+                  </p>
                 </div>
-                <p className="text-[11px] text-orange-100 font-medium">
-                  {visitingFriend
-                    ? `${visitingFriend.ownerName} 님에게 따뜻한 한마디와 오리알을 남겨주세요`
-                    : "친구들의 방명록과 오리알 선물 도착 목록이에요"}
-                </p>
+                <div className="px-2.5 py-1 bg-black/10 rounded-xl text-xs font-black flex items-center gap-1">
+                  <span>🥚 내 오리알</span>
+                  <span className="font-extrabold">{eggCount}개</span>
+                </div>
               </div>
-              <div className="px-2.5 py-1 bg-white/20 backdrop-blur-xs rounded-xl text-xs font-black flex items-center gap-1">
-                <span>🥚 내 오리알</span>
-                <span className="text-yellow-200">{eggCount}개</span>
+            ) : (
+              <div className="p-3.5 bg-white border border-slate-200 rounded-2xl text-gray-900 shadow-2xs flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-sm font-black">📜 추억의 감성 방명록</span>
+                    <span className="px-1.5 py-0.2 bg-orange-100 text-orange-700 rounded-md text-[10px] font-bold">
+                      총 {guestbookEntries.length}개
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 font-medium">
+                    친구들이 남긴 방명록과 오리알 선물 목록이에요
+                  </p>
+                </div>
+                <div className="px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-xl text-xs font-black flex items-center gap-1">
+                  <span>🥚 내 오리알</span>
+                  <span className="text-amber-700 font-extrabold">{eggCount}개</span>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* 방명록 작성 폼 카드 */}
             <TossCard
@@ -1495,77 +1570,82 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
           </div>
         )}
 
-        {/* 보상형 광고: 오리알 10개 무료 충전 (골드 스킨) */}
-        <TossCard
-          title="🥚 오리알 10개 무료 충전소"
-          subtitle="광고를 시청하면 한정판 황금 미니미와 오리알 10개가 즉시 충전됩니다"
-          badge={
-            <TossBadge variant="purple">
-              {unlockedGoldSkin ? "충전 완료" : "무료 충전"}
-            </TossBadge>
-          }
-        >
-          {unlockedGoldSkin ? (
-            <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 text-xs text-purple-950 animate-fade-in">
-              🎉 오리알 10개가 충전되어 <b>황금 미니미 & 프리미엄 BGM</b>이 활성화되었습니다!
-            </div>
-          ) : (
-            <div className="pt-2 text-center space-y-2">
-              <div className="bg-purple-50/80 border border-purple-200/90 rounded-xl p-2.5 text-[11px] text-purple-950 flex items-center gap-2 text-left">
-                <span className="px-1.5 py-0.5 bg-purple-600 text-white rounded text-[9px] font-black shrink-0">
-                  사전 고지
-                </span>
-                <span className="leading-tight">
-                  5초 분량의 광고를 시청하면 오리알 10개가 즉시 무료로 지급됩니다.
-                </span>
-              </div>
-              <TossButton
-                variant="secondary"
-                size="md"
-                onClick={() => setIsAdOpen(true)}
-              >
-                <Sparkles className="w-4 h-4 mr-1 text-purple-600 inline" />
-                <span>[광고] 5초 시청 후 오리알 10개 받기</span>
+        {/* 오너 전용 기능: 보상형 광고 & 토스페이 결제 & 공유하기 (내 홈피에서만 노출) */}
+        {!visitingFriend && (
+          <>
+            {/* 보상형 광고: 오리알 10개 무료 충전 (골드 스킨) */}
+            <TossCard
+              title="🥚 오리알 10개 무료 충전소"
+              subtitle="광고를 시청하면 한정판 황금 미니미와 오리알 10개가 즉시 충전됩니다"
+              badge={
+                <TossBadge variant="purple">
+                  {unlockedGoldSkin ? "충전 완료" : "무료 충전"}
+                </TossBadge>
+              }
+            >
+              {unlockedGoldSkin ? (
+                <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 text-xs text-purple-950 animate-fade-in">
+                  🎉 오리알 10개가 충전되어 <b>황금 미니미 & 프리미엄 BGM</b>이 활성화되었습니다!
+                </div>
+              ) : (
+                <div className="pt-2 text-center space-y-2">
+                  <div className="bg-purple-50/80 border border-purple-200/90 rounded-xl p-2.5 text-[11px] text-purple-950 flex items-center gap-2 text-left">
+                    <span className="px-1.5 py-0.5 bg-purple-600 text-white rounded text-[9px] font-black shrink-0">
+                      사전 고지
+                    </span>
+                    <span className="leading-tight">
+                      5초 분량의 광고를 시청하면 오리알 10개가 즉시 무료로 지급됩니다.
+                    </span>
+                  </div>
+                  <TossButton
+                    variant="secondary"
+                    size="md"
+                    onClick={() => setIsAdOpen(true)}
+                  >
+                    <Sparkles className="w-4 h-4 mr-1 text-purple-600 inline" />
+                    <span>[광고] 5초 시청 후 오리알 10개 받기</span>
+                  </TossButton>
+                </div>
+              )}
+            </TossCard>
+
+            {/* 토스페이 소액 결제 (990원): Y2K 감성 폰트 & 가구 세트 */}
+            <TossCard
+              title="✨ Y2K 레트로 폰트 & 프리미엄 도트 가구 풀세트"
+              subtitle="그 시절 픽셀 폰트와 레트로 가구 8종 영구 소장"
+              badge={
+                <TossBadge variant="orange">
+                  {unlockedVipFont ? "소장 완료" : "990원"}
+                </TossBadge>
+              }
+            >
+              {unlockedVipFont ? (
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-950 animate-fade-in">
+                  🎉 <b>Y2K 감성 폰트팩 & 도트 가구 풀패키지</b>가 영구 소장되었습니다!
+                </div>
+              ) : (
+                <div className="pt-2 text-center">
+                  <TossButton
+                    variant="secondary"
+                    size="md"
+                    onClick={() => setIsPaymentOpen(true)}
+                  >
+                    <Award className="w-4 h-4 mr-1 text-amber-500 inline" />
+                    <span>영구 소장하기 (990원)</span>
+                  </TossButton>
+                </div>
+              )}
+            </TossCard>
+
+            {/* 공유하기 버튼 */}
+            <div className="pt-2">
+              <TossButton variant="primary" size="lg" onClick={handleShare}>
+                <Share2 className="w-4 h-4 mr-1.5 inline" />
+                <span>내 미니룸 초대장 복사 & 친구에게 공유</span>
               </TossButton>
             </div>
-          )}
-        </TossCard>
-
-        {/* 토스페이 소액 결제 (990원): Y2K 감성 폰트 & 가구 세트 */}
-        <TossCard
-          title="✨ Y2K 레트로 폰트 & 프리미엄 도트 가구 풀세트"
-          subtitle="그 시절 픽셀 폰트와 레트로 가구 8종 영구 소장"
-          badge={
-            <TossBadge variant="orange">
-              {unlockedVipFont ? "소장 완료" : "990원"}
-            </TossBadge>
-          }
-        >
-          {unlockedVipFont ? (
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-950 animate-fade-in">
-              🎉 <b>Y2K 감성 폰트팩 & 도트 가구 풀패키지</b>가 영구 소장되었습니다!
-            </div>
-          ) : (
-            <div className="pt-2 text-center">
-              <TossButton
-                variant="secondary"
-                size="md"
-                onClick={() => setIsPaymentOpen(true)}
-              >
-                <Award className="w-4 h-4 mr-1 text-amber-500 inline" />
-                <span>영구 소장하기 (990원)</span>
-              </TossButton>
-            </div>
-          )}
-        </TossCard>
-
-        {/* 공유하기 버튼 */}
-        <div className="pt-2">
-          <TossButton variant="primary" size="lg" onClick={handleShare}>
-            <Share2 className="w-4 h-4 mr-1.5 inline" />
-            <span>내 미니룸 초대장 복사 & 친구에게 공유</span>
-          </TossButton>
-        </div>
+          </>
+        )}
       </main>
 
       {/* 일촌 파도타기 (Surfing) 탐험 바텀시트 모달 */}
@@ -1578,21 +1658,21 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
             className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[85vh] animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 모달 헤더 */}
-            <div className="p-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white flex items-center justify-between">
+            {/* 모달 헤더 (차분하고 정갈한 다크 헤더) */}
+            <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-1.5">
-                  <Waves className="w-5 h-5 text-sky-200" />
+                  <Waves className="w-5 h-5 text-sky-300" />
                   <h3 className="text-base font-black">🌊 일촌 파도타기 탐험</h3>
                 </div>
-                <p className="text-[11px] text-blue-100 mt-0.5">
+                <p className="text-[11px] text-slate-300 mt-0.5">
                   친구들의 개성 넘치는 미니홈피로 파도를 타고 떠나보세요!
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowPadoModal(false)}
-                className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer active:scale-95"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer active:scale-95"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1605,9 +1685,9 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                 <button
                   type="button"
                   onClick={handleRandomPado}
-                  className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-2xl text-xs font-black shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                  className="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl text-xs font-black shadow-xs transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
                 >
-                  <Shuffle className="w-4 h-4 text-yellow-300" />
+                  <Shuffle className="w-4 h-4 text-amber-300" />
                   <span>🎲 랜덤 파도타기</span>
                 </button>
 

@@ -243,10 +243,28 @@ export const DEFAULT_GUESTBOOK_ENTRIES: GuestbookEntry[] = [
   },
 ];
 
+export interface FriendSkin {
+  themeName: string;
+  bgClass: string;
+  containerClass: string;
+  frameBorder: string;
+  headerBg: string;
+  headerText: string;
+  accentBg: string;
+  accentText: string;
+  cardBg: string;
+  cardBorder: string;
+  badgeBg: string;
+  badgeText: string;
+  roomFrameBg: string;
+  roomWallTag: string;
+}
+
 export interface FriendMiniroom {
   id: string;
   ownerName: string;
   ilchonTitle: string;
+  avatarEmoji: string;
   homeTitle: string;
   moodText: string;
   themeId: string;
@@ -256,6 +274,7 @@ export interface FriendMiniroom {
   todayCount: number;
   totalCount: number;
   intro: string;
+  skin: FriendSkin;
   guestbook: GuestbookEntry[];
 }
 
@@ -264,6 +283,7 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
     id: "friend_jjanggu",
     ownerName: "짱구",
     ilchonTitle: "영혼의 단짝",
+    avatarEmoji: "🧢",
     homeTitle: "†..MC짱구의 힙합 전사 구역..†",
     moodText: "음악만이 나라가 허락한 유일한 마약 🎧",
     themeId: "night_cyber",
@@ -273,6 +293,22 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
     todayCount: 1204,
     totalCount: 42910,
     intro: "신발은 팀버랜드, 바지는 힙합 통바지. 일촌평 달면 100% 맞일촌 간다.",
+    skin: {
+      themeName: "스트릿 힙합 다크",
+      bgClass: "bg-[#18181b]",
+      containerClass: "text-zinc-100",
+      frameBorder: "border-zinc-700",
+      headerBg: "bg-zinc-900 border-zinc-800",
+      headerText: "text-zinc-100",
+      accentBg: "bg-amber-500 hover:bg-amber-600",
+      accentText: "text-zinc-950 font-black",
+      cardBg: "bg-zinc-900",
+      cardBorder: "border-zinc-800",
+      badgeBg: "bg-amber-950/80",
+      badgeText: "text-amber-300",
+      roomFrameBg: "bg-[#27272a] border-zinc-700",
+      roomWallTag: "🎤 MC 짱구의 힙합 구역",
+    },
     guestbook: [
       {
         id: "fb_1_1",
@@ -303,6 +339,7 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
     id: "friend_yujin",
     ownerName: "유진",
     ilchonTitle: "기억속 첫사랑",
+    avatarEmoji: "👧",
     homeTitle: "🌸 유진이의 핑크빛 다이어리 🌸",
     moodText: "오늘 하루도 맑음 뒤 설렘 가득..♥",
     themeId: "strawberry_pink",
@@ -312,6 +349,22 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
     todayCount: 890,
     totalCount: 31540,
     intro: "도서관 자리 맡아줄 사람 구함 ㅎㅎ 들렀다 갈 때 오리알 하나씩 두고 가기!",
+    skin: {
+      themeName: "러블리 핑크 다이어리",
+      bgClass: "bg-[#fff1f2]",
+      containerClass: "text-pink-950",
+      frameBorder: "border-pink-200",
+      headerBg: "bg-pink-100/90 border-pink-200",
+      headerText: "text-pink-950",
+      accentBg: "bg-rose-500 hover:bg-rose-600",
+      accentText: "text-white font-black",
+      cardBg: "bg-white",
+      cardBorder: "border-pink-200/80",
+      badgeBg: "bg-pink-100",
+      badgeText: "text-rose-700",
+      roomFrameBg: "bg-[#fff5f6] border-pink-200",
+      roomWallTag: "🌸 유진이의 핑크빛 다이어리",
+    },
     guestbook: [
       {
         id: "fb_2_1",
@@ -331,6 +384,7 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
     id: "friend_chulsoo",
     ownerName: "철수",
     ilchonTitle: "락스타 민경훈",
+    avatarEmoji: "🎸",
     homeTitle: "🎸 버즈 민경훈 가시 100만번 완창..🎸",
     moodText: "ㄴr는 ㄱr끔 눈물을 흘린ㄷr...💧",
     themeId: "orange_classic",
@@ -340,6 +394,22 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
     todayCount: 560,
     totalCount: 19800,
     intro: "홍대 인디 클럽 오디션 D-3. 기타 줄 갈았다. 파도타기 환영!",
+    skin: {
+      themeName: "빈티지 락 밴드",
+      bgClass: "bg-[#f1f5f9]",
+      containerClass: "text-slate-900",
+      frameBorder: "border-slate-300",
+      headerBg: "bg-slate-800 border-slate-700",
+      headerText: "text-white",
+      accentBg: "bg-blue-600 hover:bg-blue-700",
+      accentText: "text-white font-black",
+      cardBg: "bg-white",
+      cardBorder: "border-slate-200",
+      badgeBg: "bg-blue-100",
+      badgeText: "text-blue-800",
+      roomFrameBg: "bg-[#f8fafc] border-slate-300",
+      roomWallTag: "🎸 락스타 민경훈 존",
+    },
     guestbook: [
       {
         id: "fb_3_1",
@@ -358,6 +428,7 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
     id: "friend_cat",
     ownerName: "소희",
     ilchonTitle: "냥집사 동네친구",
+    avatarEmoji: "🐱",
     homeTitle: "🐾 고양이 세 마리와 나른한 오후 🐾",
     moodText: "골골송 들으며 이불 속 뒹굴뒹굴 🐱",
     themeId: "sky_blue",
@@ -367,6 +438,22 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
     todayCount: 712,
     totalCount: 24300,
     intro: "우리 집 고양이 츄르 대신 오리알 받아요 🥚 오리알 쏘고 소원 빌기!",
+    skin: {
+      themeName: "웜 크림 냥이 하우스",
+      bgClass: "bg-[#fefce8]",
+      containerClass: "text-amber-950",
+      frameBorder: "border-amber-200",
+      headerBg: "bg-amber-100/90 border-amber-200",
+      headerText: "text-amber-950",
+      accentBg: "bg-amber-600 hover:bg-amber-700",
+      accentText: "text-white font-black",
+      cardBg: "bg-white",
+      cardBorder: "border-amber-200/80",
+      badgeBg: "bg-amber-100",
+      badgeText: "text-amber-800",
+      roomFrameBg: "bg-[#fffbeb] border-amber-200",
+      roomWallTag: "🐾 세 마리 냥이 다락방",
+    },
     guestbook: [
       {
         id: "fb_4_1",
