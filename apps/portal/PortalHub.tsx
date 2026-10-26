@@ -20,6 +20,7 @@ import {
   PcCase,
   Bed,
   Gift,
+  Monitor,
 } from "lucide-react";
 
 export type AppId =
@@ -29,6 +30,7 @@ export type AppId =
   | "my-fortune-tarot"
   | "subsidy-calc"
   | "make-my-pc"
+  | "make-my-desk"
   | "room-fit"
   | "cy-mini"
   | "insta-clean"
@@ -113,6 +115,16 @@ const APPS: MiniAppMeta[] = [
     iconBg: "bg-blue-600",
     icon: <PcCase className="w-5 h-5 text-white" />,
     revenueType: "보상형 광고 + 조립 보증서 990원",
+  },
+  {
+    id: "make-my-desk",
+    title: "데스크 셋업 견적기",
+    category: "생활/인테리어",
+    badge: { text: "데스크테리어", variant: "purple" },
+    desc: "30만~220만 맞춤 데스크 세팅, 모니터암 하중 호환 진단 & 쿠팡 최저가",
+    iconBg: "bg-indigo-600",
+    icon: <Monitor className="w-5 h-5 text-white" />,
+    revenueType: "쿠팡 파트너스 + 최저가 연계",
   },
   {
     id: "room-fit",

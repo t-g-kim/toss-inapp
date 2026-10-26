@@ -1300,6 +1300,33 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
           </div>
         )}
 
+        {/* Cross Promotion: Make My Desk */}
+        <div
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              window.location.hash = "make-my-desk";
+              window.location.reload();
+            }
+          }}
+          className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between cursor-pointer shadow-md hover:scale-[1.01] transition"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-500/30 flex items-center justify-center text-blue-300">
+              <Monitor className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-[11px] text-blue-300 font-bold flex items-center gap-1">
+                <span>신규 데스크테리어 연계</span>
+                <span className="px-1.5 py-0.2 bg-blue-500 text-white rounded text-[9px]">추천</span>
+              </div>
+              <h4 className="text-xs font-bold text-white">
+                내 본체에 어울리는 데스크 & 모니터암 견적 맞추기
+              </h4>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+        </div>
+
         {/* User Coupang Partners Bottom Banner */}
         <AdBanner
           title="쿠팡 로켓배송 PC 부품·게이밍 기어 특가"
