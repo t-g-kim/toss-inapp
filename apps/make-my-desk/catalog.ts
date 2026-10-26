@@ -8,8 +8,10 @@ export interface DeskPartOption {
   imgUrl?: string;
   buyUrl?: string;
   danawaUrl?: string;
-  // Specific physical specs for compatibility checks
-  deskWidth?: number; // mm (1200, 1400, 1600)
+  // Specific physical specs for compatibility checks & 3D real-scale rendering
+  deskWidth?: number; // mm (1200, 1400, 1600, 1800)
+  deskDepth?: number; // mm (600, 700, 800)
+  deskHeight?: number; // mm (720, or motion desk range)
   deskThickness?: number; // mm
   isMotionDesk?: boolean;
   color?: "black" | "white" | "wood";
@@ -25,6 +27,24 @@ export interface DeskPartOption {
   lightType?: "screenbar" | "ambient" | "none";
   powerWatts?: number;
 }
+
+export interface DeskItemPositions {
+  monitorX: number; // in mm (-350 ~ +350, 0 = center)
+  monitorAngle: number; // degrees (-30 ~ +30, 0 = straight)
+  pcPlacement: "desk-right" | "desk-left" | "floor-right" | "floor-left";
+  keyboardX: number; // in mm (-250 ~ +250, 0 = center)
+  speakerPlacement: "both" | "wide" | "none";
+  accPlacement: "right" | "left" | "none";
+}
+
+export const DEFAULT_ITEM_POSITIONS: DeskItemPositions = {
+  monitorX: 0,
+  monitorAngle: 0,
+  pcPlacement: "desk-right",
+  keyboardX: 0,
+  speakerPlacement: "both",
+  accPlacement: "right",
+};
 
 export type DeskSlotKey =
   | "desk"
@@ -97,12 +117,14 @@ export const DESK_PARTS: Record<DeskSlotKey, DeskPartOption[]> = {
   desk: [
     {
       id: "desk_apix_1200",
-      name: "에이픽스 GD001 게이밍 데스크 1200",
+      name: "에이픽스 GD001 게이밍 데스크 1200 (블랙)",
       brand: "에이픽스",
       price: 89000,
-      tags: ["가성비 1위", "컴팩트", "K자 다리"],
-      specs: "1200×600mm / 카본 패턴 상판 / 두께 18mm / 최대하중 150kg",
+      tags: ["가성비 1위", "1200×600", "카본 블랙"],
+      specs: "1200×600×720mm / 카본 패턴 상판 / 두께 18mm / 최대하중 150kg",
       deskWidth: 1200,
+      deskDepth: 600,
+      deskHeight: 720,
       deskThickness: 18,
       isMotionDesk: false,
       color: "black",
@@ -112,69 +134,123 @@ export const DESK_PARTS: Record<DeskSlotKey, DeskPartOption[]> = {
       name: "두닷 콰트로 에어 데스크 1206 (올화이트)",
       brand: "두닷",
       price: 125000,
-      tags: ["화이트 감성", "원룸 추천", "흔들림 제로"],
-      specs: "1200×600mm / 친환경 E0 LPM 상판 / 두께 18mm / 둥근 모서리",
+      tags: ["화이트 감성", "1200×600", "둥근 모서리"],
+      specs: "1200×600×720mm / 친환경 E0 LPM 상판 / 두께 18mm / 흔들림 제로",
       deskWidth: 1200,
+      deskDepth: 600,
+      deskHeight: 720,
       deskThickness: 18,
       isMotionDesk: false,
       color: "white",
     },
     {
-      id: "desk_desker_1400",
-      name: "일룸 데스커 컴퓨터 데스크 1400 (배선홀형)",
+      id: "desk_desker_1200",
+      name: "일룸 데스커 컴퓨터 데스크 1200 (내추럴 우드)",
       brand: "데스커",
-      price: 185000,
-      tags: ["직장인 선호", "깔끔한 배선홀", "모니터암 완벽 호환"],
-      specs: "1400×700mm / 독일 Schattdecor LPM / 두께 28mm / 견고한 H형 다리",
-      deskWidth: 1400,
+      price: 149000,
+      tags: ["원룸 추천", "1200×600", "내추럴 오크"],
+      specs: "1200×600×720mm / 독일 Schattdecor LPM / 두께 28mm / 견고한 H형 다리",
+      deskWidth: 1200,
+      deskDepth: 600,
+      deskHeight: 720,
       deskThickness: 28,
       isMotionDesk: false,
       color: "wood",
     },
     {
+      id: "desk_desker_1400",
+      name: "일룸 데스커 컴퓨터 데스크 1400 (빈티지 블랙/우드)",
+      brand: "데스커",
+      price: 185000,
+      tags: ["직장인 선호", "1400×700", "배선홀 일체형"],
+      specs: "1400×700×720mm / 독일 Schattdecor LPM / 두께 28mm / 모니터암 완벽 지원",
+      deskWidth: 1400,
+      deskDepth: 700,
+      deskHeight: 720,
+      deskThickness: 28,
+      isMotionDesk: false,
+      color: "wood",
+    },
+    {
+      id: "desk_dodot_1407",
+      name: "두닷 콰트로 에어 데스크 1407 (올화이트)",
+      brand: "두닷",
+      price: 155000,
+      tags: ["화이트 베스트", "1400×700", "여유로운 깊이"],
+      specs: "1400×700×720mm / 친환경 E0 LPM / 두께 18mm / 견고한 타원형 다리",
+      deskWidth: 1400,
+      deskDepth: 700,
+      deskHeight: 720,
+      deskThickness: 18,
+      isMotionDesk: false,
+      color: "white",
+    },
+    {
       id: "desk_209_1600",
-      name: "209애비뉴 제로데스크 1600 (블랙)",
+      name: "209애비뉴 제로데스크 1600 (매트 블랙)",
       brand: "209애비뉴",
       price: 198000,
-      tags: ["대형 1600mm", "트리플 모니터 가능", "고강도 프레임"],
-      specs: "1600×800mm / 1.4T 사각 파이프 / 두께 20mm / 4면 모니터암 클램프 지원",
+      tags: ["대형 1600", "1600×800", "트리플 모니터"],
+      specs: "1600×800×720mm / 1.4T 사각 파이프 / 두께 20mm / 4면 모니터암 클램프 지원",
       deskWidth: 1600,
+      deskDepth: 800,
+      deskHeight: 720,
       deskThickness: 20,
       isMotionDesk: false,
       color: "black",
     },
     {
+      id: "desk_dodot_1608",
+      name: "두닷 콰트로 에어 데스크 1608 (올화이트)",
+      brand: "두닷",
+      price: 189000,
+      tags: ["대형 화이트", "1600×800", "넓은 듀얼 세팅"],
+      specs: "1600×800×720mm / 친환경 E0 LPM / 두께 18mm / 대형 작업 공간",
+      deskWidth: 1600,
+      deskDepth: 800,
+      deskHeight: 720,
+      deskThickness: 18,
+      isMotionDesk: false,
+      color: "white",
+    },
+    {
       id: "desk_zenix_motion",
-      name: "제닉스 아레나-X 핸들/전동 모션데스크 1200",
+      name: "제닉스 아레나-X 전동 모션데스크 1200 (카본 블랙)",
       brand: "제닉스",
       price: 199000,
-      tags: ["모션데스크 입문", "높이조절", "서서 일하기"],
-      specs: "1200×750mm / 전동 싱글모터 / 높이 730~1230mm / 두께 18mm",
+      tags: ["전동 높이조절", "1200×750", "모션데스크 입문"],
+      specs: "1200×750×730~1230mm / 전동 싱글모터 / 높이 메모리 / 두께 18mm",
       deskWidth: 1200,
+      deskDepth: 750,
+      deskHeight: 730,
       deskThickness: 18,
       isMotionDesk: true,
       color: "black",
     },
     {
       id: "desk_lunalab_dual",
-      name: "루나랩 전동 듀얼모터 모션데스크 1500",
+      name: "루나랩 전동 듀얼모터 모션데스크 1500 (내추럴 우드)",
       brand: "루나랩",
       price: 289000,
-      tags: ["듀얼 모터", "메모리 프리셋 4개", "안전 충돌방지"],
-      specs: "1500×750mm / 3단 듀얼모터 / 저소음 승하강 / 두께 25mm / 하중 130kg",
+      tags: ["전동 듀얼모터", "1500×750", "4단 메모리"],
+      specs: "1500×750×650~1250mm / 3단 듀얼모터 / 저소음 승하강 / 두께 25mm / 하중 130kg",
       deskWidth: 1500,
+      deskDepth: 750,
+      deskHeight: 720,
       deskThickness: 25,
       isMotionDesk: true,
       color: "wood",
     },
     {
       id: "desk_erectus_pro",
-      name: "에렉투스 프리미엄 3단 모션데스크 1600",
+      name: "에렉투스 프리미엄 3단 모션데스크 1600 (월넛 우드)",
       brand: "에렉투스",
       price: 580000,
-      tags: ["하이엔드", "리낙(LINAK) 모터", "흔들림 제로"],
-      specs: "1600×800mm / 덴마크 LINAK 모터 / 두께 30mm 원목 자작나무 상판",
+      tags: ["하이엔드", "1600×800", "리낙 듀얼모터"],
+      specs: "1600×800×630~1280mm / 덴마크 LINAK 모터 / 두께 30mm 원목 자작나무 상판",
       deskWidth: 1600,
+      deskDepth: 800,
+      deskHeight: 720,
       deskThickness: 30,
       isMotionDesk: true,
       color: "wood",

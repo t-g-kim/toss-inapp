@@ -17,6 +17,8 @@ import {
   DeskPreset,
   getPurchaseLinks,
   USER_COUPANG_SUBID,
+  DeskItemPositions,
+  DEFAULT_ITEM_POSITIONS,
 } from "./catalog";
 import {
   DeskBuildState,
@@ -24,7 +26,7 @@ import {
   calculateTotalPrice,
   checkDeskCompatibility,
 } from "./engine";
-import { Desk2DViewer } from "./Desk2DViewer";
+import { Desk3DViewer } from "./Desk3DViewer";
 import { PurchaseModal } from "./PurchaseModal";
 import {
   Sparkles,
@@ -45,6 +47,11 @@ import {
   ShieldCheck,
   Sliders,
   PcCase,
+  Move,
+  Table,
+  Maximize2,
+  Palette,
+  Compass,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -54,19 +61,31 @@ interface MakeMyDeskAppProps {
 }
 
 export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigateToPc }) => {
-  // Current Build State (default: 60만원 화이트 미니멀 프리셋)
+  // Current Build State
   const [build, setBuild] = useState<DeskBuildState>(() => {
     return { ...PRESET_SETUPS[1].parts };
   });
 
+  // Real-world Item Positions on the desk
+  const [positions, setPositions] = useState<DeskItemPositions>(DEFAULT_ITEM_POSITIONS);
+
+  // Desk Filter State (1단계 데스크 우선 선택)
+  const [deskSizeFilter, setDeskSizeFilter] = useState<"all" | 1200 | 1400 | 1600>("all");
+  const [deskColorFilter, setDeskColorFilter] = useState<"all" | "wood" | "white" | "black">("all");
+  const [motionOnly, setMotionOnly] = useState<boolean>(false);
+
+  // Tabs & Expansion
   const [activeTab, setActiveTab] = useState<"builder" | "saved" | "guide">("builder");
   const [selectedSlot, setSelectedSlot] = useState<DeskSlotKey | null>("desk");
+  const [positionTabOpen, setPositionTabOpen] = useState<boolean>(true);
   const [purchasePart, setPurchasePart] = useState<DeskPartOption | null>(null);
   const [purchaseCategory, setPurchaseCategory] = useState<string>("");
   const [copied, setCopied] = useState(false);
 
   // Saved setups in localStorage
-  const [savedSetups, setSavedSetups] = useState<Array<{ id: string; date: string; name: string; price: number; build: DeskBuildState }>>(() => {
+  const [savedSetups, setSavedSetups] = useState<
+    Array<{ id: string; date: string; name: string; price: number; build: DeskBuildState }>
+  >(() => {
     try {
       const raw = localStorage.getItem("my_desk_setups");
       return raw ? JSON.parse(raw) : [];
@@ -75,29 +94,53 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
     }
   });
 
-  // Monetization modals
-  const [showRewardedAd, setShowRewardedAd] = useState(false);
-  const [showTossPay, setShowTossPay] = useState(false);
-
   // Total price & Compatibility
   const totalPrice = useMemo(() => calculateTotalPrice(build), [build]);
   const compatibility = useMemo(() => checkDeskCompatibility(build), [build]);
+
+  // Current selected parts
+  const currentDesk = getPartOption("desk", build.desk);
+  const currentMonitor = getPartOption("monitor", build.monitor);
+
+  // Filtered Desk list for Step 1
+  const filteredDesks = useMemo(() => {
+    return DESK_PARTS.desk.filter((d) => {
+      if (deskSizeFilter !== "all" && d.deskWidth !== deskSizeFilter) return false;
+      if (deskColorFilter !== "all" && d.color !== deskColorFilter) return false;
+      if (motionOnly && !d.isMotionDesk) return false;
+      return true;
+    });
+  }, [deskSizeFilter, deskColorFilter, motionOnly]);
+
+  // Real-world remaining desk surface calculation
+  const deskSpaceStats = useMemo(() => {
+    const totalW = currentDesk?.deskWidth || 1400; // mm
+    const monW = currentMonitor?.monitorType === "dual" ? 1080 : currentMonitor?.monitorSize === 34 ? 810 : currentMonitor?.monitorSize === 32 ? 710 : 610; // mm
+    const pcW = positions.pcPlacement.startsWith("desk") ? 220 : 0; // mm
+    const spkW = positions.speakerPlacement !== "none" ? 280 : 0; // mm
+    const usedW = monW + pcW + spkW;
+    const remainingW = Math.max(0, totalW - usedW);
+
+    return {
+      totalW,
+      monW,
+      pcW,
+      remainingW,
+      remainingCm: Math.round(remainingW / 10),
+    };
+  }, [currentDesk, currentMonitor, positions]);
 
   // Load Preset
   const handleLoadPreset = (preset: DeskPreset) => {
     setBuild({ ...preset.parts });
     try {
-      confetti({
-        particleCount: 40,
-        spread: 60,
-        origin: { y: 0.7 },
-      });
+      confetti({ particleCount: 35, spread: 55, origin: { y: 0.7 } });
     } catch {
       // ignore
     }
   };
 
-  // Change individual slot item
+  // Select Desk or other parts
   const handleSelectPart = (slot: DeskSlotKey, partId: string) => {
     setBuild((prev) => ({
       ...prev,
@@ -111,12 +154,14 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
     setPurchasePart(part);
   };
 
-  // Copy full quotation to clipboard
+  // Copy full quotation
   const handleCopyQuotation = () => {
     const lines = [
-      `[📐 데스크테리어 맞춤 견적서]`,
+      `[📐 데스크테리어 실측 맞춤 견적서]`,
+      `• 책상 규격: ${currentDesk?.deskWidth}mm × ${currentDesk?.deskDepth}mm (${currentDesk?.color} 상판)`,
+      `• 모니터 배치: ${positions.monitorX === 0 ? "중앙 정면" : positions.monitorX > 0 ? "우측 편향" : "좌측 편향"} / PC: ${positions.pcPlacement}`,
       `• 총 견적 금액: ${totalPrice.toLocaleString()}원`,
-      `• 호환성 점수: ${compatibility.score}점 (${compatibility.isCompatible ? "완벽 호환" : "주의 필요"})`,
+      `• 호환성 점수: ${compatibility.score}점 (${compatibility.isCompatible ? "완벽 호환" : "주의"})`,
       `------------------------`,
     ];
 
@@ -128,7 +173,9 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
     });
 
     lines.push(`------------------------`);
-    lines.push(`* 쿠팡 최저가 검색: https://link.coupang.com/re/AFFSRP?lptag=${USER_COUPANG_SUBID}&pageKey=%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%85%8C%EB%A6%AC%EC%96%B4`);
+    lines.push(
+      `* 쿠팡 최저가 검색: https://link.coupang.com/re/AFFSRP?lptag=${USER_COUPANG_SUBID}&pageKey=%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%85%8C%EB%A6%AC%EC%96%B4`
+    );
 
     navigator.clipboard.writeText(lines.join("\n"));
     setCopied(true);
@@ -137,10 +184,7 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
 
   // Save setup to storage
   const handleSaveSetup = () => {
-    const deskPart = getPartOption("desk", build.desk);
-    const monPart = getPartOption("monitor", build.monitor);
-    const setupName = `${deskPart?.brand || "커스텀"} + ${monPart?.brand || ""} 셋업`;
-
+    const setupName = `${currentDesk?.deskWidth}mm ${currentDesk?.brand} + ${currentMonitor?.brand}`;
     const newSetup = {
       id: Date.now().toString(),
       date: new Date().toLocaleDateString("ko-KR"),
@@ -174,7 +218,7 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
       {/* 1. Header */}
       <TossHeader
         title="데스크 셋업 견적기"
-        subtitle="감성 데스크테리어 & 호환성 검사"
+        subtitle="3D 실측 렌더링 & 테리어 배치"
         onBack={onBack}
         rightElement={
           <button
@@ -197,14 +241,20 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
         }
       />
 
-      {/* 2. Top Summary Bar (Sticky/Prominent) */}
+      {/* 2. Top Summary Bar */}
       <div className="bg-white border-b border-toss-border px-4 py-3 shadow-2xs">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[11px] text-toss-muted font-medium flex items-center gap-1.5">
-              <span>총 7종 맞춤 견적</span>
+              <span>{currentDesk?.deskWidth}×{currentDesk?.deskDepth}mm 실측</span>
               <span className="w-1 h-1 rounded-full bg-gray-300" />
-              <span className={compatibility.isCompatible ? "text-emerald-600 font-bold" : "text-amber-600 font-bold"}>
+              <span
+                className={
+                  compatibility.isCompatible
+                    ? "text-emerald-600 font-bold"
+                    : "text-amber-600 font-bold"
+                }
+              >
                 호환 {compatibility.score}점
               </span>
             </div>
@@ -239,7 +289,7 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
           </div>
         </div>
 
-        {/* 3. Navigation Tabs */}
+        {/* Navigation Tabs */}
         <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-gray-100">
           <button
             onClick={() => setActiveTab("builder")}
@@ -277,11 +327,11 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
       <div className="p-4 space-y-4 max-w-md mx-auto">
         {activeTab === "builder" && (
           <>
-            {/* 4. Golden Presets Carousel */}
+            {/* 3. Golden Presets Carousel */}
             <div>
               <div className="flex items-center justify-between mb-2 px-1">
                 <span className="text-xs font-extrabold text-toss-text flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" /> 인기 데스크 테마 프리셋
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" /> 인기 테마 프리셋
                 </span>
                 <span className="text-[11px] text-toss-muted">1초 원클릭 적용</span>
               </div>
@@ -294,13 +344,15 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                     <button
                       key={preset.id}
                       onClick={() => handleLoadPreset(preset)}
-                      className={`shrink-0 p-3 rounded-2xl border text-left transition-all active:scale-98 w-[160px] ${
+                      className={`shrink-0 p-3 rounded-2xl border text-left transition-all active:scale-98 w-[155px] ${
                         isActive
                           ? "border-toss-blue bg-blue-50/60 shadow-xs ring-1 ring-toss-blue"
                           : "border-toss-border bg-white hover:border-gray-300"
                       }`}
                     >
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${preset.tagColor}`}>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${preset.tagColor}`}
+                      >
                         {preset.tag}
                       </span>
                       <h4 className="font-bold text-xs text-toss-text mt-1.5 line-clamp-1">
@@ -315,10 +367,389 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
               </div>
             </div>
 
-            {/* 5. Interactive 2D Desk Visualizer Stage */}
-            <Desk2DViewer build={build} score={compatibility.score} />
+            {/* ======================================================= */}
+            {/* ⭐ 핵심 요구사항 1: 데스크 선택부터 (규격, 크기, 상판 색상) */}
+            {/* ======================================================= */}
+            <div className="bg-white rounded-3xl border-2 border-blue-500/30 p-4 shadow-sm space-y-3">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-xs">
+                    1
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm text-toss-text">
+                      데스크(책상) 선택부터 시작하기
+                    </h3>
+                    <p className="text-[11px] text-toss-muted">
+                      가로폭과 상판 컬러를 정하면 3D 모델에 실측으로 렌더링됩니다
+                    </p>
+                  </div>
+                </div>
+                <TossBadge variant="blue">필수 1단계</TossBadge>
+              </div>
 
-            {/* 6. Smart Compatibility Status Card */}
+              {/* Desk Filters (크기 & 색상 & 모션데스크) */}
+              <div className="space-y-2 pt-1">
+                {/* 1. Width size filter */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-bold text-gray-500 w-12 shrink-0">가로폭</span>
+                  {(["all", 1200, 1400, 1600] as const).map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setDeskSizeFilter(size)}
+                      className={`px-2.5 py-1 text-xs font-bold rounded-lg transition ${
+                        deskSizeFilter === size
+                          ? "bg-blue-600 text-white shadow-2xs"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      {size === "all" ? "전체" : `${size}mm`}
+                    </button>
+                  ))}
+                </div>
+
+                {/* 2. Color filter */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-bold text-gray-500 w-12 shrink-0">상판색</span>
+                  {(
+                    [
+                      { id: "all", label: "전체" },
+                      { id: "wood", label: "내추럴 우드" },
+                      { id: "white", label: "퓨어 화이트" },
+                      { id: "black", label: "매트 블랙" },
+                    ] as const
+                  ).map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => setDeskColorFilter(c.id)}
+                      className={`px-2.5 py-1 text-xs font-bold rounded-lg transition ${
+                        deskColorFilter === c.id
+                          ? "bg-slate-800 text-white shadow-2xs"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* 3. Motion Desk toggle */}
+                <div className="flex items-center justify-between pt-1 text-xs">
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={motionOnly}
+                      onChange={(e) => setMotionOnly(e.target.checked)}
+                      className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
+                    />
+                    <span>전동 높이조절 모션데스크만 보기</span>
+                  </label>
+                  <span className="text-[11px] text-blue-600 font-semibold">
+                    {filteredDesks.length}개 모델 검색됨
+                  </span>
+                </div>
+              </div>
+
+              {/* Desk Selection Grid */}
+              <div className="space-y-2 pt-1 max-h-[260px] overflow-y-auto pr-0.5">
+                {filteredDesks.map((d) => {
+                  const isSelected = build.desk === d.id;
+                  return (
+                    <div
+                      key={d.id}
+                      onClick={() => handleSelectPart("desk", d.id)}
+                      className={`p-3 rounded-2xl border text-left cursor-pointer transition flex items-center justify-between ${
+                        isSelected
+                          ? "border-toss-blue bg-blue-50/70 shadow-xs ring-1 ring-toss-blue"
+                          : "border-gray-200 bg-white hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1 pr-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-black text-xs text-toss-text">{d.name}</span>
+                          {isSelected && (
+                            <span className="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded-full font-bold">
+                              선택됨
+                            </span>
+                          )}
+                          {d.isMotionDesk && (
+                            <span className="text-[9px] bg-purple-100 text-purple-700 px-1 py-0.2 rounded font-bold">
+                              전동모터
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-gray-500 mt-0.5">{d.specs}</p>
+                        <span className="text-xs font-bold text-toss-blue mt-0.5 inline-block">
+                          {d.price.toLocaleString()}원
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenPurchase("desk", d);
+                        }}
+                        className="px-2 py-1 text-[11px] font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg shrink-0 flex items-center gap-1"
+                      >
+                        구매 <ExternalLink className="w-3 h-3" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ======================================================= */}
+            {/* ⭐ 핵심 요구사항 2 & 3: 실측 3D 렌더링 & 360도 회전 */}
+            {/* ======================================================= */}
+            <Desk3DViewer
+              build={build}
+              positions={positions}
+              score={compatibility.score}
+              height={360}
+              onUpdatePosition={setPositions}
+            />
+
+            {/* ======================================================= */}
+            {/* ⭐ 핵심 요구사항 4: 데스크테리어 위치 변경 컨트롤러 */}
+            {/* ======================================================= */}
+            <TossCard
+              title="데스크테리어 위치 & 실측 공간 조절"
+              subtitle={`현재 잔여 상판 공간: 약 ${deskSpaceStats.remainingCm}cm 여유`}
+              badge={<TossBadge variant="purple">위치 변경</TossBadge>}
+              padding="sm"
+            >
+              <div className="space-y-3 pt-1">
+                {/* Real-time Surface Space Stats Bar */}
+                <div className="bg-gray-50 p-2.5 rounded-xl space-y-1.5 text-xs border border-gray-100">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-gray-600">
+                      책상 가로폭 ({deskSpaceStats.totalW}mm)
+                    </span>
+                    <span className="font-black text-blue-600">
+                      여유 공간 {deskSpaceStats.remainingCm}cm
+                    </span>
+                  </div>
+                  <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden flex">
+                    <div
+                      className="bg-blue-500 h-full transition-all"
+                      style={{ width: `${(deskSpaceStats.monW / deskSpaceStats.totalW) * 100}%` }}
+                      title="모니터 점유"
+                    />
+                    {deskSpaceStats.pcW > 0 && (
+                      <div
+                        className="bg-indigo-600 h-full transition-all"
+                        style={{ width: `${(deskSpaceStats.pcW / deskSpaceStats.totalW) * 100}%` }}
+                        title="PC 본체 점유"
+                      />
+                    )}
+                    <div className="bg-emerald-400 h-full grow" title="여유 공간" />
+                  </div>
+                  <div className="flex items-center gap-3 text-[10px] text-gray-500 pt-0.5">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> 모니터
+                    </span>
+                    {deskSpaceStats.pcW > 0 && (
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-indigo-600 inline-block" /> PC 본체
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" /> 여유
+                    </span>
+                  </div>
+                </div>
+
+                {/* Position Controller 1: Monitor Position */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-toss-text">모니터 가로 위치</span>
+                    <span className="text-[11px] text-toss-muted">
+                      {positions.monitorX === 0
+                        ? "중앙 정면"
+                        : positions.monitorX > 0
+                        ? `우측 +${positions.monitorX / 10}cm`
+                        : `좌측 ${positions.monitorX / 10}cm`}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      onClick={() => setPositions((p) => ({ ...p, monitorX: -200 }))}
+                      className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                        positions.monitorX === -200
+                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      좌측 (-20cm)
+                    </button>
+                    <button
+                      onClick={() => setPositions((p) => ({ ...p, monitorX: 0 }))}
+                      className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                        positions.monitorX === 0
+                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      정중앙 (0)
+                    </button>
+                    <button
+                      onClick={() => setPositions((p) => ({ ...p, monitorX: 200 }))}
+                      className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                        positions.monitorX === 200
+                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      우측 (+20cm)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Position Controller 2: PC Tower Placement */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-toss-text">PC 본체 배치 위치</span>
+                    <span className="text-[11px] text-toss-muted">
+                      {positions.pcPlacement === "desk-right"
+                        ? "책상 위 우측 (감성 튜닝)"
+                        : positions.pcPlacement === "desk-left"
+                        ? "책상 위 좌측"
+                        : "책상 아래 바닥 (넓은 공간)"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      onClick={() => setPositions((p) => ({ ...p, pcPlacement: "desk-right" }))}
+                      className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                        positions.pcPlacement === "desk-right"
+                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      책상 위 우측
+                    </button>
+                    <button
+                      onClick={() => setPositions((p) => ({ ...p, pcPlacement: "desk-left" }))}
+                      className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                        positions.pcPlacement === "desk-left"
+                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      책상 위 좌측
+                    </button>
+                    <button
+                      onClick={() => setPositions((p) => ({ ...p, pcPlacement: "floor-right" }))}
+                      className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                        positions.pcPlacement === "floor-right"
+                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      책상 아래 바닥
+                    </button>
+                  </div>
+                </div>
+
+                {/* Position Controller 3: Keyboard & Mouse Alignment */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-toss-text">키보드 & 데스크패드 정렬</span>
+                    <span className="text-[11px] text-toss-muted">마우스 활동 반경</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      onClick={() => setPositions((p) => ({ ...p, keyboardX: -150 }))}
+                      className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                        positions.keyboardX === -150
+                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      좌측 (게이밍)
+                    </button>
+                    <button
+                      onClick={() => setPositions((p) => ({ ...p, keyboardX: 0 }))}
+                      className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                        positions.keyboardX === 0
+                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      정중앙
+                    </button>
+                    <button
+                      onClick={() => setPositions((p) => ({ ...p, keyboardX: 150 }))}
+                      className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                        positions.keyboardX === 150
+                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      우측
+                    </button>
+                  </div>
+                </div>
+
+                {/* Position Controller 4: Speakers & Accessories */}
+                <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
+                  <div>
+                    <span className="font-bold text-gray-700 block mb-1">스피커 배치</span>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, speakerPlacement: "both" }))}
+                        className={`flex-1 py-1 text-[11px] font-bold rounded-lg border ${
+                          positions.speakerPlacement === "both"
+                            ? "bg-slate-800 text-white"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        모니터 양옆
+                      </button>
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, speakerPlacement: "none" }))}
+                        className={`flex-1 py-1 text-[11px] font-bold rounded-lg border ${
+                          positions.speakerPlacement === "none"
+                            ? "bg-slate-800 text-white"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        숨기기
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="font-bold text-gray-700 block mb-1">맥세이프 거치대</span>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, accPlacement: "right" }))}
+                        className={`flex-1 py-1 text-[11px] font-bold rounded-lg border ${
+                          positions.accPlacement === "right"
+                            ? "bg-slate-800 text-white"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        우측
+                      </button>
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, accPlacement: "left" }))}
+                        className={`flex-1 py-1 text-[11px] font-bold rounded-lg border ${
+                          positions.accPlacement === "left"
+                            ? "bg-slate-800 text-white"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        좌측
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TossCard>
+
+            {/* Smart Compatibility Status Card */}
             <TossCard
               title="스마트 호환성 진단 리포트"
               subtitle={`모니터 하중, 책상 규격, 전력 안전성 검사 (${compatibility.issues.length}건)`}
@@ -350,14 +781,16 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                     )}
                     <div>
                       <h5 className="font-bold">{issue.title}</h5>
-                      <p className="text-[11px] leading-relaxed opacity-90 mt-0.5">{issue.desc}</p>
+                      <p className="text-[11px] leading-relaxed opacity-90 mt-0.5">
+                        {issue.desc}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
             </TossCard>
 
-            {/* 7. Cross Promotion to Make My PC */}
+            {/* Cross Promotion: Make My PC */}
             <div
               onClick={() => {
                 if (onNavigateToPc) {
@@ -376,7 +809,9 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                 <div>
                   <div className="text-[11px] text-blue-300 font-bold flex items-center gap-1">
                     <span>본체 견적 연동</span>
-                    <span className="px-1.5 py-0.2 bg-blue-500 text-white rounded text-[9px]">인기</span>
+                    <span className="px-1.5 py-0.2 bg-blue-500 text-white rounded text-[9px]">
+                      인기
+                    </span>
                   </div>
                   <h4 className="text-xs font-bold text-white">
                     내 데스크에 딱 맞는 조립 PC 견적도 맞추기
@@ -386,16 +821,25 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
               <ChevronRight className="w-4 h-4 text-gray-400" />
             </div>
 
-            {/* 8. Component Slot Pickers (7 Slots) */}
+            {/* Component Slot Pickers (모니터, 암, 의자, 키마, 조명, 악세서리) */}
             <div className="space-y-2.5">
               <div className="flex items-center justify-between px-1">
                 <h4 className="font-extrabold text-sm text-toss-text">
-                  부품별 맞춤 커스텀 (7개 품목)
+                  부품별 맞춤 커스텀 (모니터·의자·조명 등)
                 </h4>
                 <span className="text-[11px] text-toss-muted">터치하여 변경</span>
               </div>
 
-              {(Object.keys(DESK_PARTS) as DeskSlotKey[]).map((slot) => {
+              {(
+                [
+                  "monitor",
+                  "monitorArm",
+                  "chair",
+                  "keyboardMouse",
+                  "lightingMat",
+                  "accessories",
+                ] as DeskSlotKey[]
+              ).map((slot) => {
                 const isExpanded = selectedSlot === slot;
                 const currentPart = getPartOption(slot, build[slot]);
                 const options = DESK_PARTS[slot];
@@ -405,7 +849,6 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                     key={slot}
                     className="bg-white rounded-2xl border border-toss-border overflow-hidden shadow-2xs transition"
                   >
-                    {/* Slot Header Bar */}
                     <div
                       onClick={() => setSelectedSlot(isExpanded ? null : slot)}
                       className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-50/70 transition"
@@ -453,7 +896,7 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                     {isExpanded && (
                       <div className="p-3 pt-0 border-t border-gray-100 bg-gray-50/50 space-y-2">
                         <p className="text-[11px] text-toss-muted pt-2 pb-1">
-                          목록에서 원하는 제품을 선택하시면 즉시 시뮬레이션에 반영됩니다:
+                          선택하시면 즉시 3D 시뮬레이터에 반영됩니다:
                         </p>
                         {options.map((option) => {
                           const isSelected = build[slot] === option.id;
@@ -505,7 +948,7 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
               })}
             </div>
 
-            {/* 9. Action Buttons */}
+            {/* Action Buttons */}
             <div className="space-y-2 pt-2">
               <TossButton
                 variant="primary"
@@ -532,9 +975,7 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
           </>
         )}
 
-        {/* ======================================================= */}
         {/* TAB 2: 내 보관함 */}
-        {/* ======================================================= */}
         {activeTab === "saved" && (
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
@@ -599,21 +1040,22 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
           </div>
         )}
 
-        {/* ======================================================= */}
         {/* TAB 3: 데스크 가이드 */}
-        {/* ======================================================= */}
         {activeTab === "guide" && (
           <div className="space-y-3">
             <TossCard title="실패 없는 모니터암 선택 가이드" padding="sm">
               <div className="space-y-2 text-xs text-toss-subtext leading-relaxed pt-1">
                 <p>
-                  <strong className="text-toss-text">• 모니터 스펙상 무게 확인</strong>: 스탠드 제외 본체 무게가 기준입니다.
+                  <strong className="text-toss-text">• 모니터 스펙상 무게 확인</strong>: 스탠드
+                  제외 본체 무게가 기준입니다.
                 </p>
                 <p>
-                  <strong className="text-toss-text">• 34인치 와이드 이상</strong>: 일반 모니터암은 고개가 숙여질 수 있어 최대 15kg 이상을 지탱하는 '고중량 전용 암'이 필수입니다.
+                  <strong className="text-toss-text">• 34인치 와이드 이상</strong>: 일반 모니터암은
+                  고개가 숙여질 수 있어 최대 15kg 이상을 지탱하는 '고중량 전용 암'이 필수입니다.
                 </p>
                 <p>
-                  <strong className="text-toss-text">• 책상 하판 프레임 간섭</strong>: 상판 테두리에 철제 프레임이 지나가는 책상은 클램프 깊이(보통 5~8cm)가 확보되는지 확인해야 합니다.
+                  <strong className="text-toss-text">• 책상 하판 프레임 간섭</strong>: 상판 테두리에
+                  철제 프레임이 지나가는 책상은 클램프 깊이(보통 5~8cm)가 확보되는지 확인해야 합니다.
                 </p>
               </div>
             </TossCard>
@@ -621,13 +1063,17 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
             <TossCard title="바닥 선정리 3대 법칙" padding="sm">
               <div className="space-y-2 text-xs text-toss-subtext leading-relaxed pt-1">
                 <p>
-                  <strong className="text-toss-text">1. 바닥에 멀티탭을 두지 마세요</strong>: 언더데스크 메쉬 트레이나 벨크로 타이로 책상 하판에 멀티탭을 띄우면 로봇청소기도 걸리지 않습니다.
+                  <strong className="text-toss-text">1. 바닥에 멀티탭을 두지 마세요</strong>:
+                  언더데스크 메쉬 트레이나 벨크로 타이로 책상 하판에 멀티탭을 띄우면 로봇청소기도
+                  걸리지 않습니다.
                 </p>
                 <p>
-                  <strong className="text-toss-text">2. 모션데스크는 전선 여유 50cm</strong>: 최고 높이(120cm)로 올렸을 때 코드가 뽑히지 않도록 3m 이상 멀티탭을 사용하세요.
+                  <strong className="text-toss-text">2. 모션데스크는 전선 여유 50cm</strong>: 최고
+                  높이(120cm)로 올렸을 때 코드가 뽑히지 않도록 3m 이상 멀티탭을 사용하세요.
                 </p>
                 <p>
-                  <strong className="text-toss-text">3. 모니터암 내부로 케이블 매립</strong>: 전원선과 DP/HDMI 선을 모니터암 기둥 커버 안으로 넣으면 정면에서 선이 전혀 보이지 않습니다.
+                  <strong className="text-toss-text">3. 모니터암 내부로 케이블 매립</strong>: 전원선과
+                  DP/HDMI 선을 모니터암 기둥 커버 안으로 넣으면 정면에서 선이 전혀 보이지 않습니다.
                 </p>
               </div>
             </TossCard>
