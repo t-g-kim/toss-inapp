@@ -25,7 +25,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install
 
       - name: Run Gohyang Gifts Data & Image Integrity Sync
         run: npm run update-gifts
