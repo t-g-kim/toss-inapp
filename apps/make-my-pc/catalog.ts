@@ -24,6 +24,7 @@ export interface PartOption {
   buyUrl?: string; // 옵션별 전용 직링크 (쿠팡 파트너스 등)
   danawaPrice?: number;
   danawaUrl?: string;
+  coupangPrice?: number;
 }
 
 export interface PurchaseLinks {
@@ -43,7 +44,7 @@ export const getCleanSearchQuery = (name: string): string => {
   // 1. 괄호 안의 불필요한 부가정보(예: (라파엘), (정품), (벌크), (16G x2), (블랙) 등) 정리
   clean = clean.replace(/\s*\([^\)]*\)/g, " ");
   // 2. 쇼핑 검색 방해 키워드 제거
-  clean = clean.replace(/\b(미들타워|미니타워|빅타워|대원씨티에스|서린|풀체인지)\b/g, " ");
+  clean = clean.replace(/\b(미들타워|미니타워|빅타워|대원씨티에스|서린|풀체인지|벌크|멀티팩|정품)\b/g, " ");
   // 3. RAM 전형적 표기 간소화: 32GB DDR5-6000 CL30 -> DDR5 32GB 6000
   const mRam = clean.match(/(\d+GB)\s+(DDR\d+)[^\d]*(\d+)/i);
   if (mRam) {
@@ -64,7 +65,7 @@ export const getPurchaseLinks = (partName: string, customBuyUrl?: string, custom
   return {
     partName,
     naver: `https://search.shopping.naver.com/search/all?query=${q}`,
-    danawa: customDanawaUrl || `https://search.danawa.com/dsearch.php?query=${q}`,
+    danawa: customDanawaUrl || `https://search.danawa.com/?query=${q}&tab=main`,
     coupang: isGenericAffiliate ? coupangSearchUrl : customBuyUrl,
     compuzone: `https://www.compuzone.co.kr/search/search.htm?SearchProductKey=${q}`,
   };
@@ -235,7 +236,7 @@ export const saveStoredCatalog = (data: { updatedAt: string; categories: Record<
   }
 };
 
-const RAW_PARTS: Record<string, PartCategory> = {
+export const RAW_PARTS: Record<string, PartCategory> = {
   cpu: {
     label: "CPU (프로세서)",
     options: [
@@ -425,6 +426,7 @@ function mergeWithLatestCatalog(base: Record<string, PartCategory>): Record<stri
           buyUrl: match.buyUrl || opt.buyUrl || USER_COUPANG_PARTNERS_URL,
           danawaPrice: typeof (match as any).danawaPrice === "number" ? (match as any).danawaPrice : verifiedPrice,
           danawaUrl: (match as any).danawaUrl || opt.danawaUrl,
+          coupangPrice: typeof (match as any).coupangPrice === "number" ? (match as any).coupangPrice : undefined,
         };
       }
       return opt;

@@ -2,10 +2,13 @@
  * 다나와(Danawa) PC 부품 정밀 실시간 최저가 수집 모듈
  * 
  * 기능:
- * 1. 완제품 조립PC / 완제 시스템 필터링 (부품 단품 가격만 추출)
- * 2. 케이블/브라켓/악세서리 오매칭 방지
- * 3. 기준 시세 기반 신뢰도 검증 (Plausibility Filter)
+ * 1. Next.js 기반 최신 DOM 파싱 (data-product-seq 및 가격 태그 정밀 추출)
+ * 2. 완제품 조립PC / 악세서리 / 타투기 / 가습기 / 수조 등 오매칭 상품 배제
+ * 3. 제조사 브랜드 및 핵심 모델 식별자 일치 검증
+ * 4. 시세 신뢰도 범위(0.65배 ~ 1.35배) 내의 단품 최저가 추출
  */
+
+import { cleanSearchQuery, validateCandidate } from "./partValidator.js";
 
 export interface DanawaPriceResult {
   query: string;
@@ -16,30 +19,14 @@ export interface DanawaPriceResult {
   timestamp: string;
 }
 
-const BLACKLIST_KEYWORDS = [
-  "다나와표준PC",
-  "조립PC",
-  "완제품",
-  "패키지",
-  "본체",
-  "브라켓",
-  "가이드",
-  "패널",
-  "키트",
-  "킷",
-  "케이블",
-  "슬리빙",
-  "연장선",
-  "거치대",
-  "지지대",
-  "먼지필터",
-];
-
 export async function fetchDanawaLowestPrice(
   query: string,
-  referencePrice?: number
+  referencePrice?: number,
+  sub?: string,
+  categoryKey?: string
 ): Promise<DanawaPriceResult> {
-  const danawaUrl = `https://search.danawa.com/dsearch.php?query=${encodeURIComponent(query)}&tab=main`;
+  const cleanQuery = cleanSearchQuery(query, categoryKey);
+  const danawaUrl = `https://search.danawa.com/?query=${encodeURIComponent(cleanQuery)}&tab=main`;
 
   try {
     const res = await fetch(danawaUrl, {
@@ -57,20 +44,52 @@ export async function fetchDanawaLowestPrice(
 
     const html = await res.text();
 
-    // 상품 리스트 정밀 파싱: <p class="prod_name"> + <p class="price_sect">
-    const regex =
-      /<p class="prod_name">\s*<a[^>]*>(.*?)<\/a>.*?<p class="price_sect">\s*<a[^>]*>.*?<strong>([0-9,]+)<\/strong>원/gs;
-    let m: RegExpExecArray | null;
+    // 1. Next.js 기반 최신 DOM 파싱 (data-product-seq)
+    const seqRegex = /data-product-seq="(\d+)"/g;
+    let match: RegExpExecArray | null;
+    const seqs: Array<{ seq: string; index: number }> = [];
+
+    while ((match = seqRegex.exec(html)) !== null) {
+      seqs.push({ seq: match[1], index: match.index });
+    }
+
     const candidates: Array<{ title: string; price: number }> = [];
 
-    while ((m = regex.exec(html)) !== null && candidates.length < 15) {
-      const title = m[1].replace(/<[^>]+>/g, "").trim();
-      const price = parseInt(m[2].replace(/,/g, ""), 10);
+    for (let i = 0; i < Math.min(seqs.length, 15); i++) {
+      const start = seqs[i].index;
+      const end = i + 1 < seqs.length ? seqs[i + 1].index : start + 35000;
+      const chunk = html.substring(start, end);
 
-      // 완제품/악세서리 제외
-      const isBlacklisted = BLACKLIST_KEYWORDS.some((kw) => title.includes(kw));
-      if (!isBlacklisted && price > 3000) {
-        candidates.push({ title, price });
+      // 상품명 추출
+      const titleMatch = chunk.match(/<p[^>]*class="[^"]*text-px16[^"]*"[^>]*><a[^>]*>(.*?)<\/a>/s);
+      const title = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, "").trim() : "";
+
+      // 최저가 추출 (<span class="text-px16">169,770원</span>)
+      const priceMatch = chunk.match(/<span[^>]*class="[^"]*text-px16[^"]*"[^>]*>([0-9,]+)원<\/span>/);
+      const price = priceMatch ? parseInt(priceMatch[1].replace(/,/g, ""), 10) : null;
+
+      if (title && price) {
+        const validation = validateCandidate(query, sub, title, price, referencePrice);
+        if (validation.valid) {
+          candidates.push({ title, price });
+        }
+      }
+    }
+
+    // 2. 레거시 DOM 폴백 (<p class="prod_name">)
+    if (candidates.length === 0) {
+      const legacyRegex =
+        /<p class="prod_name">\s*<a[^>]*>(.*?)<\/a>.*?<p class="price_sect">\s*<a[^>]*>.*?<strong>([0-9,]+)<\/strong>원/gs;
+      let lm: RegExpExecArray | null;
+      while ((lm = legacyRegex.exec(html)) !== null && candidates.length < 15) {
+        const title = lm[1].replace(/<[^>]+>/g, "").trim();
+        const price = parseInt(lm[2].replace(/,/g, ""), 10);
+        if (title && price) {
+          const validation = validateCandidate(query, sub, title, price, referencePrice);
+          if (validation.valid) {
+            candidates.push({ title, price });
+          }
+        }
       }
     }
 
@@ -78,23 +97,9 @@ export async function fetchDanawaLowestPrice(
       return { query, price: null, danawaUrl, source: "danawa", timestamp: new Date().toISOString() };
     }
 
-    // 기준 가격이 있는 경우 정상 범위(0.6배 ~ 1.45배) 내의 단품 매칭 우선
-    let selected: { title: string; price: number } | null = candidates[0];
-    if (referencePrice && referencePrice > 0) {
-      const plausible = candidates.filter(
-        (c) => c.price >= referencePrice * 0.6 && c.price <= referencePrice * 1.45
-      );
-      if (plausible.length > 0) {
-        selected = plausible[0];
-      } else {
-        // 정상 범위를 벗어난 경우 (되팔이 뻥튀기 or 케이블/브라켓 오매칭) 채택하지 않음
-        selected = null;
-      }
-    }
-
-    if (!selected) {
-      return { query, price: null, danawaUrl, source: "danawa", timestamp: new Date().toISOString() };
-    }
+    // 통과한 후보군 중 최저가 단품 선택
+    candidates.sort((a, b) => a.price - b.price);
+    const selected = candidates[0];
 
     return {
       query,

@@ -16,6 +16,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { fetchDanawaLowestPrice } from "./danawaScraper.js";
 import { fetchCoupangLowestPrice } from "./coupangApi.js";
+import { RAW_PARTS } from "../catalog.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,43 +70,62 @@ async function updateAllPartPrices() {
         continue;
       }
 
-      console.log(`  🔍 부품 시세 조회: ${item.name} (기존: ₩${item.price?.toLocaleString()}원)`);
+      // 정품 표준 기준 시세 (RAW_PARTS) 확보 - 오염 방지용 절대 기준
+      const baseOption = RAW_PARTS[catKey]?.options.find((o) => o.id === item.id);
+      const basePrice = baseOption?.price || item.price || 50000;
 
-      // 1. 다나와 최저가 조회 (완제품/악세서리 필터링)
+      console.log(`  🔍 부품 시세 조회: ${item.name} (기준 정가: ₩${basePrice.toLocaleString()}원)`);
+
+      const validPrices: number[] = [];
+
+      // 1. 다나와 최저가 조회 (완제품/악세서리 필터링 + 브랜드/모델 검증)
       try {
-        let danawa = await fetchDanawaLowestPrice(item.name, item.price);
+        let danawa = await fetchDanawaLowestPrice(item.name, basePrice, item.sub, catKey);
         if (!danawa.price && item.name.includes("FOCUS")) {
-          danawa = await fetchDanawaLowestPrice(item.name.replace(/FOCUS\s*/i, ""), item.price);
+          danawa = await fetchDanawaLowestPrice(item.name.replace(/FOCUS\s*/i, ""), basePrice, item.sub, catKey);
         }
-        if (danawa.price && danawa.price > 1000) {
-          const oldPrice = item.price;
-          item.price = danawa.price;
+        if (danawa.price && danawa.price >= basePrice * 0.65 && danawa.price <= basePrice * 1.35) {
+          validPrices.push(danawa.price);
           item.danawaPrice = danawa.price;
           item.danawaUrl = danawa.danawaUrl;
           danawaSuccessCount++;
-          console.log(`    ✓ 다나와 최저가 반영: ₩${danawa.price.toLocaleString()}원 (${danawa.matchedTitle || "단품"}) (변동: ₩${(danawa.price - oldPrice).toLocaleString()}원)`);
+          console.log(`    ✓ 다나와 최저가 검증 통과: ₩${danawa.price.toLocaleString()}원 (${danawa.matchedTitle || "단품"})`);
         } else {
-          console.log(`    ⚠ 다나와 시세 유지: ₩${item.price?.toLocaleString()}원`);
+          item.danawaPrice = basePrice;
+          item.danawaUrl = danawa.danawaUrl;
+          console.log(`    ⚠ 다나와 검증 실패/시세 부재 -> 기준 정가(₩${basePrice.toLocaleString()}원) 유지`);
         }
       } catch (err) {
         console.warn(`    ✕ 다나와 조회 오류:`, err);
+        item.danawaPrice = basePrice;
       }
 
-      // 2. 쿠팡 파트너스 최저가 & 직링크 조회 (API 키 있을 경우 자동 연동)
+      // 2. 쿠팡 파트너스 최저가 & 직링크 조회 (API 키 있을 경우 자동 연동 + 브랜드/모델/신뢰도 검증)
       try {
-        const coupang = await fetchCoupangLowestPrice(item.name);
-        if (coupang.isApiLinked && coupang.price) {
+        const coupang = await fetchCoupangLowestPrice(item.name, basePrice, item.sub, catKey);
+        if (coupang.isApiLinked && coupang.price && coupang.price >= basePrice * 0.65 && coupang.price <= basePrice * 1.35) {
+          validPrices.push(coupang.price);
           item.coupangPrice = coupang.price;
           item.buyUrl = coupang.productUrl;
           coupangSuccessCount++;
-          console.log(`    ✓ 쿠팡 파트너스 API 연동 성공: ₩${coupang.price.toLocaleString()}원 (${coupang.productUrl})`);
+          console.log(`    ✓ 쿠팡 파트너스 최저가 연동 성공: ₩${coupang.price.toLocaleString()}원 (${coupang.productName?.slice(0, 30) || item.name})`);
         } else {
-          // 키 미등록 시 기본 파트너스 링크 유지
-          item.buyUrl = item.buyUrl || coupang.productUrl;
+          // 검증 실패 시(되팔이 뻥튀기 or 오매칭) 안전한 파트너스 검색 링크 반영
+          item.coupangPrice = undefined;
+          item.buyUrl = coupang.productUrl;
+          console.log(`    ℹ 쿠팡 실시간 단품 미발견/되팔이 배제 -> 안전 검색 링크 매핑`);
         }
       } catch (err) {
         console.warn(`    ✕ 쿠팡 조회 오류:`, err);
       }
+
+      // 최종 가격: 다나와/쿠팡 검증 통과 가격 중 최저가, 없으면 기준 정가 채택
+      if (validPrices.length > 0) {
+        item.price = Math.min(...validPrices);
+      } else {
+        item.price = basePrice;
+      }
+      console.log(`    ⭐ 최종 반영 시세: ₩${item.price.toLocaleString()}원`);
 
       item.lastSyncedAt = new Date().toISOString();
 
