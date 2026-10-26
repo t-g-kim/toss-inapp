@@ -35,7 +35,7 @@ const DREAM_CATEGORIES = [
   { id: "flight", name: "비행기/우주", icon: "✈️", desc: "신분 상승·소원성취", luckyNums: [7, 14, 24, 30, 39, 44] },
 ];
 
-// 역대 최다 출현 Top 10 통계 (동행복권 누적 데이터 기준)
+// 역대 최다 출현 Top 10 통계
 const TOP_NUMBERS = [
   { num: 34, count: 198, rate: "15.9%" },
   { num: 12, count: 194, rate: "15.5%" },
@@ -90,7 +90,7 @@ function calculateLottoSchedule(now = new Date()) {
 
 export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
   const [activeTab, setActiveTab] = useState<"generate" | "saved" | "stats" | "qr">("generate");
-  const [genMode, setGenMode] = useState<"stat" | "dream" | "birth" | "random">("stat");
+  const [genMode, setGenMode] = useState<"stat" | "dream" | "birth">("stat");
 
   // Filter States
   const [oddEvenRatio, setOddEvenRatio] = useState<"any" | "3:3" | "4:2" | "2:4">("3:3");
@@ -115,30 +115,26 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  // Manual Check Number States
-  const [manualInputs, setManualInputs] = useState<number[]>([1, 12, 23, 34, 40, 45]);
-
   // Schedule Info
   const schedule = useMemo(() => calculateLottoSchedule(), []);
-  const [timeRemaining, setTimeRemaining] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
+  const [timeRemaining, setTimeRemaining] = useState({ days: 0, hours: 0, mins: 0 });
 
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date().getTime();
       const diff = schedule.targetSaturday.getTime() - now;
       if (diff <= 0) {
-        setTimeRemaining({ days: 0, hours: 0, mins: 0, secs: 0 });
+        setTimeRemaining({ days: 0, hours: 0, mins: 0 });
         return;
       }
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const mins = Math.floor((diff / 1000 / 60) % 60);
-      const secs = Math.floor((diff / 1000) % 60);
-      setTimeRemaining({ days, hours, mins, secs });
+      setTimeRemaining({ days, hours, mins });
     };
 
     updateCountdown();
-    const timer = setInterval(updateCountdown, 1000);
+    const timer = setInterval(updateCountdown, 10000);
     return () => clearInterval(timer);
   }, [schedule]);
 
@@ -150,7 +146,7 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
     }
   }, [savedGames]);
 
-  // 직전 회차 기준 당첨 번호 (동행복권 최근 회차 패턴)
+  // 직전 회차 기준 당첨 번호
   const recentWinner = useMemo(() => {
     return {
       round: schedule.prevRound,
@@ -163,11 +159,11 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
   }, [schedule]);
 
   const getBallColor = (num: number) => {
-    if (num <= 10) return "bg-amber-400 text-amber-950 border-amber-500/40 shadow-amber-200/50";
-    if (num <= 20) return "bg-blue-500 text-white border-blue-600/40 shadow-blue-200/50";
-    if (num <= 30) return "bg-rose-500 text-white border-rose-600/40 shadow-rose-200/50";
-    if (num <= 40) return "bg-slate-600 text-white border-slate-700/40 shadow-slate-200/50";
-    return "bg-emerald-500 text-white border-emerald-600/40 shadow-emerald-200/50";
+    if (num <= 10) return "bg-amber-400 text-amber-950 border-amber-500/50 shadow-xs";
+    if (num <= 20) return "bg-blue-500 text-white border-blue-600/50 shadow-xs";
+    if (num <= 30) return "bg-rose-500 text-white border-rose-600/50 shadow-xs";
+    if (num <= 40) return "bg-slate-600 text-white border-slate-700/50 shadow-xs";
+    return "bg-emerald-500 text-white border-emerald-600/50 shadow-xs";
   };
 
   // 번호 생성 엔진
@@ -179,7 +175,6 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
     if (mode === "dream") {
       const dream = DREAM_CATEGORIES.find((d) => d.id === selectedDream) || DREAM_CATEGORIES[0];
       const set = new Set<number>();
-      // 꿈 번호 중 2~3개 추출
       const shuffledDream = [...dream.luckyNums].sort(() => Math.random() - 0.5);
       shuffledDream.slice(0, 3).forEach((n) => set.add(n));
       while (set.size < 6) {
@@ -221,7 +216,7 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
 
       const arr = Array.from(set).sort((a, b) => a - b);
 
-      // 1. 3연속 번호 제외 (예: 12, 13, 14)
+      // 1. 3연속 번호 제외
       if (avoidConsecutive) {
         let hasConsecutive = false;
         for (let i = 0; i < arr.length - 2; i++) {
@@ -239,7 +234,7 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
       if (oddEvenRatio === "4:2" && odds !== 4) continue;
       if (oddEvenRatio === "2:4" && odds !== 2) continue;
 
-      // 3. 합계 구간 검사 (100 ~ 175 사이가 역대 75% 이상 차지)
+      // 3. 총합 구간 검사
       if (sumFilter) {
         const totalSum = arr.reduce((acc, cur) => acc + cur, 0);
         if (totalSum < 100 || totalSum > 175) continue;
@@ -265,7 +260,7 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
       setGames([newGame]);
       setIsGenerating(false);
       confetti({ particleCount: 35, spread: 50, origin: { y: 0.7 } });
-    }, 250);
+    }, 200);
   };
 
   const handleGenerateFiveSets = () => {
@@ -282,7 +277,7 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
       setGames(fiveGames);
       setIsGenerating(false);
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-    }, 300);
+    }, 250);
   };
 
   const handleSaveGame = (game: number[]) => {
@@ -311,64 +306,62 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
         rightAction={<TossBadge variant="blue">제 {schedule.currentRound}회차</TossBadge>}
       />
 
-      {/* D-Day & Next Draw Notice Banner */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-4 py-3 shadow-sm">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-blue-200" />
-            <span className="text-xs font-semibold">
-              제 {schedule.currentRound}회 추첨까지{" "}
-              <strong className="text-amber-300 font-extrabold">
-                {timeRemaining.days}일 {timeRemaining.hours}시간 {timeRemaining.mins}분
-              </strong>
-            </span>
+      {/* D-Day & Next Draw Notice Banner (반응형 깨짐 방지 레이아웃) */}
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white px-4 py-2.5 shadow-xs">
+        <div className="max-w-md mx-auto flex flex-wrap items-center justify-between gap-y-1 gap-x-2 text-xs">
+          <div className="flex items-center gap-1.5 font-medium">
+            <Calendar className="w-3.5 h-3.5 text-blue-200 shrink-0" />
+            <span>제 {schedule.currentRound}회 추첨까지</span>
+            <strong className="text-amber-300 font-extrabold whitespace-nowrap">
+              {timeRemaining.days}일 {timeRemaining.hours}시간 {timeRemaining.mins}분
+            </strong>
           </div>
-          <span className="text-[11px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full">
-            매주 토요일 20:35 발표
+          <span className="text-[10px] text-blue-200 bg-white/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+            토 20:35 발표
           </span>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex border-b border-toss-border bg-white px-2 sticky top-0 z-10">
+      {/* Navigation Tabs (모바일 줄바꿈 방지 및 균등 분할) */}
+      <div className="flex border-b border-toss-border bg-white px-1 sticky top-0 z-10">
         {[
-          { id: "generate", label: "번호 조합", icon: <Dice5 className="w-4 h-4 mr-1 inline" /> },
-          { id: "saved", label: `보관함(${savedGames.length})`, icon: <Bookmark className="w-4 h-4 mr-1 inline" /> },
-          { id: "stats", label: "역대 통계", icon: <BarChart3 className="w-4 h-4 mr-1 inline" /> },
-          { id: "qr", label: "QR 당첨 확인", icon: <QrCode className="w-4 h-4 mr-1 inline" /> },
+          { id: "generate", label: "번호 조합", icon: <Dice5 className="w-3.5 h-3.5 shrink-0" /> },
+          { id: "saved", label: `보관함(${savedGames.length})`, icon: <Bookmark className="w-3.5 h-3.5 shrink-0" /> },
+          { id: "stats", label: "역대 통계", icon: <BarChart3 className="w-3.5 h-3.5 shrink-0" /> },
+          { id: "qr", label: "QR 확인", icon: <QrCode className="w-3.5 h-3.5 shrink-0" /> },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex-1 py-3 text-xs md:text-sm font-bold border-b-2 transition flex items-center justify-center ${
+            className={`flex-1 py-3 text-xs sm:text-sm font-bold border-b-2 transition flex items-center justify-center gap-1 whitespace-nowrap ${
               activeTab === tab.id
                 ? "border-toss-blue text-toss-blue"
                 : "border-transparent text-toss-muted hover:text-toss-subtext"
             }`}
           >
             {tab.icon}
-            {tab.label}
+            <span>{tab.label}</span>
           </button>
         ))}
       </div>
 
-      <div className="p-4 space-y-4 max-w-lg mx-auto">
+      <div className="p-4 space-y-4 max-w-md mx-auto">
         {/* ========================================================= */}
         {/* TAB 1: 번호 조합기 */}
         {/* ========================================================= */}
         {activeTab === "generate" && (
           <>
-            {/* Mode Selector */}
-            <div className="grid grid-cols-3 gap-2 bg-gray-100 p-1.5 rounded-2xl">
+            {/* Mode Selector (3등분 깔끔한 버튼) */}
+            <div className="grid grid-cols-3 gap-1.5 bg-gray-100 p-1.5 rounded-2xl">
               {[
-                { id: "stat", label: "AI 통계 필터", icon: "📊" },
-                { id: "dream", label: "꿈자리 해몽", icon: "🌙" },
-                { id: "birth", label: "생년월일 사주", icon: "⭐" },
+                { id: "stat", label: "AI 통계", icon: "📊" },
+                { id: "dream", label: "꿈 해몽", icon: "🌙" },
+                { id: "birth", label: "사주 번호", icon: "⭐" },
               ].map((m) => (
                 <button
                   key={m.id}
                   onClick={() => setGenMode(m.id as any)}
-                  className={`py-2 px-1 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 ${
+                  className={`py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 whitespace-nowrap ${
                     genMode === m.id
                       ? "bg-white text-toss-blue shadow-xs font-extrabold"
                       : "text-toss-muted hover:text-toss-text"
@@ -386,18 +379,19 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
                 title="통계 필터 조건 설정"
                 subtitle="역대 1등 당첨 데이터에 수렴하는 표준 조건"
                 badge={<TossBadge variant="purple">AI 통계</TossBadge>}
+                padding="sm"
               >
-                <div className="space-y-3.5 pt-2 text-sm">
+                <div className="space-y-3 pt-1 text-sm">
                   <div>
                     <label className="text-xs font-semibold text-toss-subtext block mb-1.5">
-                      홀짝 비율 (역대 1위: 3:3 / 2위: 4:2 분포)
+                      홀짝 비율 (역대 1위 3:3 / 2위 4:2 분포)
                     </label>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 gap-1.5">
                       {(["3:3", "4:2", "2:4", "any"] as const).map((ratio) => (
                         <button
                           key={ratio}
                           onClick={() => setOddEvenRatio(ratio)}
-                          className={`py-2 rounded-xl text-xs font-bold border transition ${
+                          className={`py-1.5 rounded-xl text-xs font-bold border transition ${
                             oddEvenRatio === ratio
                               ? "bg-toss-blue text-white border-toss-blue"
                               : "bg-toss-bg text-toss-subtext border-transparent hover:bg-gray-200"
@@ -412,13 +406,13 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
                   <div className="flex items-center justify-between pt-1">
                     <div>
                       <span className="font-semibold text-toss-text text-xs">총합 구간 필터 (100~175)</span>
-                      <p className="text-[11px] text-toss-muted">역대 1등 당첨 번호 합계의 76%가 분포한 구간</p>
+                      <p className="text-[11px] text-toss-muted">역대 1등 번호 합계의 76%가 분포한 구간</p>
                     </div>
                     <input
                       type="checkbox"
                       checked={sumFilter}
                       onChange={(e) => setSumFilter(e.target.checked)}
-                      className="w-5 h-5 accent-toss-blue rounded cursor-pointer"
+                      className="w-5 h-5 accent-toss-blue rounded cursor-pointer shrink-0"
                     />
                   </div>
 
@@ -431,7 +425,7 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
                       type="checkbox"
                       checked={avoidConsecutive}
                       onChange={(e) => setAvoidConsecutive(e.target.checked)}
-                      className="w-5 h-5 accent-toss-blue rounded cursor-pointer"
+                      className="w-5 h-5 accent-toss-blue rounded cursor-pointer shrink-0"
                     />
                   </div>
 
@@ -444,7 +438,7 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
                       type="checkbox"
                       checked={includeColdNumbers}
                       onChange={(e) => setIncludeColdNumbers(e.target.checked)}
-                      className="w-5 h-5 accent-toss-blue rounded cursor-pointer"
+                      className="w-5 h-5 accent-toss-blue rounded cursor-pointer shrink-0"
                     />
                   </div>
                 </div>
@@ -457,22 +451,23 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
                 title="오늘 꾼 꿈을 선택해 보세요"
                 subtitle="한국 전통 길몽 해몽 사전과 행운 번호 매칭"
                 badge={<TossBadge variant="green">길몽 매칭</TossBadge>}
+                padding="sm"
               >
-                <div className="grid grid-cols-2 gap-2 pt-2">
+                <div className="grid grid-cols-2 gap-2 pt-1">
                   {DREAM_CATEGORIES.map((dream) => (
                     <button
                       key={dream.id}
                       onClick={() => setSelectedDream(dream.id)}
-                      className={`p-3 rounded-2xl border text-left transition flex items-start gap-2.5 ${
+                      className={`p-2.5 rounded-2xl border text-left transition flex items-start gap-2 ${
                         selectedDream === dream.id
                           ? "bg-blue-50/70 border-toss-blue shadow-xs"
                           : "bg-toss-bg border-transparent hover:bg-gray-100"
                       }`}
                     >
-                      <span className="text-2xl">{dream.icon}</span>
-                      <div>
-                        <div className="font-bold text-xs text-toss-text">{dream.name}</div>
-                        <div className="text-[10px] text-toss-muted mt-0.5">{dream.desc}</div>
+                      <span className="text-xl shrink-0">{dream.icon}</span>
+                      <div className="min-w-0">
+                        <div className="font-bold text-xs text-toss-text truncate">{dream.name}</div>
+                        <div className="text-[10px] text-toss-muted mt-0.5 truncate">{dream.desc}</div>
                       </div>
                     </button>
                   ))}
@@ -484,10 +479,11 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
             {genMode === "birth" && (
               <TossCard
                 title="생년월일 행운 번호"
-                subtitle="나의 생년월일과 오늘의 우주적 기운 시드(Seed) 조합"
+                subtitle="나의 생년월일과 오늘의 기운 시드(Seed) 조합"
                 badge={<TossBadge variant="blue">사주 오행</TossBadge>}
+                padding="sm"
               >
-                <div className="pt-2 space-y-3">
+                <div className="pt-1 space-y-3">
                   <div>
                     <label className="text-xs font-semibold text-toss-subtext block mb-1">
                       생년월일을 선택하세요
@@ -496,10 +492,10 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
                       type="date"
                       value={birthDate}
                       onChange={(e) => setBirthDate(e.target.value)}
-                      className="w-full bg-toss-bg border border-toss-border rounded-xl px-3 py-2.5 text-sm font-semibold outline-hidden focus:border-toss-blue"
+                      className="w-full bg-toss-bg border border-toss-border rounded-xl px-3 py-2 text-sm font-semibold outline-hidden focus:border-toss-blue"
                     />
                   </div>
-                  <p className="text-xs text-toss-muted">
+                  <p className="text-xs text-toss-muted leading-relaxed">
                     입력하신 생년월일은 기기 내에서만 연산되며 외부로 전송되지 않습니다.
                   </p>
                 </div>
@@ -507,7 +503,7 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
             )}
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-3 pt-1">
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
               <TossButton
                 variant="secondary"
                 size="md"
@@ -527,9 +523,9 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
               </TossButton>
             </div>
 
-            {/* Generated Numbers Display */}
+            {/* Generated Numbers Display (모바일 전용 최적화 레이아웃) */}
             {games.length > 0 && (
-              <div className="space-y-3 animate-fade-in pt-1">
+              <div className="space-y-2.5 animate-fade-in pt-1">
                 <div className="flex items-center justify-between px-1">
                   <h4 className="font-bold text-sm text-toss-text">
                     추천 행운 번호 ({games.length}게임)
@@ -543,52 +539,61 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
                   const sum = game.reduce((a, b) => a + b, 0);
                   const odds = game.filter((n) => n % 2 !== 0).length;
                   return (
-                    <TossCard key={idx} padding="sm">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="w-6 h-6 rounded-full bg-blue-50 text-toss-blue text-xs font-extrabold flex items-center justify-center">
-                            {String.fromCharCode(65 + idx)}
-                          </span>
-
-                          <div className="flex items-center gap-1.5 sm:gap-2">
-                            {game.map((num) => (
-                              <div
-                                key={num}
-                                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-extrabold text-xs sm:text-sm border shadow-xs ${getBallColor(
-                                  num
-                                )}`}
-                              >
-                                {num}
-                              </div>
-                            ))}
+                    <TossCard key={idx} padding="sm" className="overflow-hidden">
+                      <div className="space-y-2.5">
+                        {/* 1. 상단 컨트롤 바 (식별자 + 요약 + 액션 버튼) */}
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-full bg-blue-50 text-toss-blue text-xs font-extrabold flex items-center justify-center shrink-0">
+                              {String.fromCharCode(65 + idx)}
+                            </span>
+                            <span className="text-[11px] text-toss-muted">
+                              합계 <strong className="text-toss-text font-bold">{sum}</strong> · 홀짝{" "}
+                              <strong className="text-toss-text font-bold">{odds}:{6 - odds}</strong>
+                            </span>
                           </div>
 
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => handleCopyText(game, idx)}
-                              className="p-1.5 text-toss-muted hover:text-toss-blue transition"
+                              className="px-2 py-1 text-xs text-toss-subtext bg-gray-100 hover:bg-gray-200 rounded-lg transition flex items-center gap-1 font-semibold"
                               title="복사하기"
                             >
                               {copiedIndex === idx ? (
-                                <Check className="w-4 h-4 text-emerald-600" />
+                                <>
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span className="text-emerald-600 text-[11px]">복사됨</span>
+                                </>
                               ) : (
-                                <Copy className="w-4 h-4" />
+                                <>
+                                  <Copy className="w-3.5 h-3.5" />
+                                  <span className="text-[11px]">복사</span>
+                                </>
                               )}
                             </button>
                             <button
                               onClick={() => handleSaveGame(game)}
-                              className="p-1.5 text-toss-muted hover:text-toss-blue transition"
+                              className="px-2 py-1 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition flex items-center gap-1 font-semibold"
                               title="보관하기"
                             >
-                              <Bookmark className="w-4 h-4" />
+                              <Bookmark className="w-3.5 h-3.5" />
+                              <span className="text-[11px]">저장</span>
                             </button>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between text-[11px] text-toss-muted px-1 pt-1 border-t border-gray-100">
-                          <span>합계: <strong className="text-toss-text">{sum}</strong></span>
-                          <span>홀짝: <strong className="text-toss-text">{odds} : {6 - odds}</strong></span>
-                          <span className="text-emerald-600 font-semibold">정상 구간</span>
+                        {/* 2. 중앙 번호 볼 영역 (완전 중앙 정렬 & 절대 깨지지 않는 여백) */}
+                        <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 py-1">
+                          {game.map((num) => (
+                            <div
+                              key={num}
+                              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-extrabold text-sm border shadow-xs transition-transform hover:scale-105 shrink-0 ${getBallColor(
+                                num
+                              )}`}
+                            >
+                              {num}
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </TossCard>
@@ -597,16 +602,16 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
               </div>
             )}
 
-            {/* Legal Compliance & Responsible Gambling Notice */}
-            <div className="bg-amber-50/70 border border-amber-200/60 rounded-2xl p-4 text-xs text-amber-950 space-y-1.5">
+            {/* Legal Compliance Notice */}
+            <div className="bg-amber-50/70 border border-amber-200/60 rounded-2xl p-3.5 text-xs text-amber-950 space-y-1.5">
               <div className="flex items-center gap-1.5 font-bold text-amber-900">
-                <ShieldAlert className="w-4 h-4 text-amber-700" />
+                <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0" />
                 건전한 복권 문화 및 법적 고지 안내
               </div>
               <p className="text-[11px] text-amber-800/90 leading-relaxed">
                 • 본 서비스는 빅데이터 통계 및 알고리즘 기반의 오락용 참고 번호 조합기이며, 실제 복권 당첨을 보장하지 않습니다.
                 <br />
-                • 과도한 복권 몰입은 도박중독으로 이어질 수 있습니다. 1회 10만 원 이하의 소액 건전 구매를 권장합니다.
+                • 복권 과몰입은 도박중독으로 이어질 수 있습니다. 1회 10만 원 이하의 소액 건전 구매를 권장합니다.
                 <br />
                 • 동행복권 클린센터: 1588-6450 | 도박문제 상담전화: 국번없이 1336
               </p>
@@ -629,21 +634,22 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
               title={`제 ${recentWinner.round}회 공식 당첨 번호`}
               subtitle={`추첨일: ${recentWinner.date} (${recentWinner.winnersCount}명 1등 당첨)`}
               badge={<TossBadge variant="green">공식 발표</TossBadge>}
+              padding="sm"
             >
-              <div className="flex items-center justify-center gap-1.5 sm:gap-2 py-3">
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2 py-3 overflow-x-auto">
                 {recentWinner.numbers.map((num) => (
                   <div
                     key={num}
-                    className={`w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-sm border shadow-xs ${getBallColor(
+                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-extrabold text-xs sm:text-sm border shadow-xs shrink-0 ${getBallColor(
                       num
                     )}`}
                   >
                     {num}
                   </div>
                 ))}
-                <span className="text-lg font-bold text-gray-400 mx-0.5">+</span>
+                <span className="text-base font-bold text-gray-400 mx-0.5 shrink-0">+</span>
                 <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-sm border shadow-xs ${getBallColor(
+                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-extrabold text-xs sm:text-sm border shadow-xs shrink-0 ${getBallColor(
                     recentWinner.bonus
                   )}`}
                 >
@@ -659,7 +665,7 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
             <div>
               <div className="flex items-center justify-between mb-2 px-1">
                 <h4 className="font-bold text-sm text-toss-text">
-                  내 보관함 번호 실시간 채점 ({savedGames.length}개)
+                  내 보관함 실시간 채점 ({savedGames.length}개)
                 </h4>
                 {savedGames.length > 0 && (
                   <button
@@ -676,14 +682,14 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
               </div>
 
               {savedGames.length === 0 ? (
-                <div className="text-center py-12 text-toss-muted text-sm bg-white rounded-2xl border border-toss-border">
+                <div className="text-center py-12 text-toss-muted text-sm bg-white rounded-2xl border border-toss-border p-4">
                   <Bookmark className="w-10 h-10 mx-auto text-gray-300 mb-2" />
                   저장된 행운 번호가 없습니다.
                   <br />
                   번호 조합 탭에서 번호를 생성하고 보관해보세요!
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {savedGames.map((game, idx) => {
                     const matchedNums = game.filter((n) => recentWinner.numbers.includes(n));
                     const matchCount = matchedNums.length;
@@ -711,7 +717,7 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
                     return (
                       <TossCard key={idx} padding="sm">
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between border-b border-gray-100 pb-1.5">
                             <span className="text-xs font-bold text-toss-muted">
                               #{idx + 1}
                             </span>
@@ -720,20 +726,20 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
                             </span>
                             <button
                               onClick={() => setSavedGames(savedGames.filter((_, i) => i !== idx))}
-                              className="text-xs text-rose-500 hover:underline"
+                              className="text-xs text-rose-500 hover:underline px-1"
                             >
                               삭제
                             </button>
                           </div>
 
-                          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                          <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 py-1">
                             {game.map((num) => {
                               const isMatch = recentWinner.numbers.includes(num);
                               const isBonus = num === recentWinner.bonus;
                               return (
                                 <div
                                   key={num}
-                                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-extrabold text-xs sm:text-sm border transition ${
+                                  className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-extrabold text-xs sm:text-sm border transition shrink-0 ${
                                     isMatch || isBonus
                                       ? `${getBallColor(num)} ring-2 ring-amber-400 scale-105`
                                       : `${getBallColor(num)} opacity-40 grayscale-30`
@@ -763,27 +769,28 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
               title="역대 최다 출현 번호 Top 10"
               subtitle="동행복권 1회차부터 누적된 1등 당첨 빈도수"
               badge={<TossBadge variant="blue">빅데이터</TossBadge>}
+              padding="sm"
             >
-              <div className="space-y-2.5 pt-2">
+              <div className="space-y-2 pt-1">
                 {TOP_NUMBERS.map((item, i) => (
-                  <div key={item.num} className="flex items-center gap-3 text-xs">
-                    <span className="w-5 font-bold text-toss-muted text-right">{i + 1}위</span>
+                  <div key={item.num} className="flex items-center gap-2.5 text-xs">
+                    <span className="w-5 font-bold text-toss-muted text-right shrink-0">{i + 1}위</span>
                     <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${getBallColor(
+                      className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${getBallColor(
                         item.num
                       )}`}
                     >
                       {item.num}
                     </div>
                     <div className="grow">
-                      <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                      <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
                         <div
                           className="bg-toss-blue h-full rounded-full transition-all duration-500"
                           style={{ width: `${(item.count / 210) * 100}%` }}
                         />
                       </div>
                     </div>
-                    <span className="font-extrabold text-toss-text w-12 text-right">
+                    <span className="font-extrabold text-toss-text w-12 text-right shrink-0">
                       {item.count}회
                     </span>
                   </div>
@@ -794,33 +801,34 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
             <TossCard
               title="최근 미출현 번호 (Cold)"
               subtitle="최근 회차 동안 나오지 않아 출현 가능성 있는 번호"
+              padding="sm"
             >
-              <div className="flex items-center justify-around py-3">
+              <div className="flex items-center justify-around py-2">
                 {COLD_NUMBERS.map((item) => (
                   <div key={item.num} className="text-center">
                     <div
-                      className={`w-9 h-9 mx-auto rounded-full flex items-center justify-center font-bold text-sm mb-1 ${getBallColor(
+                      className={`w-8 h-8 sm:w-9 sm:h-9 mx-auto rounded-full flex items-center justify-center font-bold text-xs sm:text-sm mb-1 ${getBallColor(
                         item.num
                       )}`}
                     >
                       {item.num}
                     </div>
-                    <span className="text-[11px] text-toss-muted">{item.count}회 출현</span>
+                    <span className="text-[10px] text-toss-muted block">{item.count}회</span>
                   </div>
                 ))}
               </div>
             </TossCard>
 
-            <TossCard title="역대 1등 번호 핵심 통계 공식">
-              <div className="grid grid-cols-2 gap-3 text-xs pt-1">
+            <TossCard title="역대 1등 번호 핵심 통계 공식" padding="sm">
+              <div className="grid grid-cols-2 gap-2 text-xs pt-1">
                 <div className="bg-toss-bg p-3 rounded-xl space-y-1">
                   <div className="font-bold text-toss-text">최다 홀짝 비율</div>
-                  <div className="text-toss-blue font-extrabold text-base">3 : 3 (33.2%)</div>
-                  <div className="text-[10px] text-toss-muted">2위는 4:2(25%), 2:4(24%)</div>
+                  <div className="text-toss-blue font-extrabold text-sm sm:text-base">3 : 3 (33.2%)</div>
+                  <div className="text-[10px] text-toss-muted">2위 4:2, 3위 2:4</div>
                 </div>
                 <div className="bg-toss-bg p-3 rounded-xl space-y-1">
                   <div className="font-bold text-toss-text">최다 합계 구간</div>
-                  <div className="text-purple-600 font-extrabold text-base">121 ~ 160 (58%)</div>
+                  <div className="text-purple-600 font-extrabold text-sm sm:text-base">121 ~ 160 (58%)</div>
                   <div className="text-[10px] text-toss-muted">평균 합계: 약 138</div>
                 </div>
               </div>
@@ -837,10 +845,11 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
               title="로또 용지 QR코드 당첨 확인"
               subtitle="복권 상단의 QR코드를 스마트폰 기본 카메라로 비추면 즉시 확인됩니다"
               badge={<TossBadge variant="green">공식 연동</TossBadge>}
+              padding="sm"
             >
-              <div className="py-4 text-center space-y-3">
-                <div className="w-20 h-20 bg-blue-50 text-toss-blue rounded-3xl mx-auto flex items-center justify-center border border-blue-200">
-                  <QrCode className="w-10 h-10" />
+              <div className="py-3 text-center space-y-3">
+                <div className="w-16 h-16 bg-blue-50 text-toss-blue rounded-2xl mx-auto flex items-center justify-center border border-blue-200">
+                  <QrCode className="w-8 h-8" />
                 </div>
                 <div>
                   <h4 className="font-bold text-sm text-toss-text">카메라로 로또 종이 QR을 비춰보세요</h4>
@@ -854,29 +863,29 @@ export const LottoFilterApp: React.FC<LottoFilterAppProps> = ({ onBack }) => {
                   href="https://m.dhlottery.co.kr/qr.do?method=checkServer"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-1.5 w-full py-3 bg-toss-blue text-white font-bold text-sm rounded-xl shadow-xs hover:bg-blue-600 transition"
+                  className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 bg-toss-blue text-white font-bold text-sm rounded-xl shadow-xs hover:bg-blue-600 transition"
                 >
                   동행복권 공식 QR 확인 페이지 열기 <ExternalLink className="w-4 h-4" />
                 </a>
               </div>
             </TossCard>
 
-            <TossCard title="당첨금 수령 방법 및 유효기간 안내">
-              <div className="space-y-2.5 text-xs text-toss-subtext pt-1">
-                <div className="flex items-start gap-2">
+            <TossCard title="당첨금 수령 방법 및 유효기간 안내" padding="sm">
+              <div className="space-y-2 text-xs text-toss-subtext pt-1">
+                <div className="flex items-start gap-1.5">
                   <span className="font-bold text-toss-text shrink-0">• 1등:</span>
                   <span>농협은행 본점 (신분증 및 당첨복권 지참)</span>
                 </div>
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-1.5">
                   <span className="font-bold text-toss-text shrink-0">• 2·3등:</span>
-                  <span>농협은행 전국 각 지점 (당첨복권 및 신분증 지참)</span>
+                  <span>농협은행 전국 각 지점 (신분증 지참)</span>
                 </div>
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-1.5">
                   <span className="font-bold text-toss-text shrink-0">• 4·5등:</span>
-                  <span>일반 로또 복권 판매점 및 농협은행 각 지점 (즉시 현금 교환 가능)</span>
+                  <span>일반 로또 복권 판매점 및 농협은행 (현금 교환)</span>
                 </div>
                 <div className="pt-2 border-t border-gray-100 text-[11px] text-rose-500 font-semibold">
-                  ⚠️ 당첨금 지급 기한: 추첨일로부터 1년 이내 (기한 초과 시 복권기금 귀속)
+                  ⚠️ 당첨금 지급 기한: 추첨일로부터 1년 이내
                 </div>
               </div>
             </TossCard>
