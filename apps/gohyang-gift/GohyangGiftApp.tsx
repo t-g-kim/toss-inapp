@@ -7,7 +7,9 @@ import {
   GiftItem,
   RegionCode,
   CategoryCode,
-  calculate2026TaxBenefit,
+  CURRENT_YEAR,
+  EFFECTIVE_TAX_YEAR,
+  calculateTaxBenefit,
 } from "./data";
 import {
   Gift,
@@ -144,9 +146,9 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
     return wishlistItems.reduce((acc, cur) => acc + cur.point, 0);
   }, [wishlistItems]);
 
-  // Tax calculation
+  // Tax calculation (dynamic year)
   const taxBenefit = useMemo(() => {
-    return calculate2026TaxBenefit(donationInput);
+    return calculateTaxBenefit(donationInput, EFFECTIVE_TAX_YEAR);
   }, [donationInput]);
 
   const handleShare = () => {
@@ -154,7 +156,7 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
     if (navigator.share) {
       navigator
         .share({
-          title: "고향사랑기부제 답례품 & 2026 세액공제 계산기",
+          title: `고향사랑기부제 답례품 & ${CURRENT_YEAR} 세액공제 계산기`,
           text: "10만원 기부하면 10만원 전액 환급 + 3만원 지역 특산품까지 무료 득템! 전국 대표 답례품을 모아보세요.",
           url,
         })
@@ -185,7 +187,7 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
               <span className="text-xl">🎁</span>
               <h1 className="font-bold text-base text-slate-900 tracking-tight">고향사랑 답례품</h1>
               <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full">
-                2026 세법
+                {CURRENT_YEAR} 세법
               </span>
             </div>
           </div>
@@ -258,7 +260,7 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
                   <span className="text-yellow-300">3만원 답례품</span>은 전액 무료!
                 </h2>
                 <p className="text-xs text-emerald-100 mt-1.5">
-                  2026년부터 10만~20만원 구간 공제율도 44%로 대폭 상향되었어요.
+                  {EFFECTIVE_TAX_YEAR}년부터 10만~20만원 구간 공제율도 44%로 대폭 상향되었어요.
                 </p>
                 <div className="mt-3 flex gap-2">
                   <button
@@ -551,7 +553,7 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="text-xl">💰</span>
                 <h2 className="font-bold text-sm text-slate-900">
-                  2026년 개정세법 환급 시뮬레이터
+                  {EFFECTIVE_TAX_YEAR}년 개정세법 환급 시뮬레이터
                 </h2>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
@@ -559,11 +561,11 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
                 <strong>30% 답례품 포인트</strong>를 실시간으로 계산해 드려요.
               </p>
 
-              {/* 2026 Key Law Changes Card */}
+              {/* Key Law Changes Card */}
               <div className="mt-3 bg-emerald-50/70 border border-emerald-200/60 rounded-xl p-3 text-xs space-y-1.5">
                 <div className="font-bold text-emerald-900 flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                  2026년 신설 혜택 체크포인트
+                  {EFFECTIVE_TAX_YEAR}년 신설 혜택 체크포인트
                 </div>
                 <div className="text-slate-700 text-[11px] space-y-1">
                   <div className="flex items-center gap-1.5">
@@ -698,7 +700,7 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
                   </span>
                 ) : donationInput <= 200000 ? (
                   <span>
-                    🚀 <strong>2026 신설 꿀구간!</strong> 10만 초과분도 44% 공제 + 30% 답례품으로{" "}
+                    🚀 <strong>{EFFECTIVE_TAX_YEAR} 신설 꿀구간!</strong> 10만 초과분도 44% 공제 + 30% 답례품으로{" "}
                     <strong>74% 환급 효율</strong>을 누릴 수 있어요!
                   </span>
                 ) : (

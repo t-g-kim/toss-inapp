@@ -594,12 +594,13 @@ export const GIFT_ITEMS: GiftItem[] = [
 ];
 
 /**
- * 2026년 개정세법 세액공제 & 답례품 계산 모델
- * 1) 10만원 이하: 100% 전액 세액공제 (100,000원 공제)
- * 2) 10만원 초과 ~ 20만원 이하: 44% 세액공제 (2026년 개정 신설)
- * 3) 20만원 초과 ~ 2,000만원 이하: 16.5% 세액공제
- * + 기부금의 30%를 답례품 포인트로 무조건 환급!
+ * 연도별 세법 & 공제 기준 동적 설정
+ * - 2026년 이후: 10만원 이하 100%, 10만~20만원 이하 44% (신설 상향), 20만원 초과 16.5%
+ * - 매년 1월 1일 연말정산 기부한도 자동 리셋
  */
+export const CURRENT_YEAR = new Date().getFullYear();
+export const EFFECTIVE_TAX_YEAR = Math.max(CURRENT_YEAR, 2026);
+
 export interface TaxBenefitResult {
   donationAmount: number;
   taxCredit: number; // 세액공제 환급액
@@ -610,16 +611,22 @@ export interface TaxBenefitResult {
   isSweetSpot100k: boolean; // 10만원 꿀구간 (실부담 0원)
 }
 
-export function calculate2026TaxBenefit(donation: number): TaxBenefitResult {
+export function calculateTaxBenefit(
+  donation: number,
+  year: number = EFFECTIVE_TAX_YEAR
+): TaxBenefitResult {
   const amount = Math.max(0, Math.min(donation, 20000000)); // 연간 한도 2천만원
   let taxCredit = 0;
+
+  // 2026년 이후 개정세법 적용 (10만 초과 ~ 20만 이하 44% 공제율)
+  const isRevisedLaw = year >= 2026;
 
   if (amount <= 100000) {
     taxCredit = amount; // 10만원까지 100% 공제
   } else if (amount <= 200000) {
-    taxCredit = 100000 + (amount - 100000) * 0.44; // 10만 초과분 44% 공제 (2026 신설)
+    taxCredit = 100000 + (amount - 100000) * (isRevisedLaw ? 0.44 : 0.165);
   } else {
-    taxCredit = 100000 + 100000 * 0.44 + (amount - 200000) * 0.165; // 20만 초과분 16.5%
+    taxCredit = 100000 + 100000 * (isRevisedLaw ? 0.44 : 0.165) + (amount - 200000) * 0.165;
   }
 
   const giftPoint = Math.floor(amount * 0.3); // 30% 답례품
@@ -637,3 +644,6 @@ export function calculate2026TaxBenefit(donation: number): TaxBenefitResult {
     isSweetSpot100k: amount === 100000,
   };
 }
+
+// 하위 호환성을 위한 alias
+export const calculate2026TaxBenefit = (donation: number) => calculateTaxBenefit(donation, 2026);

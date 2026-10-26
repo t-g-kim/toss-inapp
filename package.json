@@ -11,7 +11,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "build:all": "npm run build --workspaces --if-present"
+    "build:all": "npm run build --workspaces --if-present",
+    "update-gifts": "npx tsx apps/gohyang-gift/scripts/update-gifts.ts"
   },
   "devDependencies": {
     "@apps-in-toss/cli": "^3.8.0",

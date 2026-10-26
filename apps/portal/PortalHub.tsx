@@ -58,7 +58,7 @@ const APPS: MiniAppMeta[] = [
     id: "gohyang-gift",
     title: "고향사랑 답례품 & 환급 계산기",
     category: "직장인/재테크",
-    badge: { text: "2026 신설 혜택", variant: "green" },
+    badge: { text: `${Math.max(new Date().getFullYear(), 2026)} 신설 혜택`, variant: "green" },
     desc: "10만원 기부 시 전액 환급 + 3만원 특산품 무료! 전국 인기 답례품 큐레이션 & 실시간 세액공제 계산",
     iconBg: "bg-emerald-600",
     icon: <Gift className="w-5 h-5 text-white" />,

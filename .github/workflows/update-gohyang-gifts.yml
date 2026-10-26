@@ -1,0 +1,69 @@
+name: Automatic Gohyang Gifts & Tax Sync
+
+on:
+  schedule:
+    # 매주 월요일 09:00 KST (UTC 00:00) 자동 실행
+    - cron: '0 0 * * 1'
+  workflow_dispatch: # GitHub 웹 콘솔에서 언제든 수동 원클릭 즉시 실행 지원
+
+permissions:
+  contents: write
+
+jobs:
+  update-gifts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Gohyang Gifts Data & Image Integrity Sync
+        run: npm run update-gifts
+
+      - name: Build standalone bundle
+        run: |
+          cd apps/gohyang-gift
+          npm run build
+          npx @apps-in-toss/cli build
+
+      - name: Commit and push if updated
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # 1. 원격 최신 변경사항 사전 동기화
+          git fetch origin main
+          git rebase origin/main || true
+
+          # 2. 업데이트된 파일 스테이징
+          git add apps/gohyang-gift/data.ts apps/gohyang-gift/scripts/last-sync.json apps/gohyang-gift/gohyang-gift.ait apps/gohyang-gift/dist
+
+          # 3. 변경사항이 있는 경우에만 커밋 & 안전 푸시
+          if git diff --staged --quiet; then
+            echo "✅ No updates or changes detected in gohyang gifts."
+          else
+            echo "📦 Changes detected. Committing latest gifts..."
+            git commit -m "chore(gohyang-gift): auto-sync latest municipal gifts & tax rates [skip ci]"
+
+            echo "🚀 Pushing update to origin main with auto-rebase protection..."
+            for attempt in 1 2 3; do
+              if git push origin HEAD:main; then
+                echo "🎉 Successfully pushed latest gohyang gifts update on attempt $attempt!"
+                break
+              else
+                echo "⚠️ Push rejected on attempt $attempt. Re-fetching and rebasing..."
+                git fetch origin main
+                git rebase -X theirs origin/main || true
+              fi
+            done
+          fi
