@@ -311,7 +311,7 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
     <div className="w-full min-h-screen bg-toss-bg text-toss-text pb-20 select-none">
       {/* 1. Header */}
       <TossHeader
-        title="데스크테리어 견적기"
+        title="데스크테리어"
         subtitle="내 책상 맞춤 소품 & 3D 360° 시뮬레이터"
         onBack={onBack}
         rightElement={

@@ -1,5 +1,5 @@
 export default {
-  appName: "make-my-desk",
+  appName: "deskterior",
   webBundleDir: "dist",
   brand: {
     primaryColor: "#3182F6",

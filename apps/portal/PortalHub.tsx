@@ -118,7 +118,7 @@ const APPS: MiniAppMeta[] = [
   },
   {
     id: "make-my-desk",
-    title: "데스크 셋업 견적기",
+    title: "데스크테리어",
     category: "생활/인테리어",
     badge: { text: "데스크테리어", variant: "purple" },
     desc: "30만~220만 맞춤 데스크 세팅, 모니터암 하중 호환 진단 & 쿠팡 최저가",
