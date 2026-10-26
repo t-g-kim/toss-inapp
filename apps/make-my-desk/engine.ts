@@ -69,45 +69,69 @@ export const checkDeskCompatibility = (
   const light = getPartOption("lightingMat", build.lightingMat);
   const acc = getPartOption("accessories", build.accessories);
 
-  // 1. 모니터암 지지하중 vs 모니터 무게 검사 (핵심 안전성)
+  // 1. 모니터암 지지하중 vs 모니터 무게 및 거치 타입 검사 (핵심 안전성)
   if (monitor && arm) {
-    const monWeight = monitor.monitorWeight || 4.0;
-    const maxWeight = arm.armMaxWeight || 9.0;
+    if (arm.id === "arm_none") {
+      issues.push({
+        severity: "tip",
+        title: "순정 스탠드 사용 안내 (상판 점유)",
+        desc: "모니터 기본 스탠드는 상판의 약 20×20cm 면적을 차지합니다. 1~3만원대 모니터암(NB F80 등)을 장착하면 모니터 하부 공간이 100% 개방되어 데스크 쉘프와 키보드 배치가 훨씬 자유로워집니다.",
+      });
+    } else {
+      const monWeight = monitor.monitorWeight || 4.0;
+      const maxWeight = arm.armMaxWeight || 9.0;
 
-    if (monWeight > maxWeight) {
-      issues.push({
-        severity: "danger",
-        title: "모니터암 하중 초과 위험",
-        desc: `선택하신 모니터 무게(${monWeight}kg)가 모니터암 최대 지지 하중(${maxWeight}kg)을 초과하여 모니터가 아래로 처질 수 있습니다. 고중량 모니터암을 권장합니다.`,
-      });
-      penalty += 35;
-    } else if (monWeight >= maxWeight * 0.85) {
-      issues.push({
-        severity: "warning",
-        title: "모니터암 하중 한계 근접 (85% 이상)",
-        desc: `모니터 무게(${monWeight}kg)가 모니터암 한계(${maxWeight}kg)에 가깝습니다. 관절 장력을 강하게 조여 사용하세요.`,
-      });
-      penalty += 10;
-    }
+      if (monWeight > maxWeight) {
+        issues.push({
+          severity: "danger",
+          title: "모니터암 하중 초과 위험",
+          desc: `선택하신 모니터 무게(${monWeight}kg)가 모니터암 최대 지지 하중(${maxWeight}kg)을 초과하여 모니터 고개 숙임 및 관절 쳐짐 위험이 있습니다. 고중량 모니터암(PMA-2D 등)을 권장합니다.`,
+        });
+        penalty += 35;
+      } else if (monWeight >= maxWeight * 0.85) {
+        issues.push({
+          severity: "warning",
+          title: "모니터암 하중 한계 근접 (85% 이상)",
+          desc: `모니터 무게(${monWeight}kg)가 모니터암 한계(${maxWeight}kg)에 가깝습니다. 관절 장력 조절 볼트를 단단히 조여 사용하세요.`,
+        });
+        penalty += 10;
+      }
 
-    // 듀얼 모니터 vs 모니터암 타입 매칭
-    if (monitor.monitorType === "dual" && arm.armType !== "dual") {
-      issues.push({
-        severity: "danger",
-        title: "듀얼 모니터 거치 불가",
-        desc: "듀얼 모니터(2대) 세트를 선택하셨으나, 싱글 모니터암이 선택되었습니다. 듀얼 전용 모니터암(DMA-2 등)을 선택해 주세요.",
-      });
-      penalty += 30;
-    }
+      // 듀얼 모니터 vs 모니터암 타입 매칭
+      if (monitor.monitorType === "dual" && arm.armType !== "dual") {
+        issues.push({
+          severity: "danger",
+          title: "듀얼 모니터 거치 불가",
+          desc: "듀얼 모니터(2대) 세트를 선택하셨으나, 싱글 모니터암이 선택되었습니다. 듀얼 전용 모니터암(DMA-2 등)을 선택해 주세요.",
+        });
+        penalty += 30;
+      }
 
-    // 울트라와이드 모니터 권장 암
-    if (monitor.monitorType === "ultrawide" && arm.armType !== "heavy") {
+      // 울트라와이드 모니터 권장 암
+      if (monitor.monitorType === "ultrawide" && arm.armType !== "heavy") {
+        issues.push({
+          severity: "warning",
+          title: "34인치 울트라와이드 전용 암 권장",
+          desc: "34인치 울트라와이드는 좌우 토크(모멘트)가 커서 카멜 PMA-2D 등 고중량 전용 모니터암을 장착해야 고개 숙임이 없습니다.",
+        });
+        penalty += 10;
+      }
+
+      // 상판 보호 보강판 권장
+      if (desk && (desk.deskThickness || 18) <= 22) {
+        issues.push({
+          severity: "tip",
+          title: "모니터암 상판 보강판(스틸 플레이트) 추천",
+          desc: "상판 두께 20mm 이하이거나 PB/MDF 재질 책상은 클램프 집중 하중으로 상판 휨/파손이 발생할 수 있습니다. 9천원대 상판 보강판을 함께 덧대시면 안심하고 사용할 수 있습니다.",
+        });
+      }
+
+      // 벽 밀착 간섭 팁
       issues.push({
-        severity: "warning",
-        title: "34인치 울트라와이드 전용 암 권장",
-        desc: "34인치 울트라와이드는 좌우 토크(모멘트)가 커서 카멜 PMA-2D 등 고중량 전용 모니터암을 장착해야 고개 숙임이 없습니다.",
+        severity: "tip",
+        title: "벽 밀착 공간 및 클램프 설치 팁",
+        desc: "책상을 벽에 바짝 붙여 사용할 경우 모니터암 후면 관절 여유(약 5~8cm)가 필요합니다. 클램프를 중앙보다 살짝 좌/우로 비껴 설치하면 벽 밀착이 훨씬 수월합니다.",
       });
-      penalty += 10;
     }
   }
 

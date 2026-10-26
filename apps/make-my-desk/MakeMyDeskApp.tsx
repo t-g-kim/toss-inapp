@@ -34,6 +34,7 @@ import {
   Copy,
   Check,
   RotateCcw,
+  Rotate3d,
   ShoppingBag,
   ExternalLink,
   Share2,
@@ -66,7 +67,19 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
   });
 
   // Real-world Item Positions on the desk
-  const [positions, setPositions] = useState<DeskItemPositions>(DEFAULT_ITEM_POSITIONS);
+  const [positions, setPositions] = useState<DeskItemPositions>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("pivot") === "true") {
+          return { ...DEFAULT_ITEM_POSITIONS, monitorPivot: true, monitorHeight: 120 };
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return DEFAULT_ITEM_POSITIONS;
+  });
 
   // ⭐ 핵심: 책상과 모니터는 옵션 (기본값: 기존 보유, 데스크테리어 소품만 견적)
   const [includeDeskInPrice, setIncludeDeskInPrice] = useState<boolean>(false);
@@ -113,6 +126,8 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
   // Current selected parts
   const currentDesk = getPartOption("desk", build.desk);
   const currentMonitor = getPartOption("monitor", build.monitor);
+  const currentArm = getPartOption("monitorArm", build.monitorArm);
+  const hasArm = currentArm && currentArm.id !== "arm_none";
 
   // Real-world remaining desk surface calculation
   const deskSpaceStats = useMemo(() => {
@@ -628,49 +643,193 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                   </div>
                 </div>
 
-                {/* Monitor Position */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-toss-text">모니터 가로 위치</span>
-                    <span className="text-[11px] text-toss-muted">
-                      {positions.monitorX === 0
-                        ? "정중앙"
-                        : positions.monitorX > 0
-                        ? `우측 +${positions.monitorX / 10}cm`
-                        : `좌측 ${positions.monitorX / 10}cm`}
+                {/* ⭐ 모니터 & 모니터암 무빙 컨트롤 패널 */}
+                <div className="bg-gradient-to-r from-blue-50/70 to-indigo-50/70 p-3 rounded-2xl border border-blue-200/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-gray-800 flex items-center gap-1.5">
+                      <Move className="w-3.5 h-3.5 text-blue-600" />
+                      모니터 & 모니터암 3D 무빙 조절
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        hasArm
+                          ? "bg-blue-600 text-white shadow-2xs"
+                          : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      {hasArm ? "모니터암 자유 관절 연동" : "기본 스탠드 (모션 제한)"}
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <button
-                      onClick={() => setPositions((p) => ({ ...p, monitorX: -200 }))}
-                      className={`py-1.5 text-xs font-bold rounded-xl border transition ${
-                        positions.monitorX === -200
-                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
-                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      좌측 (-20cm)
-                    </button>
-                    <button
-                      onClick={() => setPositions((p) => ({ ...p, monitorX: 0 }))}
-                      className={`py-1.5 text-xs font-bold rounded-xl border transition ${
-                        positions.monitorX === 0
-                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
-                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      정중앙 (0)
-                    </button>
-                    <button
-                      onClick={() => setPositions((p) => ({ ...p, monitorX: 200 }))}
-                      className={`py-1.5 text-xs font-bold rounded-xl border transition ${
-                        positions.monitorX === 200
-                          ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
-                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      우측 (+20cm)
-                    </button>
+
+                  {/* 1. 높낮이 (Elevation) */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-gray-700">모니터 높낮이 (승하강)</span>
+                      <span className="text-[11px] text-blue-600 font-bold">
+                        {(positions.monitorHeight ?? 80) >= 140
+                          ? "높게 (스탠딩/목건강)"
+                          : (positions.monitorHeight ?? 80) <= 30
+                          ? "낮게 (바닥밀착)"
+                          : "눈높이 (최적 인체공학)"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, monitorHeight: 20 }))}
+                        className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                          (positions.monitorHeight ?? 80) <= 30
+                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        낮게 (2cm)
+                      </button>
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, monitorHeight: 80 }))}
+                        className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                          (positions.monitorHeight ?? 80) > 30 && (positions.monitorHeight ?? 80) < 140
+                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        눈높이 (8cm)
+                      </button>
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, monitorHeight: 160 }))}
+                        className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                          (positions.monitorHeight ?? 80) >= 140
+                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        높게 (16cm)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 2. 앞뒤 거리 (Depth / Extension) */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-gray-700">앞뒤 거리 조절 (벽밀착 vs 당김)</span>
+                      <span className="text-[11px] text-blue-600 font-bold">
+                        {(positions.monitorDepth || 0) > 40
+                          ? "앞으로 당김 (몰입감)"
+                          : (positions.monitorDepth || 0) < -40
+                          ? "벽 밀착 (상판 넓게)"
+                          : "표준 시야각"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, monitorDepth: -100 }))}
+                        className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                          (positions.monitorDepth || 0) <= -50
+                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        벽 밀착 (-10cm)
+                      </button>
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, monitorDepth: 0 }))}
+                        className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                          (positions.monitorDepth || 0) > -50 && (positions.monitorDepth || 0) < 50
+                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        표준 거리 (0)
+                      </button>
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, monitorDepth: 100 }))}
+                        className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                          (positions.monitorDepth || 0) >= 50
+                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        앞으로 (+10cm)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 3. 가로 ↔ 세로 피벗 회전 (90도) */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-gray-700">화면 회전 (90° 피벗)</span>
+                      <span className="text-[11px] text-purple-600 font-bold">
+                        {positions.monitorPivot ? "세로 모드 (코딩/웹툰/직캠)" : "가로 모드 (표준)"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, monitorPivot: false }))}
+                        className={`py-1.5 text-xs font-bold rounded-xl border transition flex items-center justify-center gap-1 ${
+                          !positions.monitorPivot
+                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        <span>🖥️ 가로 모드</span>
+                      </button>
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, monitorPivot: true }))}
+                        className={`py-1.5 text-xs font-bold rounded-xl border transition flex items-center justify-center gap-1 ${
+                          positions.monitorPivot
+                            ? "bg-purple-600 text-white border-purple-600 shadow-2xs"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        <Rotate3d className="w-3.5 h-3.5" />
+                        <span>📱 세로 90° 피벗</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 4. 모니터 좌우 가로 위치 */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-gray-700">모니터 좌우 가로 위치</span>
+                      <span className="text-[11px] text-toss-muted">
+                        {positions.monitorX === 0
+                          ? "정중앙"
+                          : positions.monitorX > 0
+                          ? `우측 +${positions.monitorX / 10}cm`
+                          : `좌측 ${positions.monitorX / 10}cm`}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, monitorX: -200 }))}
+                        className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                          positions.monitorX === -200
+                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        좌측 (-20cm)
+                      </button>
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, monitorX: 0 }))}
+                        className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                          positions.monitorX === 0
+                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        정중앙 (0)
+                      </button>
+                      <button
+                        onClick={() => setPositions((p) => ({ ...p, monitorX: 200 }))}
+                        className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+                          positions.monitorX === 200
+                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        우측 (+20cm)
+                      </button>
+                    </div>
                   </div>
                 </div>
 

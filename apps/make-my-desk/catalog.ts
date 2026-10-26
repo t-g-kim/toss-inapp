@@ -29,8 +29,15 @@ export interface DeskPartOption {
 }
 
 export interface DeskItemPositions {
+  // Monitor & Monitor Arm 3D Motion
   monitorX: number; // in mm (-350 ~ +350, 0 = center)
-  monitorAngle: number; // degrees (-30 ~ +30, 0 = straight)
+  monitorHeight: number; // in mm (0 ~ 200, 0 = lowest, 80 = standard eye-level, 180 = elevated)
+  monitorDepth: number; // in mm (-150 ~ 150, -120 = pushed to wall, 0 = standard, +120 = pulled forward)
+  monitorAngle: number; // degrees (-30 ~ +30, swivel)
+  monitorPivot: boolean; // false = landscape (가로), true = portrait (세로 피벗 90°)
+  isDemoAnimating?: boolean; // auto showcase demo
+
+  // Placement of other peripherals
   pcPlacement: "desk-right" | "desk-left" | "floor-right" | "floor-left";
   keyboardX: number; // in mm (-250 ~ +250, 0 = center)
   speakerPlacement: "both" | "wide" | "none";
@@ -39,7 +46,10 @@ export interface DeskItemPositions {
 
 export const DEFAULT_ITEM_POSITIONS: DeskItemPositions = {
   monitorX: 0,
+  monitorHeight: 80,
+  monitorDepth: 0,
   monitorAngle: 0,
+  monitorPivot: false,
   pcPlacement: "desk-right",
   keyboardX: 0,
   speakerPlacement: "both",
@@ -667,6 +677,14 @@ export const DESK_PARTS: Record<DeskSlotKey, DeskPartOption[]> = {
       tags: ["책상 밑 선정리 종결", "바닥 선 제로", "개별 스위치"],
       specs: "무타공 클램프 고정 트레이 / 16A 3200W 고용량 개별스위치 6구 멀티탭 / 벨크로 타이 증정",
       powerWatts: 3200,
+    },
+    {
+      id: "acc_arm_plate",
+      name: "카멜마운트 모니터암 상판 보강판 (스틸 듀얼 플레이트)",
+      brand: "카멜마운트",
+      price: 9900,
+      tags: ["상판 휨 방지", "압력 분산", "원목·유리 보호"],
+      specs: "2.5mm 고강도 스틸 / 190×153mm 상하 듀얼 플레이트 / EVA 완충 패드 / 모니터암 흔들림 방지",
     },
     {
       id: "acc_magsafe_3in1",

@@ -11,6 +11,9 @@ import {
   Layers,
   Sliders,
   Move,
+  Play,
+  Square,
+  RotateCw,
 } from "lucide-react";
 import {
   DeskPartOption,
@@ -37,7 +40,39 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
   const mountRef = useRef<HTMLDivElement>(null);
   const [isNightMode, setIsNightMode] = useState(false);
   const [autoRotate, setAutoRotate] = useState(false);
-  const [cameraView, setCameraView] = useState<"free" | "front" | "top" | "side">("free");
+  const [cameraView, setCameraView] = useState<"free" | "front" | "top" | "side">(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const v = new URLSearchParams(window.location.search).get("view");
+        if (v === "front" || v === "top" || v === "side") return v;
+      } catch {}
+    }
+    return "free";
+  });
+  const [isDemoPlaying, setIsDemoPlaying] = useState(false);
+
+  // Demo motion loop: smoothly cycles height, depth, and 90° pivot
+  useEffect(() => {
+    if (!isDemoPlaying) return;
+    const steps = [
+      { height: 160, depth: 80, pivot: false },
+      { height: 30, depth: -110, pivot: false },
+      { height: 120, depth: 30, pivot: true },
+      { height: 80, depth: 0, pivot: false },
+    ];
+    let stepIdx = 0;
+    const timer = setInterval(() => {
+      stepIdx = (stepIdx + 1) % steps.length;
+      const target = steps[stepIdx];
+      onUpdatePosition?.((p) => ({
+        ...p,
+        monitorHeight: target.height,
+        monitorDepth: target.depth,
+        monitorPivot: target.pivot,
+      }));
+    }, 1900);
+    return () => clearInterval(timer);
+  }, [isDemoPlaying, onUpdatePosition]);
 
   const autoRotateRef = useRef(autoRotate);
   autoRotateRef.current = autoRotate;
@@ -112,9 +147,9 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
 
     // Camera
     const camera = new THREE.PerspectiveCamera(40, width / heightPx, 0.1, 150);
-    const initialDistance = 26;
-    const initialTheta = 0.55; // slightly angled
-    const initialPhi = 0.58;   // isometric pitch
+    const initialTheta = cameraView === "side" ? Math.PI / 2 : cameraView === "front" ? 0 : cameraView === "top" ? 0 : 0.55;
+    const initialPhi = cameraView === "side" ? 0.3 : cameraView === "front" ? 0.22 : cameraView === "top" ? Math.PI * 0.46 : 0.58;
+    const initialDistance = cameraView === "side" ? 22 : cameraView === "front" ? 21 : cameraView === "top" ? 28 : 26;
     camera.position.set(
       initialDistance * Math.sin(initialTheta) * Math.cos(initialPhi),
       initialDistance * Math.sin(initialPhi) + deskHeightUnits * 0.5,
@@ -446,17 +481,20 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     }
 
     // -------------------------------------------------------------
-    // B. MONITOR & MONITOR ARM (모니터 및 모니터암)
+    // B. MONITOR & MONITOR ARM MOTION (모니터 및 모니터암 인터랙티브 3D 렌더링)
     // -------------------------------------------------------------
     const monSize = monitor?.monitorSize || 27;
     const monType = monitor?.monitorType || "single";
     const monOffsetX = (positions.monitorX || 0) / 100;
+    const monHeightOffset = ((positions.monitorHeight ?? 80) / 100); // 0 ~ 2.0 units (0 ~ 20cm)
+    const monDepthOffset = ((positions.monitorDepth || 0) / 100);   // -1.5 ~ +1.5 units (-15 ~ +15cm)
     const monAngleRad = ((positions.monitorAngle || 0) * Math.PI) / 180;
+    const isPivot = !!positions.monitorPivot && monType !== "dual";
 
-    const monitorGroup = new THREE.Group();
-    monitorGroup.position.set(monOffsetX, deskH + deskT / 2 + shelfElevation * 0.5, -deskD * 0.22);
-    monitorGroup.rotation.y = monAngleRad;
-    deskGroup.add(monitorGroup);
+    // Monitor Base Elevation & Center Points
+    const monBaseY = deskH + deskT / 2 + (hasShelf ? shelfElevation : 0);
+    const monCenterY = monBaseY + 0.4 + monHeightOffset;
+    const monCenterZ = -deskD * 0.22 + monDepthOffset;
 
     // Screen Dimensions in 3D Units
     let sW = 6.1; // 27"
@@ -472,7 +510,16 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
       sH = 3.5;
     }
 
-    // Bezel & Screen
+    // In 90° portrait pivot mode: width & height swap
+    const effectiveW = isPivot ? sH : sW;
+    const effectiveH = isPivot ? sW : sH;
+
+    const monitorGroup = new THREE.Group();
+    monitorGroup.position.set(monOffsetX, monCenterY, monCenterZ);
+    monitorGroup.rotation.y = monAngleRad;
+    deskGroup.add(monitorGroup);
+
+    // Bezel & Screen Material
     const bezelMat = new THREE.MeshStandardMaterial({
       color: 0x090d16,
       roughness: 0.3,
@@ -480,18 +527,23 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     });
 
     const screenMat = new THREE.MeshStandardMaterial({
-      color: 0x0284c7,
-      emissive: 0x0369a1,
+      color: isPivot ? 0x064e3b : 0x0284c7,
+      emissive: isPivot ? 0x059669 : 0x0369a1,
       emissiveIntensity: 0.45,
       roughness: 0.2,
       metalness: 0.1,
     });
 
+    // Monitor Frame & Screen Construction
+    const monPivotSub = new THREE.Group();
+    monPivotSub.position.set(0, effectiveH / 2, 0);
+    monitorGroup.add(monPivotSub);
+
     if (monType === "dual") {
       // Dual 24" Monitors Angled Inward
       [-2.8, 2.8].forEach((xPos, idx) => {
         const subMon = new THREE.Group();
-        subMon.position.set(xPos, 3.4, 0);
+        subMon.position.set(xPos, 0, 0);
         subMon.rotation.y = idx === 0 ? 0.18 : -0.18;
 
         const frame = new THREE.Mesh(new THREE.BoxGeometry(5.3, 3.0, 0.25), bezelMat);
@@ -502,88 +554,209 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
         scr.position.z = 0.13;
         subMon.add(scr);
 
-        monitorGroup.add(subMon);
+        monPivotSub.add(subMon);
       });
     } else if (monType === "ultrawide") {
       // 34" Curved Ultrawide
-      const monSub = new THREE.Group();
-      monSub.position.set(0, 3.5, 0);
-
-      const frame = new THREE.Mesh(new THREE.BoxGeometry(sW, sH, 0.3), bezelMat);
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(effectiveW, effectiveH, 0.3), bezelMat);
       frame.castShadow = true;
-      monSub.add(frame);
+      monPivotSub.add(frame);
 
-      const scr = new THREE.Mesh(new THREE.PlaneGeometry(sW - 0.2, sH - 0.2), screenMat);
+      const scr = new THREE.Mesh(new THREE.PlaneGeometry(effectiveW - 0.2, effectiveH - 0.2), screenMat);
       scr.position.z = 0.16;
-      monSub.add(scr);
-
-      monitorGroup.add(monSub);
+      monPivotSub.add(scr);
     } else {
-      // Single 27" / 32"
-      const monSub = new THREE.Group();
-      monSub.position.set(0, 3.5, 0);
-
-      const frame = new THREE.Mesh(new THREE.BoxGeometry(sW, sH, 0.28), bezelMat);
+      // Single 27" / 32" (with 90° pivot capability)
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(effectiveW, effectiveH, 0.28), bezelMat);
       frame.castShadow = true;
-      monSub.add(frame);
+      monPivotSub.add(frame);
 
-      const scr = new THREE.Mesh(new THREE.PlaneGeometry(sW - 0.2, sH - 0.2), screenMat);
+      const scr = new THREE.Mesh(new THREE.PlaneGeometry(effectiveW - 0.2, effectiveH - 0.2), screenMat);
       scr.position.z = 0.15;
-      monSub.add(scr);
-
-      monitorGroup.add(monSub);
+      monPivotSub.add(scr);
     }
 
-    // Monitor Arm Clamped on Desk Edge
-    const armGroup = new THREE.Group();
-    armGroup.position.set(monOffsetX, deskH + deskT / 2, -deskD / 2 + 0.4);
-    deskGroup.add(armGroup);
+    // Target VESA mount point (center back of monitor in deskGroup space)
+    const targetVesaX = monOffsetX;
+    const targetVesaY = monCenterY + effectiveH / 2;
+    const targetVesaZ = monCenterZ - 0.16;
 
-    const armMat = new THREE.MeshStandardMaterial({
-      color: 0x27272a,
-      metalness: 0.8,
-      roughness: 0.3,
-    });
+    // Helper: draw an arm link between two 3D points
+    const drawLink = (
+      p1: { x: number; y: number; z: number },
+      p2: { x: number; y: number; z: number },
+      thickness: number,
+      mat: THREE.Material
+    ) => {
+      const v1 = new THREE.Vector3(p1.x, p1.y, p1.z);
+      const v2 = new THREE.Vector3(p2.x, p2.y, p2.z);
+      const dir = new THREE.Vector3().subVectors(v2, v1);
+      const len = dir.length();
+      const mid = new THREE.Vector3().addVectors(v1, v2).multiplyScalar(0.5);
 
-    // Arm Base Clamp
-    const clampMesh = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.8, 0.8), armMat);
-    clampMesh.position.set(0, 0.2, 0);
-    clampMesh.castShadow = true;
-    armGroup.add(clampMesh);
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(thickness, thickness * 1.15, len), mat);
+      mesh.position.copy(mid);
+      mesh.lookAt(v2);
+      mesh.castShadow = true;
+      deskGroup.add(mesh);
+      return mesh;
+    };
 
-    // Lower Arm Pole & Articulation
-    const poleMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 2.2, 16), armMat);
-    poleMesh.position.set(0, 1.3, 0);
-    poleMesh.castShadow = true;
-    armGroup.add(poleMesh);
+    const hasArm = arm && arm.id !== "arm_none";
 
-    // Diagonal Upper Joint
-    const jointMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 1.8), armMat);
-    jointMesh.position.set(0, 2.6, 0.6);
-    jointMesh.rotation.x = 0.35;
-    jointMesh.castShadow = true;
-    armGroup.add(jointMesh);
+    if (!hasArm) {
+      // -------------------------------------------------------------
+      // Case A: 모니터 번들 기본 스탠드 (상판 공간 차지)
+      // -------------------------------------------------------------
+      const standBaseMat = new THREE.MeshStandardMaterial({
+        color: 0x1e293b,
+        metalness: 0.6,
+        roughness: 0.4,
+      });
+
+      // Flat rectangular stand base on desk or shelf surface
+      const standBase = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 1.8), standBaseMat);
+      standBase.position.set(monOffsetX, monBaseY + 0.06, monCenterZ);
+      standBase.castShadow = true;
+      standBase.receiveShadow = true;
+      deskGroup.add(standBase);
+
+      // Upright vertical neck
+      const neckH = Math.max(0.6, targetVesaY - monBaseY);
+      const standNeck = new THREE.Mesh(new THREE.BoxGeometry(0.5, neckH, 0.4), standBaseMat);
+      standNeck.position.set(monOffsetX, monBaseY + neckH / 2, monCenterZ - 0.2);
+      standNeck.castShadow = true;
+      deskGroup.add(standNeck);
+    } else {
+      // -------------------------------------------------------------
+      // Case B: 가스스프링 모니터암 (유연한 3D 관절 기구학 모델링)
+      // -------------------------------------------------------------
+      const armColor =
+        arm.id.includes("bma2") && deskColor === "white"
+          ? 0xf8fafc
+          : arm.id.includes("ergotron")
+          ? 0xd4d4d8
+          : 0x27272a;
+
+      const armMat = new THREE.MeshStandardMaterial({
+        color: armColor,
+        metalness: arm.id.includes("ergotron") ? 0.9 : 0.75,
+        roughness: arm.id.includes("ergotron") ? 0.2 : 0.35,
+      });
+
+      // Clamp mounted at the rear edge of desk
+      const clampX = monOffsetX * 0.7; // slight offset for natural elbow folding
+      const clampY = deskH + deskT / 2;
+      const clampZ = -deskD / 2 + 0.35;
+
+      // Heavy C-Clamp bracket
+      const clampBracket = new THREE.Mesh(new THREE.BoxGeometry(0.9, deskT + 0.6, 0.9), armMat);
+      clampBracket.position.set(clampX, clampY - deskT / 2 + 0.15, clampZ);
+      clampBracket.castShadow = true;
+      deskGroup.add(clampBracket);
+
+      // Under-desk screw knob
+      const screwKnob = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.24, 0.24, 0.6, 16),
+        new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.85 })
+      );
+      screwKnob.position.set(clampX, clampY - deskT - 0.3, clampZ);
+      deskGroup.add(screwKnob);
+
+      // Swivel Base Turret on top of clamp
+      const baseTurret = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.48, 0.7, 24), armMat);
+      baseTurret.position.set(clampX, clampY + 0.35, clampZ);
+      baseTurret.castShadow = true;
+      deskGroup.add(baseTurret);
+
+      if (monType === "dual") {
+        // Dual Monitor Arm: Central pole with dual branching articulating arms
+        const poleHeight = 2.6;
+        const mainPole = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, poleHeight, 16), armMat);
+        mainPole.position.set(clampX, clampY + poleHeight / 2 + 0.3, clampZ);
+        mainPole.castShadow = true;
+        deskGroup.add(mainPole);
+
+        // Branching left and right arms
+        [-2.8, 2.8].forEach((xTarget) => {
+          const vesaX = monOffsetX + xTarget;
+          const elbowPt = {
+            x: clampX + (vesaX - clampX) * 0.5,
+            y: clampY + 1.6 + monHeightOffset * 0.2,
+            z: clampZ + (targetVesaZ - clampZ) * 0.4 - 0.4,
+          };
+
+          drawLink({ x: clampX, y: clampY + 1.8, z: clampZ }, elbowPt, 0.32, armMat);
+          drawLink(elbowPt, { x: vesaX, y: targetVesaY, z: targetVesaZ }, 0.28, armMat);
+
+          const elbowJ = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.45, 16), armMat);
+          elbowJ.position.set(elbowPt.x, elbowPt.y, elbowPt.z);
+          deskGroup.add(elbowJ);
+
+          const vesaPlate = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.75, 0.12), armMat);
+          vesaPlate.position.set(vesaX, targetVesaY, targetVesaZ + 0.05);
+          deskGroup.add(vesaPlate);
+        });
+      } else {
+        // Single Articulated Arm (NB-F80 / BMA-2 / PMA-2D style)
+        const elbowX = clampX + (targetVesaX - clampX) * 0.4 + 1.1;
+        const elbowY = clampY + 0.9 + monHeightOffset * 0.3;
+        const elbowZ = (clampZ + targetVesaZ) * 0.5 - 0.35;
+
+        // Lower arm link (Base -> Elbow)
+        drawLink(
+          { x: clampX, y: clampY + 0.7, z: clampZ },
+          { x: elbowX, y: elbowY, z: elbowZ },
+          0.38,
+          armMat
+        );
+
+        // Elbow Joint
+        const elbowJ = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.55, 20), armMat);
+        elbowJ.position.set(elbowX, elbowY, elbowZ);
+        elbowJ.castShadow = true;
+        deskGroup.add(elbowJ);
+
+        // Upper Gas-Spring Arm (Elbow -> VESA)
+        drawLink(
+          { x: elbowX, y: elbowY, z: elbowZ },
+          { x: targetVesaX, y: targetVesaY, z: targetVesaZ },
+          0.34,
+          armMat
+        );
+
+        // VESA Head Plate
+        const vesaPlate = new THREE.Mesh(
+          new THREE.BoxGeometry(0.85, 0.85, 0.15),
+          new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.85, roughness: 0.3 })
+        );
+        vesaPlate.position.set(targetVesaX, targetVesaY, targetVesaZ + 0.05);
+        vesaPlate.castShadow = true;
+        deskGroup.add(vesaPlate);
+      }
+    }
 
     // -------------------------------------------------------------
     // C. SCREENBAR & LIGHTING (스크린바 및 하향 스팟 조명)
     // -------------------------------------------------------------
     if (light?.lightType === "screenbar") {
-      const barGeo = new THREE.BoxGeometry(sW * 0.6, 0.18, 0.2);
+      const barW = Math.min(effectiveW * 0.75, 5.0);
+      const barGeo = new THREE.BoxGeometry(barW, 0.18, 0.2);
       const barMat = new THREE.MeshStandardMaterial({
         color: 0x334155,
         metalness: 0.7,
         roughness: 0.3,
       });
       const barMesh = new THREE.Mesh(barGeo, barMat);
-      barMesh.position.set(monOffsetX, deskH + deskT / 2 + 3.5 + sH / 2 + 0.1, -deskD * 0.22 + 0.15);
+      barMesh.position.set(monOffsetX, monCenterY + effectiveH + 0.18, monCenterZ + 0.12);
       barMesh.rotation.y = monAngleRad;
       barMesh.castShadow = true;
       deskGroup.add(barMesh);
 
       // Downward Light Cone for Night Mode
       const screenLight = new THREE.SpotLight(0xfef08a, 1.2, 8, Math.PI * 0.35, 0.4, 1.2);
-      screenLight.position.set(monOffsetX, deskH + 5.5, -deskD * 0.15);
-      screenLight.target.position.set(monOffsetX, deskH, 0.5);
+      screenLight.position.set(monOffsetX, monCenterY + effectiveH + 1.2, monCenterZ + 0.12);
+      screenLight.target.position.set(monOffsetX, monCenterY, monCenterZ);
       scene.add(screenLight);
       scene.add(screenLight.target);
       state.screenLight = screenLight;
@@ -938,6 +1111,81 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
               <>
                 <Moon className="w-3.5 h-3.5 text-indigo-300" />
                 <span>밤 조명</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* 1.5. 모니터암 3D 인터랙티브 모션 퀵 컨트롤 바 */}
+      <div className="absolute top-12 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
+        <div className="flex items-center gap-1.5 pointer-events-auto bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-2xl border border-gray-200/80 shadow-xs flex-wrap">
+          <span className="text-[10px] font-black text-gray-500 flex items-center gap-1">
+            <Maximize2 className="w-3 h-3 text-blue-600" />
+            모니터암 무빙
+          </span>
+
+          {/* 90° Pivot Toggle */}
+          <button
+            onClick={() => onUpdatePosition?.((p) => ({ ...p, monitorPivot: !p.monitorPivot }))}
+            className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border ${
+              positions.monitorPivot
+                ? "bg-purple-600 text-white border-purple-600 shadow-2xs"
+                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+            }`}
+            title="가로/세로 90° 피벗 회전"
+          >
+            <Rotate3d className="w-3 h-3" />
+            <span>{positions.monitorPivot ? "세로 90° (피벗중)" : "90° 피벗"}</span>
+          </button>
+
+          {/* Height Elevation Toggle */}
+          <button
+            onClick={() =>
+              onUpdatePosition?.((p) => ({
+                ...p,
+                monitorHeight: (p.monitorHeight ?? 80) >= 140 ? 20 : (p.monitorHeight ?? 80) + 60,
+              }))
+            }
+            className="px-2 py-0.5 rounded-lg text-[10px] font-bold transition bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 flex items-center gap-1"
+            title="모니터 높낮이 승하강"
+          >
+            <span>↕ 높이 {(positions.monitorHeight ?? 80) >= 120 ? "높게" : (positions.monitorHeight ?? 80) <= 40 ? "낮게" : "눈높이"}</span>
+          </button>
+
+          {/* Depth Toggle */}
+          <button
+            onClick={() =>
+              onUpdatePosition?.((p) => ({
+                ...p,
+                monitorDepth: (p.monitorDepth || 0) >= 80 ? -100 : (p.monitorDepth || 0) + 90,
+              }))
+            }
+            className="px-2 py-0.5 rounded-lg text-[10px] font-bold transition bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 flex items-center gap-1"
+            title="앞뒤 거리 조절"
+          >
+            <span>↔ {(positions.monitorDepth || 0) > 40 ? "앞으로" : (positions.monitorDepth || 0) < -40 ? "벽밀착" : "표준"}</span>
+          </button>
+
+          {/* Auto Demo Motion */}
+          <button
+            onClick={() => setIsDemoPlaying(!isDemoPlaying)}
+            className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border ${
+              isDemoPlaying
+                ? "bg-rose-500 text-white border-rose-500 animate-pulse"
+                : "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
+            }`}
+            title="모니터암 자유 무빙 시연"
+          >
+            {isDemoPlaying ? (
+              <>
+                <Square className="w-2.5 h-2.5 fill-current" />
+                <span>정지</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-2.5 h-2.5 fill-current" />
+                <span>무빙 시연</span>
               </>
             )}
           </button>
