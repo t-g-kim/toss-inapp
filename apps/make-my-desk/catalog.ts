@@ -604,6 +604,15 @@ export const DESK_PARTS: Record<DeskSlotKey, DeskPartOption[]> = {
 
   chair: [
     {
+      id: "chair_none",
+      name: "의자 없음 (3D 화면에서 숨기기)",
+      brand: "없음",
+      price: 0,
+      tags: ["의자 숨김", "책상만 보기"],
+      specs: "의자를 배치하지 않고 책상과 데스크테리어 소품만 깔끔하게 시뮬레이션합니다.",
+      chairType: "mesh",
+    },
+    {
       id: "chair_existing",
       name: "기존 보유 의자 사용 (0원)",
       brand: "보유 가구",

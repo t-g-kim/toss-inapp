@@ -55,6 +55,55 @@ import {
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
+export type ProductCategoryKey = "all" | "deskterior" | "monitor" | "furniture" | "peripheral";
+
+export const PRODUCT_CATEGORIES: Array<{
+  id: ProductCategoryKey;
+  label: string;
+  icon: string;
+  slots: DeskSlotKey[];
+}> = [
+  {
+    id: "all",
+    label: "전체 상품",
+    icon: "✨",
+    slots: [
+      "deskShelf",
+      "lightingMat",
+      "accessories",
+      "monitorArm",
+      "chair",
+      "keyboardMouse",
+      "desk",
+      "monitor",
+    ],
+  },
+  {
+    id: "deskterior",
+    label: "데스크테리어 소품",
+    icon: "🕯️",
+    slots: ["deskShelf", "lightingMat", "accessories"],
+  },
+  {
+    id: "monitor",
+    label: "모니터 & 암",
+    icon: "🖥️",
+    slots: ["monitorArm", "monitor"],
+  },
+  {
+    id: "furniture",
+    label: "가구 (책상·의자)",
+    icon: "🪑",
+    slots: ["chair", "desk"],
+  },
+  {
+    id: "peripheral",
+    label: "키보드 & 마우스",
+    icon: "⌨️",
+    slots: ["keyboardMouse"],
+  },
+];
+
 interface MakeMyDeskAppProps {
   onBack?: () => void;
   onNavigateToPc?: () => void;
@@ -87,6 +136,7 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
 
   // Navigation & UI States
   const [activeTab, setActiveTab] = useState<"builder" | "saved" | "guide">("builder");
+  const [productCategory, setProductCategory] = useState<ProductCategoryKey>("all");
   const [selectedSlot, setSelectedSlot] = useState<DeskSlotKey | null>("deskShelf");
   const [purchasePart, setPurchasePart] = useState<DeskPartOption | null>(null);
   const [purchaseCategory, setPurchaseCategory] = useState<string>("");
@@ -128,6 +178,8 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
   const currentMonitor = getPartOption("monitor", build.monitor);
   const currentArm = getPartOption("monitorArm", build.monitorArm);
   const hasArm = currentArm && currentArm.id !== "arm_none";
+  const currentChair = getPartOption("chair", build.chair);
+  const hasChair = currentChair && currentChair.id !== "chair_none";
 
   // Real-world remaining desk surface calculation
   const deskSpaceStats = useMemo(() => {
@@ -644,6 +696,37 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                   </div>
                 )}
               </div>
+
+              {/* Chair Placement Option (의자 배치 vs 숨기기) */}
+              <div className="flex items-center justify-between text-xs pt-1.5 border-t border-gray-100">
+                <span className="text-[11px] font-bold text-gray-500 w-16 shrink-0">의자</span>
+                <div className="flex-1 flex items-center gap-1.5 justify-end">
+                  <button
+                    onClick={() => {
+                      if (build.chair === "chair_none") {
+                        handleSelectPart("chair", "chair_existing");
+                      }
+                    }}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition ${
+                      build.chair !== "chair_none"
+                        ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                        : "bg-gray-100 text-gray-600 border-transparent hover:bg-gray-200"
+                    }`}
+                  >
+                    🪑 의자 배치 ({currentChair && currentChair.id !== "chair_none" ? currentChair.brand : "보유"})
+                  </button>
+                  <button
+                    onClick={() => handleSelectPart("chair", "chair_none")}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition ${
+                      build.chair === "chair_none"
+                        ? "bg-slate-800 text-white border-slate-800 shadow-2xs"
+                        : "bg-gray-100 text-gray-600 border-transparent hover:bg-gray-200"
+                    }`}
+                  >
+                    ❌ 의자 숨기기
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* 6. 데스크테리어 위치 조절 & 실측 잔여 공간 계산 바 */}
@@ -1047,37 +1130,95 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                     </div>
                   </div>
                 </div>
+
+                {/* 의자 배치 여부 (옵션) */}
+                <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between">
+                  <div className="text-xs">
+                    <span className="font-bold text-gray-800 block">🪑 3D 화면 의자 배치</span>
+                    <span className="text-[11px] text-gray-400">의자를 숨겨 책상 위 장비에만 집중할 수 있어요</span>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => handleSelectPart("chair", "chair_existing")}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition ${
+                        build.chair !== "chair_none"
+                          ? "bg-slate-800 text-white border-slate-800 shadow-2xs"
+                          : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
+                      }`}
+                    >
+                      배치함
+                    </button>
+                    <button
+                      onClick={() => handleSelectPart("chair", "chair_none")}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition ${
+                        build.chair === "chair_none"
+                          ? "bg-slate-800 text-white border-slate-800 shadow-2xs"
+                          : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
+                      }`}
+                    >
+                      숨기기
+                    </button>
+                  </div>
+                </div>
               </div>
             </TossCard>
 
-            {/* 7. 메인 데스크테리어 부품 슬롯 (선반, 모니터암, 조명, 패드, 선정리 등) */}
-            <div className="space-y-4">
+            {/* 7. 상품 카테고리 탭 & 부품 슬롯 */}
+            <div className="space-y-3">
               <div>
                 <div className="flex items-center justify-between px-1 mb-2">
                   <div>
                     <h4 className="font-extrabold text-sm text-toss-text flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                      데스크테리어 추천 소품 맞춤 선택
+                      데스크테리어 & 장비 맞춤 선택
                     </h4>
                     <p className="text-[11px] text-toss-muted">
-                      내 취향에 맞는 선반, 조명, 모니터암, 선정리 소품
+                      카테고리별로 원하는 소품과 장비를 자유롭게 변경해보세요
                     </p>
                   </div>
-                  <span className="text-[11px] text-toss-muted">터치하여 변경</span>
+                  <span className="text-[11px] text-toss-muted">터치하여 옵션 변경</span>
                 </div>
 
+                {/* 카테고리 필터 탭 (전체 상품, 데스크테리어 소품, 모니터 & 암, 가구, 키보드 & 마우스) */}
+                <div className="flex gap-1.5 overflow-x-auto pb-1 mb-3 scrollbar-none">
+                  {PRODUCT_CATEGORIES.map((cat) => {
+                    const isActive = productCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => setProductCategory(cat.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition flex items-center gap-1.5 ${
+                          isActive
+                            ? "bg-toss-blue text-white shadow-xs"
+                            : "bg-gray-100 text-toss-subtext hover:bg-gray-200"
+                        }`}
+                      >
+                        <span>{cat.icon}</span>
+                        <span>{cat.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* 선택된 카테고리의 슬롯 목록 렌더링 */}
                 <div className="space-y-2.5">
-                  {(
-                    [
-                      "deskShelf",
-                      "monitorArm",
-                      "lightingMat",
-                      "accessories",
-                    ] as DeskSlotKey[]
-                  ).map((slot) => {
+                  {((PRODUCT_CATEGORIES.find((c) => c.id === productCategory) || PRODUCT_CATEGORIES[0]).slots).map((slot) => {
                     const isExpanded = selectedSlot === slot;
                     const currentPart = getPartOption(slot, build[slot]);
                     const options = DESK_PARTS[slot];
+                    const isChairSlot = slot === "chair";
+                    const isChairHidden = isChairSlot && build.chair === "chair_none";
+                    const isDeskSlot = slot === "desk";
+                    const isMonitorSlot = slot === "monitor";
+
+                    let displayPrice = currentPart ? `${currentPart.price.toLocaleString()}원` : "0원";
+                    if (isChairHidden) {
+                      displayPrice = "0원 (미배치/숨김)";
+                    } else if (isDeskSlot && !includeDeskInPrice) {
+                      displayPrice = `${currentPart?.price.toLocaleString() || 0}원 (기존 보유 / 견적 미포함)`;
+                    } else if (isMonitorSlot && !includeMonitorInPrice) {
+                      displayPrice = `${currentPart?.price.toLocaleString() || 0}원 (기존 보유 / 견적 미포함)`;
+                    }
 
                     return (
                       <div
@@ -1089,11 +1230,16 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                           className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-50/70 transition"
                         >
                           <div className="min-w-0 flex-1 pr-2">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="text-[11px] font-bold text-toss-blue">
                                 {SLOT_LABELS[slot]}
                               </span>
-                              {currentPart?.tags && currentPart.tags[0] && (
+                              {isChairHidden && (
+                                <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.2 rounded font-bold">
+                                  3D 화면 숨김
+                                </span>
+                              )}
+                              {currentPart?.tags && currentPart.tags[0] && !isChairHidden && (
                                 <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.2 rounded font-medium">
                                   {currentPart.tags[0]}
                                 </span>
@@ -1103,7 +1249,7 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                               {currentPart ? currentPart.name : "선택되지 않음"}
                             </h5>
                             <p className="text-xs font-bold text-blue-600 mt-0.5">
-                              {currentPart ? `${currentPart.price.toLocaleString()}원` : "0원"}
+                              {displayPrice}
                             </p>
                           </div>
 
@@ -1135,6 +1281,8 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                             </p>
                             {options.map((option) => {
                               const isSelected = build[slot] === option.id;
+                              const isNoneChair = isChairSlot && option.id === "chair_none";
+
                               return (
                                 <div
                                   key={option.id}
@@ -1151,6 +1299,11 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                                         <span className="text-[10px] font-bold text-toss-subtext">
                                           {option.brand}
                                         </span>
+                                        {isNoneChair && (
+                                          <span className="text-[10px] bg-red-100 text-red-600 px-1 py-0.2 rounded font-bold">
+                                            의자 숨김
+                                          </span>
+                                        )}
                                         {option.tags?.map((t) => (
                                           <span
                                             key={t}
@@ -1169,147 +1322,11 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                                     </div>
                                     <div className="text-right shrink-0">
                                       <span className="text-xs font-black text-toss-blue block">
-                                        {option.price > 0 ? `${option.price.toLocaleString()}원` : "무료 (0원)"}
-                                      </span>
-                                      {option.price > 0 && (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleOpenPurchase(slot, option);
-                                          }}
-                                          className="mt-1.5 px-2 py-0.8 text-[11px] bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-md transition shadow-2xs"
-                                        >
-                                          쿠팡
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* 가구 및 주변기기 옵션 */}
-              <div>
-                <div className="flex items-center justify-between px-1 mb-2">
-                  <div>
-                    <h4 className="font-extrabold text-sm text-toss-text flex items-center gap-1.5">
-                      🪑 가구 & 주변기기 옵션
-                    </h4>
-                    <p className="text-[11px] text-toss-muted">
-                      기존 보유 중인 기기는 0원으로 유지하고, 필요 시에만 교체하세요
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2.5">
-                  {(
-                    [
-                      "chair",
-                      "keyboardMouse",
-                    ] as DeskSlotKey[]
-                  ).map((slot) => {
-                    const isExpanded = selectedSlot === slot;
-                    const currentPart = getPartOption(slot, build[slot]);
-                    const options = DESK_PARTS[slot];
-
-                    return (
-                      <div
-                        key={slot}
-                        className="bg-white rounded-2xl border border-toss-border overflow-hidden shadow-2xs transition"
-                      >
-                        <div
-                          onClick={() => setSelectedSlot(isExpanded ? null : slot)}
-                          className="p-3.5 flex items-center justify-between cursor-pointer hover:bg-gray-50/70 transition"
-                        >
-                          <div className="min-w-0 flex-1 pr-2">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[11px] font-bold text-toss-subtext">
-                                {SLOT_LABELS[slot]}
-                              </span>
-                              {currentPart?.tags && currentPart.tags[0] && (
-                                <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.2 rounded font-medium">
-                                  {currentPart.tags[0]}
-                                </span>
-                              )}
-                            </div>
-                            <h5 className="font-extrabold text-sm text-toss-text truncate mt-0.5">
-                              {currentPart ? currentPart.name : "선택되지 않음"}
-                            </h5>
-                            <p className="text-xs font-bold text-gray-700 mt-0.5">
-                              {currentPart ? `${currentPart.price.toLocaleString()}원` : "0원"}
-                            </p>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            {currentPart && currentPart.price > 0 && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleOpenPurchase(slot, currentPart);
-                                }}
-                                className="px-2.5 py-1 text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg font-bold transition flex items-center gap-1"
-                              >
-                                <ShoppingBag className="w-3 h-3" /> 구매
-                              </button>
-                            )}
-                            <ChevronDown
-                              className={`w-4 h-4 text-gray-400 transition-transform ${
-                                isExpanded ? "rotate-180 text-toss-blue" : ""
-                              }`}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Expanded Part Options */}
-                        {isExpanded && (
-                          <div className="p-3 pt-0 border-t border-gray-100 bg-gray-50/50 space-y-2">
-                            <p className="text-[11px] text-toss-muted pt-2 pb-1">
-                              선택하시면 즉시 3D 시뮬레이터에 반영됩니다:
-                            </p>
-                            {options.map((option) => {
-                              const isSelected = build[slot] === option.id;
-                              return (
-                                <div
-                                  key={option.id}
-                                  onClick={() => handleSelectPart(slot, option.id)}
-                                  className={`p-3 rounded-xl border cursor-pointer transition ${
-                                    isSelected
-                                      ? "bg-blue-50/70 border-toss-blue ring-1 ring-toss-blue"
-                                      : "bg-white border-toss-border hover:border-gray-300"
-                                  }`}
-                                >
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex-1 pr-2">
-                                      <div className="flex items-center gap-1.5 flex-wrap">
-                                        <span className="text-[10px] font-bold text-toss-subtext">
-                                          {option.brand}
-                                        </span>
-                                        {option.tags?.map((t) => (
-                                          <span
-                                            key={t}
-                                            className="text-[10px] bg-gray-100 text-gray-600 px-1 py-0.2 rounded"
-                                          >
-                                            {t}
-                                          </span>
-                                        ))}
-                                      </div>
-                                      <h6 className="font-extrabold text-xs text-toss-text mt-1">
-                                        {option.name}
-                                      </h6>
-                                      <p className="text-[11px] text-toss-muted mt-0.5 leading-snug">
-                                        {option.specs}
-                                      </p>
-                                    </div>
-                                    <div className="text-right shrink-0">
-                                      <span className="text-xs font-black text-gray-800 block">
-                                        {option.price > 0 ? `${option.price.toLocaleString()}원` : "보유중 (0원)"}
+                                        {option.price > 0
+                                          ? `${option.price.toLocaleString()}원`
+                                          : option.id === "chair_none"
+                                          ? "미배치 (0원)"
+                                          : "보유중 (0원)"}
                                       </span>
                                       {option.price > 0 && (
                                         <button

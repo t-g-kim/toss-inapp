@@ -55,7 +55,6 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
   const [isDemoPlaying, setIsDemoPlaying] = useState(false);
 
   // 3D Direct Raycast Dragging & Item Selection States
-  const [interactMode, setInteractMode] = useState<"drag" | "orbit">("drag");
   const [selectedItem, setSelectedItem] = useState<"monitor" | "pc" | "keyboard">("monitor");
   const [dragFeedback, setDragFeedback] = useState<string | null>(null);
 
@@ -996,55 +995,58 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     // -------------------------------------------------------------
     // H. ERGONOMIC CHAIR (인체공학 의자)
     // -------------------------------------------------------------
-    const chairGroup = new THREE.Group();
-    chairGroup.position.set(0, 0, deskD / 2 + 3.0);
-    deskGroup.add(chairGroup);
+    const hasChair = chair && chair.id !== "chair_none";
+    if (hasChair) {
+      const chairGroup = new THREE.Group();
+      chairGroup.position.set(0, 0, deskD / 2 + 3.0);
+      deskGroup.add(chairGroup);
 
-    const chairColor = chair?.chairType === "leather" ? 0x18181b : 0x1e293b;
-    const chairMat = new THREE.MeshStandardMaterial({
-      color: chairColor,
-      roughness: 0.6,
-      metalness: 0.1,
-    });
+      const chairColor = chair?.chairType === "leather" ? 0x18181b : 0x1e293b;
+      const chairMat = new THREE.MeshStandardMaterial({
+        color: chairColor,
+        roughness: 0.6,
+        metalness: 0.1,
+      });
 
-    // 5-Star Wheels Base on Floor
-    const starBase = new THREE.Mesh(
-      new THREE.CylinderGeometry(2.4, 2.4, 0.2, 5),
-      new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8 })
-    );
-    starBase.position.y = 0.3;
-    chairGroup.add(starBase);
+      // 5-Star Wheels Base on Floor
+      const starBase = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.4, 2.4, 0.2, 5),
+        new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8 })
+      );
+      starBase.position.y = 0.3;
+      chairGroup.add(starBase);
 
-    // Gas Cylinder Lift
-    const cylMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.2, 0.2, 2.5, 12),
-      new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.9, roughness: 0.2 })
-    );
-    cylMesh.position.y = 1.6;
-    chairGroup.add(cylMesh);
+      // Gas Cylinder Lift
+      const cylMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.2, 0.2, 2.5, 12),
+        new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.9, roughness: 0.2 })
+      );
+      cylMesh.position.y = 1.6;
+      chairGroup.add(cylMesh);
 
-    // Contoured Seat Cushion
-    const seatMesh = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.5, 3.4), chairMat);
-    seatMesh.position.y = 3.0;
-    seatMesh.castShadow = true;
-    chairGroup.add(seatMesh);
+      // Contoured Seat Cushion
+      const seatMesh = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.5, 3.4), chairMat);
+      seatMesh.position.y = 3.0;
+      seatMesh.castShadow = true;
+      chairGroup.add(seatMesh);
 
-    // Backrest with Ergonomic Curve
-    const backMesh = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.8, 0.4), chairMat);
-    backMesh.position.set(0, 5.2, 1.6);
-    backMesh.rotation.x = -0.15;
-    backMesh.castShadow = true;
-    chairGroup.add(backMesh);
+      // Backrest with Ergonomic Curve
+      const backMesh = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.8, 0.4), chairMat);
+      backMesh.position.set(0, 5.2, 1.6);
+      backMesh.rotation.x = -0.15;
+      backMesh.castShadow = true;
+      chairGroup.add(backMesh);
 
-    // Headrest
-    const headMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(1.8, 0.9, 0.35),
-      new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.5 })
-    );
-    headMesh.position.set(0, 7.3, 1.9);
-    headMesh.rotation.x = -0.12;
-    headMesh.castShadow = true;
-    chairGroup.add(headMesh);
+      // Headrest
+      const headMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(1.8, 0.9, 0.35),
+        new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.5 })
+      );
+      headMesh.position.set(0, 7.3, 1.9);
+      headMesh.rotation.x = -0.12;
+      headMesh.castShadow = true;
+      chairGroup.add(headMesh);
+    }
 
     // -------------------------------------------------------------
     // I. ACTIVE ITEM SELECTION DISC (선택된 물건 위치 3D 네온 링 가이드)
@@ -1147,14 +1149,8 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
       setDragFeedback(
         `${hitType === "monitor" ? "🖥️ 모니터" : hitType === "pc" ? "💻 PC" : "⌨️ 키보드/패드"} 이동 중...`
       );
-    } else if (interactMode === "drag" && selectedItem) {
-      // In drag mode, drag the active selected item
-      activeDraggedItemRef.current = selectedItem;
-      dragPlaneRef.current.set(new THREE.Vector3(0, 1, 0), -(deskHeightUnits + deskThickUnits / 2));
-      setDragFeedback(
-        `${selectedItem === "monitor" ? "🖥️ 모니터" : selectedItem === "pc" ? "💻 PC" : "⌨️ 키보드/패드"} 이동 중...`
-      );
     } else {
+      // Direct touch on background/canvas -> 360° orbit rotation
       activeDraggedItemRef.current = null;
       setDragFeedback(null);
     }
@@ -1365,29 +1361,6 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
           </div>
 
           <div className="flex items-center gap-1 pointer-events-auto">
-            {/* Mode Switcher */}
-            <button
-              onClick={() => setInteractMode(interactMode === "drag" ? "orbit" : "drag")}
-              className={`px-2 py-1 rounded-xl text-[10px] font-extrabold transition flex items-center gap-1 shadow-xs border backdrop-blur-md ${
-                interactMode === "drag"
-                  ? "bg-emerald-600 text-white border-emerald-500 shadow-emerald-500/20"
-                  : "bg-white/95 text-slate-800 border-gray-200 hover:bg-white"
-              }`}
-              title="드래그 이동 ↔ 360도 회전 모드 전환"
-            >
-              {interactMode === "drag" ? (
-                <>
-                  <Hand className="w-3 h-3 text-white" />
-                  <span>이동모드</span>
-                </>
-              ) : (
-                <>
-                  <Rotate3d className="w-3 h-3 text-blue-600" />
-                  <span>360°회전</span>
-                </>
-              )}
-            </button>
-
             {/* Auto Rotate Icon Button */}
             <button
               onClick={() => setAutoRotate(!autoRotate)}
@@ -1423,11 +1396,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onWheel={handleWheel}
-          className={`w-full h-full touch-none select-none relative ${
-            interactMode === "drag"
-              ? "cursor-crosshair active:cursor-grabbing"
-              : "cursor-grab active:cursor-grabbing"
-          }`}
+          className="w-full h-full touch-none select-none relative cursor-grab active:cursor-grabbing"
         />
 
         {/* Floating Real-time Drag Feedback Pill */}
@@ -1483,18 +1452,9 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
             </button>
           </div>
 
-          <div className="pointer-events-auto bg-black/60 text-white text-[10px] px-2 py-1 rounded-xl backdrop-blur-md flex items-center gap-1">
-            {interactMode === "drag" ? (
-              <>
-                <Hand className="w-2.5 h-2.5 text-emerald-400" />
-                <span>화면 드래그 이동</span>
-              </>
-            ) : (
-              <>
-                <Move className="w-2.5 h-2.5 text-blue-400" />
-                <span>360° 회전</span>
-              </>
-            )}
+          <div className="pointer-events-auto bg-black/60 text-white text-[10px] px-2.5 py-1 rounded-xl backdrop-blur-md flex items-center gap-1.5">
+            <Hand className="w-2.5 h-2.5 text-emerald-400" />
+            <span>물건 터치: 이동 · 바탕: 360° 회전</span>
           </div>
         </div>
       </div>
@@ -1670,7 +1630,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
           <span>·</span>
           <span>모니터 {monitor?.monitorSize}"</span>
           <span>·</span>
-          <span>{chair?.brand}</span>
+          <span>{chair?.id === "chair_none" ? "의자 없음" : chair?.brand}</span>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
