@@ -13,6 +13,7 @@ import { InstaTimeApp } from "@apps/insta-time/InstaTimeApp";
 import { StoryMusicApp } from "@apps/story-music/StoryMusicApp";
 import { MoneyMatchApp } from "@apps/money-match/MoneyMatchApp";
 import { SpendingReceiptApp } from "@apps/spending-receipt/SpendingReceiptApp";
+import { GohyangGiftApp } from "@apps/gohyang-gift/GohyangGiftApp";
 import { getInitialAppFromUrl, isStandaloneMode, setAppUrl, isTossApp } from "@shared/index";
 import { Smartphone, Monitor, Home } from "lucide-react";
 
@@ -46,6 +47,8 @@ export const App: React.FC = () => {
 
   const renderActiveApp = () => {
     switch (currentApp) {
+      case "gohyang-gift":
+        return <GohyangGiftApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "lotto-filter":
         return <LottoFilterApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "salary-hero":
