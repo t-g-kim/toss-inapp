@@ -451,11 +451,27 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
                       className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs hover:border-emerald-500 transition-all cursor-pointer flex flex-col active:scale-[0.98]"
                     >
                       {/* Image / Emoji Area */}
-                      <div className="h-28 bg-gradient-to-br from-slate-100 to-slate-200 relative flex items-center justify-center">
-                        <span className="text-5xl">{item.imageEmoji}</span>
+                      <div className="h-32 bg-slate-100 relative overflow-hidden flex items-center justify-center group">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          loading="lazy"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = "none";
+                            const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                            if (fallback) fallback.style.display = "flex";
+                          }}
+                        />
+                        <div className="hidden absolute inset-0 items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-5xl">
+                          {item.imageEmoji}
+                        </div>
+
+                        {/* Contrast gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
 
                         {/* Badges */}
-                        <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
                           {item.isBestSeller && (
                             <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-xs">
                               BEST
@@ -471,7 +487,7 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
                         {/* Wishlist Button */}
                         <button
                           onClick={(e) => toggleWishlist(item.id, e)}
-                          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white text-slate-600 backdrop-blur-xs transition-colors"
+                          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/85 hover:bg-white text-slate-600 backdrop-blur-xs transition-colors z-10 shadow-xs"
                           title="찜하기"
                         >
                           <Heart
@@ -482,7 +498,7 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
                         </button>
 
                         {/* Location Tag */}
-                        <div className="absolute bottom-2 left-2 bg-slate-900/70 text-white text-[10px] px-2 py-0.5 rounded-md backdrop-blur-xs">
+                        <div className="absolute bottom-2 left-2 bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded-md backdrop-blur-xs z-10 font-medium">
                           {item.regionName}
                         </div>
                       </div>
@@ -723,7 +739,22 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
                       className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between hover:border-emerald-500 cursor-pointer transition-all"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">{item.imageEmoji}</span>
+                        <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden relative shrink-0 flex items-center justify-center">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = "none";
+                              const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                              if (fallback) fallback.style.display = "flex";
+                            }}
+                          />
+                          <div className="hidden absolute inset-0 items-center justify-center text-2xl">
+                            {item.imageEmoji}
+                          </div>
+                        </div>
                         <div>
                           <div className="text-[10px] text-slate-500 font-medium">
                             {item.regionName}
@@ -805,8 +836,21 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
                     className="bg-white border border-slate-200 rounded-xl p-3.5 flex items-center justify-between hover:border-emerald-500 cursor-pointer transition-all shadow-xs"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-2xl shrink-0">
-                        {item.imageEmoji}
+                      <div className="w-14 h-14 bg-slate-100 rounded-xl overflow-hidden relative shrink-0 flex items-center justify-center">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = "none";
+                            const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                            if (fallback) fallback.style.display = "flex";
+                          }}
+                        />
+                        <div className="hidden absolute inset-0 items-center justify-center text-2xl">
+                          {item.imageEmoji}
+                        </div>
                       </div>
                       <div>
                         <div className="text-[10px] text-emerald-700 font-semibold">
@@ -870,13 +914,36 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
               <X className="w-5 h-5" />
             </button>
 
-            {/* Emoji & Header */}
-            <div className="text-center pt-2 pb-4 border-b border-slate-100">
-              <div className="text-6xl mb-2">{selectedGift.imageEmoji}</div>
-              <div className="inline-block bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full mb-1">
-                {selectedGift.regionName} ({selectedGift.localityName})
+            {/* Hero Image */}
+            <div className="relative h-48 w-full rounded-2xl overflow-hidden bg-slate-100 mb-3.5 shadow-xs">
+              <img
+                src={selectedGift.imageUrl}
+                alt={selectedGift.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = "none";
+                  const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = "flex";
+                }}
+              />
+              <div className="hidden absolute inset-0 items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-6xl">
+                {selectedGift.imageEmoji}
               </div>
-              <h3 className="font-extrabold text-base text-slate-900 leading-snug px-4">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute bottom-3 left-3 bg-slate-900/85 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1.5 shadow-xs">
+                <span>{selectedGift.imageEmoji}</span>
+                <span>
+                  {selectedGift.regionName} ({selectedGift.localityName})
+                </span>
+              </div>
+            </div>
+
+            {/* Header Info */}
+            <div className="text-center pb-4 border-b border-slate-100">
+              <div className="inline-block bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full mb-1">
+                {selectedGift.tag}
+              </div>
+              <h3 className="font-extrabold text-base text-slate-900 leading-snug px-2">
                 {selectedGift.title}
               </h3>
               <div className="flex items-center justify-center gap-3 text-xs text-slate-500 mt-2">

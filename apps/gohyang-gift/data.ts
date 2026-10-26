@@ -1,6 +1,6 @@
 /**
  * 고향사랑기부제 답례품 & 2026 개정세법 데이터셋
- * - 전국 17개 시도 대표 지자체 40+ 킬러 답례품
+ * - 전국 17개 시도 대표 지자체 24개 킬러 답례품 (고해상도 사진 이미지 포함)
  * - 2026년 신설 개정세법 (10만 초과~20만 이하 44% 공제율 상향) 완벽 반영 계산 엔진
  */
 
@@ -60,8 +60,8 @@ export const CATEGORIES: CategoryMeta[] = [
   { code: "meat", name: "한우·한돈", emoji: "🥩" },
   { code: "seafood", name: "수산·해산물", emoji: "🦀" },
   { code: "fruit_crop", name: "과일·쌀·채소", emoji: "🍎" },
-  { code: "processed", name: "가공식품·치즈", emoji: "🧀" },
-  { code: "voucher", name: "지역화폐·상품권", emoji: "🎫" },
+  { code: "processed", name: "가공·특산품", emoji: "🍶" },
+  { code: "voucher", name: "지역상품권", emoji: "💳" },
   { code: "experience", name: "이색체험·벌초", emoji: "🏄" },
 ];
 
@@ -78,6 +78,7 @@ export interface GiftItem {
   reviewCount: number;
   popularRank: number;
   imageEmoji: string;
+  imageUrl: string; // 실제 제품/특산품 고화질 사진
   tag: string;
   description: string;
   provider: string;
@@ -101,6 +102,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 3840,
     popularRank: 1,
     imageEmoji: "🥩",
+    imageUrl: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=600&q=80",
     tag: "제주 1위 특산품",
     description: "제주 청정 화산 암반수를 마시고 자란 고소한 1등급 제주 흑돼지 구이 세트입니다.",
     provider: "제주양돈농협",
@@ -121,6 +123,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 2910,
     popularRank: 3,
     imageEmoji: "🍊",
+    imageUrl: "https://images.unsplash.com/photo-1547514701-42782101795e?auto=format&fit=crop&w=600&q=80",
     tag: "당도 12브릭스 보장",
     description: "따스한 서귀포 햇살과 해풍으로 길러낸 껍질이 얇고 당도가 높은 프리미엄 감귤입니다.",
     provider: "서귀포농업기술센터 인증농가",
@@ -141,6 +144,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 1720,
     popularRank: 8,
     imageEmoji: "🐟",
+    imageUrl: "https://images.unsplash.com/photo-1534483509719-3feaee7c30da?auto=format&fit=crop&w=600&q=80",
     tag: "제주 바다 직송",
     description: "제주 연근해 채낚기로 잡은 반짝이는 은갈치와 담백한 옥돔을 깔끔 손질해 개별 진공포장했습니다.",
     provider: "제주시수협",
@@ -160,6 +164,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 5210,
     popularRank: 2,
     imageEmoji: "🎫",
+    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
     tag: "제주 여행 필수품",
     description: "제주도 여행 시 맛집, 렌터카, 카페, 동문시장 등 전역 가맹점에서 현금처럼 쓸 수 있는 지역화폐입니다.",
     provider: "제주특별자치도청",
@@ -182,6 +187,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 4120,
     popularRank: 4,
     imageEmoji: "🥩",
+    imageUrl: "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80",
     tag: "대한민국 1등 한우",
     description: "맑은 물과 해발 300m 고지대에서 정성껏 사육한 국가 인증 명품 횡성 한우 1++ 등급 세트입니다.",
     provider: "횡성축산업협동조합",
@@ -202,6 +208,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 1480,
     popularRank: 7,
     imageEmoji: "🏄",
+    imageUrl: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=600&q=80",
     tag: "MZ세대 최애 체험",
     description: "서핑의 성지 양양 죽도·인구 해변에서 슈트 대여, 보드 렌탈, 전문 코치 2시간 강습이 포함된 패키지입니다.",
     provider: "양양서핑협동조합",
@@ -221,6 +228,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 2240,
     popularRank: 10,
     imageEmoji: "🍗",
+    imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=600&q=80",
     tag: "춘천 원조 골목 맛",
     description: "100% 국내산 냉장 닭다리살만 발라내 비법 숙성 양념에 재운 춘천 정통 닭갈비입니다.",
     provider: "춘천명물닭갈비협회",
@@ -240,6 +248,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 1890,
     popularRank: 14,
     imageEmoji: "🥔",
+    imageUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80",
     tag: "SNS 대란 디저트",
     description: "강원도 홍감자를 으깨어 쫀득한 찹쌀 피에 듬뿍 채운 겉바속촉 국민 디저트 선물세트입니다.",
     provider: "강원농업법인 밭",
@@ -261,6 +270,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 3620,
     popularRank: 5,
     imageEmoji: "🐟",
+    imageUrl: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=600&q=80",
     tag: "밥도둑 굴비 명품",
     description: "영광 법성포 하늬바람과 천일염으로 섶간하여 짜지 않고 쫄깃 담백한 정통 밥도둑 굴비입니다.",
     provider: "영광군수협 지정가공원",
@@ -281,6 +291,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 2850,
     popularRank: 6,
     imageEmoji: "🦪",
+    imageUrl: "https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?auto=format&fit=crop&w=600&q=80",
     tag: "완도 살아있는 활전복",
     description: "완도 다시마와 미역을 먹고 자란 싱싱한 전복을 산소 포장해 살아서 식탁까지 배송합니다.",
     provider: "완도전복생산자연합회",
@@ -300,6 +311,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 1640,
     popularRank: 12,
     imageEmoji: "🍖",
+    imageUrl: "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?auto=format&fit=crop&w=600&q=80",
     tag: "담양 50년 전통 비법",
     description: "담양산 한우 갈빗살을 직접 다져 참숯 향을 입힌 부드럽고 촉촉한 수제 떡갈비입니다.",
     provider: "담양전통명인식품",
@@ -319,6 +331,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 1530,
     popularRank: 15,
     imageEmoji: "🍐",
+    imageUrl: "https://images.unsplash.com/photo-1514756331096-242fdeb70d4a?auto=format&fit=crop&w=600&q=80",
     tag: "당도 13브릭스 나주배",
     description: "영산강 비옥한 토양에서 자라 과즙이 풍부하고 아삭아삭한 식감이 일품인 특등품 나주배입니다.",
     provider: "나주배원예농협",
@@ -340,6 +353,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 3120,
     popularRank: 9,
     imageEmoji: "🧀",
+    imageUrl: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=600&q=80",
     tag: "직장인 간식 만족도 1위",
     description: "임실 청정 원유 100%로 빚은 구워먹는 치즈, 스트링 치즈, 떠먹는 농후 요거트 풀패키지입니다.",
     provider: "임실치즈농업협동조합",
@@ -360,6 +374,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 1980,
     popularRank: 11,
     imageEmoji: "🍱",
+    imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
     tag: "고창 최고 보양식",
     description: "담수와 해수가 만나는 고창 풍천에서 자란 탱탱하고 기름진 장어를 초벌하여 보내드립니다.",
     provider: "고창풍천장어협회",
@@ -381,6 +396,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 2740,
     popularRank: 13,
     imageEmoji: "🦀",
+    imageUrl: "https://images.unsplash.com/photo-1559737558-245cb34346e9?auto=format&fit=crop&w=600&q=80",
     tag: "영덕 바다 대게 정품",
     description: "영덕 앞바다에서 건져 올려 살수율 80% 이상의 달달하고 고소한 대게를 맛있게 쪄서 보냅니다.",
     provider: "영덕강구항수협",
@@ -400,6 +416,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 2050,
     popularRank: 16,
     imageEmoji: "🍶",
+    imageUrl: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80",
     tag: "안동 양반가 명물",
     description: "50년 명인의 섶간 간고등어 순살 팩과 대한민국 민속주 안동소주를 함께 담았습니다.",
     provider: "안동간고등어협동조합",
@@ -419,6 +436,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 1420,
     popularRank: 18,
     imageEmoji: "🧡",
+    imageUrl: "https://images.unsplash.com/photo-1596707323630-f383e9b1bb85?auto=format&fit=crop&w=600&q=80",
     tag: "쫀득 달콤 자연 당도",
     description: "상주 둥시 감으로 깎아 말려 겉은 쫀득하고 속은 꿀처럼 촉촉한 명품 반건시입니다.",
     provider: "상주원예농협",
@@ -440,6 +458,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 2490,
     popularRank: 17,
     imageEmoji: "🪵",
+    imageUrl: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80",
     tag: "인삼의 본고장 금산",
     description: "금산 땅의 기운을 머금은 6년근 고려인삼만을 엄선하여 진하게 농축한 면역력 충전 스틱입니다.",
     provider: "금산인삼약초산업진흥원",
@@ -459,6 +478,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 1380,
     popularRank: 20,
     imageEmoji: "🌰",
+    imageUrl: "https://images.unsplash.com/photo-1509358271058-acd22cc93898?auto=format&fit=crop&w=600&q=80",
     tag: "포슬포슬 단밤",
     description: "차령산맥 밤나무 숲에서 수확한 달고 알이 굵은 정안밤과 바삭한 밤파이 세트입니다.",
     provider: "정안농업협동조합",
@@ -478,6 +498,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 1610,
     popularRank: 19,
     imageEmoji: "🍷",
+    imageUrl: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80",
     tag: "국내산 영동 와인",
     description: "과일의 고장 충북 영동의 유기농 포도와 샤인머스캣으로 빚어낸 향긋한 디저트 와인입니다.",
     provider: "영동와인생산자협회",
@@ -499,6 +520,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 3950,
     popularRank: 3,
     imageEmoji: "🍚",
+    imageUrl: "https://images.unsplash.com/photo-1516684732162-798a0062be99?auto=format&fit=crop&w=600&q=80",
     tag: "조선 왕실 진상미",
     description: "찰기가 넘치고 밥알이 윤택하여 밥만 먹어도 단맛이 도는 대한민국 대표 쌀입니다.",
     provider: "이천농협연합미곡처리장",
@@ -519,6 +541,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 1240,
     popularRank: 22,
     imageEmoji: "🌾",
+    imageUrl: "https://images.unsplash.com/photo-1568716508388-066373809633?auto=format&fit=crop&w=600&q=80",
     tag: "강화 해풍 맞은 섬쌀",
     description: "서해안 해풍과 일조량으로 영근 쫀득한 고시히카리 쌀과 알싸한 명물 순무김치입니다.",
     provider: "강화옹진축협",
@@ -540,6 +563,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 2310,
     popularRank: 15,
     imageEmoji: "🌿",
+    imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=600&q=80",
     tag: "부모님 효도 1순위",
     description: "바쁜 직장인을 위해 산림조합 전문 작업단이 고향 선산 묘소를 벌초하고 전후 사진을 보고해드립니다.",
     provider: "산림조합중앙회 벌초지원단",
@@ -559,6 +583,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     reviewCount: 4890,
     popularRank: 4,
     imageEmoji: "💳",
+    imageUrl: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=600&q=80",
     tag: "현금성 포인트 100%",
     description: "원하는 지자체의 전통시장, 식당, 카페, 학원 등에서 현금처럼 결제할 수 있는 모바일 상품권입니다.",
     provider: "한국조폐공사 chak / 행정안전부",
