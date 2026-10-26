@@ -477,48 +477,74 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                 <span className="text-[10px] text-gray-400">터치 시 3D 즉각 반영</span>
               </div>
 
-              {/* Desk Size Buttons */}
-              <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-[11px] font-bold text-gray-500 w-16 shrink-0">책상 크기</span>
-                {[
-                  { id: "desk_apix_1200", label: "1200mm" },
-                  { id: "desk_desker_1400", label: "1400mm" },
-                  { id: "desk_209_1600", label: "1600mm" },
-                ].map((d) => (
-                  <button
-                    key={d.id}
-                    onClick={() => handleSelectPart("desk", d.id)}
-                    className={`flex-1 py-1 text-xs font-bold rounded-lg border transition ${
-                      build.desk === d.id
-                        ? "bg-slate-800 text-white border-slate-800 shadow-2xs"
-                        : "bg-gray-100 text-gray-600 border-transparent hover:bg-gray-200"
-                    }`}
-                  >
-                    {d.label}
-                  </button>
-                ))}
+              {/* Desk Size Selector (1200mm ~ 2400mm 대형 규격) */}
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-gray-500">책상 규격 (1200 ~ 2400mm)</span>
+                  <span className="text-[11px] font-black text-blue-600">
+                    {currentDesk?.deskWidth}×{currentDesk?.deskDepth}mm (두께 {currentDesk?.deskThickness}mm)
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
+                  {[
+                    { width: 1200, label: "1200" },
+                    { width: 1400, label: "1400" },
+                    { width: 1600, label: "1600" },
+                    { width: 1800, label: "1800" },
+                    { width: 2000, label: "2000" },
+                    { width: 2100, label: "2100" },
+                    { width: 2400, label: "2400 (특대)" },
+                  ].map((d) => (
+                    <button
+                      key={d.width}
+                      onClick={() => {
+                        const sameColor = DESK_PARTS.desk.find(
+                          (item) => item.deskWidth === d.width && item.color === currentDesk?.color
+                        );
+                        const chosen = sameColor || DESK_PARTS.desk.find((item) => item.deskWidth === d.width);
+                        if (chosen) handleSelectPart("desk", chosen.id);
+                      }}
+                      className={`px-2.5 py-1 text-xs font-bold rounded-lg border whitespace-nowrap shrink-0 transition ${
+                        currentDesk?.deskWidth === d.width
+                          ? "bg-slate-800 text-white border-slate-800 shadow-2xs"
+                          : "bg-gray-100 text-gray-600 border-transparent hover:bg-gray-200"
+                      }`}
+                    >
+                      {d.label}mm
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Desk Color Buttons */}
+              {/* Desk Color Buttons (폭 유지하며 색상 변경) */}
               <div className="flex items-center gap-1.5 text-xs">
                 <span className="text-[11px] font-bold text-gray-500 w-16 shrink-0">상판 색상</span>
                 {[
-                  { id: "desk_desker_1400", label: "내추럴 우드" },
-                  { id: "desk_dodot_1407", label: "퓨어 화이트" },
-                  { id: "desk_209_1600", label: "매트 블랙" },
-                ].map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => handleSelectPart("desk", c.id)}
-                    className={`flex-1 py-1 text-xs font-bold rounded-lg border transition ${
-                      build.desk === c.id
-                        ? "bg-slate-800 text-white border-slate-800 shadow-2xs"
-                        : "bg-gray-100 text-gray-600 border-transparent hover:bg-gray-200"
-                    }`}
-                  >
-                    {c.label}
-                  </button>
-                ))}
+                  { color: "wood", label: "내추럴 우드" },
+                  { color: "white", label: "퓨어 화이트" },
+                  { color: "black", label: "매트 블랙" },
+                ].map((c) => {
+                  const isSelected = currentDesk?.color === c.color;
+                  return (
+                    <button
+                      key={c.color}
+                      onClick={() => {
+                        const targetDesk =
+                          DESK_PARTS.desk.find(
+                            (d) => d.deskWidth === currentDesk?.deskWidth && d.color === c.color
+                          ) || DESK_PARTS.desk.find((d) => d.color === c.color);
+                        if (targetDesk) handleSelectPart("desk", targetDesk.id);
+                      }}
+                      className={`flex-1 py-1 text-xs font-bold rounded-lg border transition ${
+                        isSelected
+                          ? "bg-slate-800 text-white border-slate-800 shadow-2xs"
+                          : "bg-gray-100 text-gray-600 border-transparent hover:bg-gray-200"
+                      }`}
+                    >
+                      {c.label}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Monitor Size Buttons */}
@@ -786,48 +812,67 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                     </div>
                   </div>
 
-                  {/* 4. 모니터 좌우 가로 위치 */}
-                  <div className="space-y-1">
+                  {/* 4. 모니터 좌우 가로 위치 (미세 조절 슬라이더 & 프리셋) */}
+                  <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-gray-700">모니터 좌우 가로 위치</span>
-                      <span className="text-[11px] text-toss-muted">
+                      <span className="text-[11px] text-blue-600 font-black">
                         {positions.monitorX === 0
-                          ? "정중앙"
+                          ? "정중앙 (0cm)"
                           : positions.monitorX > 0
                           ? `우측 +${positions.monitorX / 10}cm`
                           : `좌측 ${positions.monitorX / 10}cm`}
                       </span>
                     </div>
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <input
+                      type="range"
+                      min={-Math.floor(((currentDesk?.deskWidth || 1400) - 400) / 2)}
+                      max={Math.floor(((currentDesk?.deskWidth || 1400) - 400) / 2)}
+                      step={10}
+                      value={positions.monitorX || 0}
+                      onChange={(e) => setPositions((p) => ({ ...p, monitorX: Number(e.target.value) }))}
+                      className="w-full accent-blue-600 cursor-pointer h-2 bg-gray-200 rounded-lg appearance-none"
+                    />
+                    <div className="grid grid-cols-5 gap-1 text-[11px]">
+                      <button
+                        onClick={() =>
+                          setPositions((p) => ({
+                            ...p,
+                            monitorX: -Math.floor(((currentDesk?.deskWidth || 1400) - 400) / 2),
+                          }))
+                        }
+                        className="py-1 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 font-bold"
+                      >
+                        최좌측
+                      </button>
                       <button
                         onClick={() => setPositions((p) => ({ ...p, monitorX: -200 }))}
-                        className={`py-1.5 text-xs font-bold rounded-xl border transition ${
-                          positions.monitorX === -200
-                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
-                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                        }`}
+                        className="py-1 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 font-bold"
                       >
-                        좌측 (-20cm)
+                        -20cm
                       </button>
                       <button
                         onClick={() => setPositions((p) => ({ ...p, monitorX: 0 }))}
-                        className={`py-1.5 text-xs font-bold rounded-xl border transition ${
-                          positions.monitorX === 0
-                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
-                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                        }`}
+                        className="py-1 rounded-lg border bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 font-bold"
                       >
-                        정중앙 (0)
+                        정중앙
                       </button>
                       <button
                         onClick={() => setPositions((p) => ({ ...p, monitorX: 200 }))}
-                        className={`py-1.5 text-xs font-bold rounded-xl border transition ${
-                          positions.monitorX === 200
-                            ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
-                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                        }`}
+                        className="py-1 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 font-bold"
                       >
-                        우측 (+20cm)
+                        +20cm
+                      </button>
+                      <button
+                        onClick={() =>
+                          setPositions((p) => ({
+                            ...p,
+                            monitorX: Math.floor(((currentDesk?.deskWidth || 1400) - 400) / 2),
+                          }))
+                        }
+                        className="py-1 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 font-bold"
+                      >
+                        최우측
                       </button>
                     </div>
                   </div>

@@ -13,6 +13,7 @@ export interface DeskPartOption {
   deskDepth?: number; // mm (600, 700, 800)
   deskHeight?: number; // mm (720, or motion desk range)
   deskThickness?: number; // mm
+  deskRearFrameClearance?: number; // mm (상판 뒷면 프레임 이격 거리, 모니터암 클램프 체결 여유)
   isMotionDesk?: boolean;
   color?: "black" | "white" | "wood";
   monitorSize?: number; // inch (24, 27, 32, 34)
@@ -29,17 +30,18 @@ export interface DeskPartOption {
 }
 
 export interface DeskItemPositions {
-  // Monitor & Monitor Arm 3D Motion
-  monitorX: number; // in mm (-350 ~ +350, 0 = center)
+  // Monitor & Monitor Arm 3D Motion (자유 드래그 이동 지원)
+  monitorX: number; // in mm (-950 ~ +950, 0 = center)
   monitorHeight: number; // in mm (0 ~ 200, 0 = lowest, 80 = standard eye-level, 180 = elevated)
   monitorDepth: number; // in mm (-150 ~ 150, -120 = pushed to wall, 0 = standard, +120 = pulled forward)
   monitorAngle: number; // degrees (-30 ~ +30, swivel)
   monitorPivot: boolean; // false = landscape (가로), true = portrait (세로 피벗 90°)
   isDemoAnimating?: boolean; // auto showcase demo
 
-  // Placement of other peripherals
+  // Placement of other peripherals (자유 이동)
   pcPlacement: "desk-right" | "desk-left" | "floor-right" | "floor-left";
-  keyboardX: number; // in mm (-250 ~ +250, 0 = center)
+  pcX?: number; // in mm (자유 드래그 X 좌표)
+  keyboardX: number; // in mm (-700 ~ +700, 0 = center)
   speakerPlacement: "both" | "wide" | "none";
   accPlacement: "right" | "left" | "none";
 }
@@ -267,6 +269,126 @@ export const DESK_PARTS: Record<DeskSlotKey, DeskPartOption[]> = {
       deskThickness: 30,
       isMotionDesk: true,
       color: "wood",
+    },
+    {
+      id: "desk_dodot_1808",
+      name: "두닷 콰트로 에어 데스크 1808 (퓨어 화이트)",
+      brand: "두닷",
+      price: 219000,
+      tags: ["와이드 1800", "1800×800", "화이트 듀얼"],
+      specs: "1800×800×720mm / 친환경 E0 LPM / 상판 두께 18mm / 견고한 듀얼 프레임",
+      deskWidth: 1800,
+      deskDepth: 800,
+      deskHeight: 720,
+      deskThickness: 18,
+      deskRearFrameClearance: 15,
+      isMotionDesk: false,
+      color: "white",
+    },
+    {
+      id: "desk_desker_1800",
+      name: "일룸 데스커 컴퓨터 데스크 1800 (내추럴 오크/블랙)",
+      brand: "데스커",
+      price: 249000,
+      tags: ["국민 와이드", "1800×800", "모니터암 완벽지원"],
+      specs: "1800×800×720mm / 독일 LPM 강화 상판 / 상판 두께 28mm / 배선 트레이 내장",
+      deskWidth: 1800,
+      deskDepth: 800,
+      deskHeight: 720,
+      deskThickness: 28,
+      deskRearFrameClearance: 70,
+      isMotionDesk: false,
+      color: "wood",
+    },
+    {
+      id: "desk_209_2000",
+      name: "209애비뉴 제로데스크 2000 (매트 블랙)",
+      brand: "209애비뉴",
+      price: 279000,
+      tags: ["롱 데스크 2000", "2000×800", "모니터암 전용설계"],
+      specs: "2000×800×720mm / 4면 모니터암 클램프 완벽 지원 / 두께 25mm / 흔들림 제로 보강바",
+      deskWidth: 2000,
+      deskDepth: 800,
+      deskHeight: 720,
+      deskThickness: 25,
+      deskRearFrameClearance: 90,
+      isMotionDesk: false,
+      color: "black",
+    },
+    {
+      id: "desk_dodot_2008",
+      name: "두닷 콰트로 에어 데스크 2008 (올화이트)",
+      brand: "두닷",
+      price: 289000,
+      tags: ["대형 2미터", "2000×800", "화이트 미니멀"],
+      specs: "2000×800×720mm / 친환경 E0 LPM / 상판 두께 25mm / 듀얼 모니터+스튜디오",
+      deskWidth: 2000,
+      deskDepth: 800,
+      deskHeight: 720,
+      deskThickness: 25,
+      deskRearFrameClearance: 15,
+      isMotionDesk: false,
+      color: "white",
+    },
+    {
+      id: "desk_dodot_2108",
+      name: "두닷 콰트로 2108 슈퍼 와이드 데스크 (내추럴 오크)",
+      brand: "두닷",
+      price: 319000,
+      tags: ["슈퍼와이드 2100", "2100×800", "개발자 트리플"],
+      specs: "2100×800×720mm / 친환경 E0 상판 / 두께 28mm / 중앙 다리 없는 광폭 프레임",
+      deskWidth: 2100,
+      deskDepth: 800,
+      deskHeight: 720,
+      deskThickness: 28,
+      deskRearFrameClearance: 15,
+      isMotionDesk: false,
+      color: "wood",
+    },
+    {
+      id: "desk_desker_2400",
+      name: "일룸 데스커 빅테이블 2400 (내추럴 우드/화이트)",
+      brand: "데스커",
+      price: 389000,
+      tags: ["초대형 2400", "2400×900", "2인/스튜디오 종결"],
+      specs: "2400×900×720mm / 독일 LPM 상판 / 두께 30mm / 중앙 콘센트 수납 덕트 / 300kg 하중",
+      deskWidth: 2400,
+      deskDepth: 900,
+      deskHeight: 720,
+      deskThickness: 30,
+      deskRearFrameClearance: 75,
+      isMotionDesk: false,
+      color: "wood",
+    },
+    {
+      id: "desk_209_2400",
+      name: "209애비뉴 제로데스크 2400 와이드 (올블랙)",
+      brand: "209애비뉴",
+      price: 398000,
+      tags: ["초대형 2400", "2400×900", "4면 모니터암 지원"],
+      specs: "2400×900×720mm / 4면 클램프 완벽 지원 / 두께 30mm / H형 트러스 하부 프레임",
+      deskWidth: 2400,
+      deskDepth: 900,
+      deskHeight: 720,
+      deskThickness: 30,
+      deskRearFrameClearance: 95,
+      isMotionDesk: false,
+      color: "black",
+    },
+    {
+      id: "desk_lunalab_2400_motion",
+      name: "루나랩 하이엔드 4기둥 듀얼모터 모션데스크 2400",
+      brand: "루나랩",
+      price: 680000,
+      tags: ["초대형 모션 2400", "2400×900", "4단 기둥 흔들림제로"],
+      specs: "2400×900×650~1280mm / 4단 지지 컬럼 / 덴마크 LINAK 모터 / 두께 30mm 원목 상판",
+      deskWidth: 2400,
+      deskDepth: 900,
+      deskHeight: 720,
+      deskThickness: 30,
+      deskRearFrameClearance: 80,
+      isMotionDesk: true,
+      color: "white",
     },
   ],
 

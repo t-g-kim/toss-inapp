@@ -14,6 +14,7 @@ import {
   Play,
   Square,
   RotateCw,
+  Hand,
 } from "lucide-react";
 import {
   DeskPartOption,
@@ -50,6 +51,15 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     return "free";
   });
   const [isDemoPlaying, setIsDemoPlaying] = useState(false);
+
+  // 3D Direct Raycast Dragging & Item Selection States
+  const [interactMode, setInteractMode] = useState<"drag" | "orbit">("drag");
+  const [selectedItem, setSelectedItem] = useState<"monitor" | "pc" | "keyboard">("monitor");
+  const [dragFeedback, setDragFeedback] = useState<string | null>(null);
+
+  const activeDraggedItemRef = useRef<"monitor" | "pc" | "keyboard" | null>(null);
+  const dragPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
+  const raycasterRef = useRef(new THREE.Raycaster());
 
   // Demo motion loop: smoothly cycles height, depth, and 90° pivot
   useEffect(() => {
@@ -430,6 +440,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
 
       const shelfGroup = new THREE.Group();
       shelfGroup.position.set(0, deskH + deskT / 2, -deskD * 0.18);
+      shelfGroup.userData = { interactiveType: "shelf" };
       deskGroup.add(shelfGroup);
 
       // Shelf Board Color
@@ -517,6 +528,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     const monitorGroup = new THREE.Group();
     monitorGroup.position.set(monOffsetX, monCenterY, monCenterZ);
     monitorGroup.rotation.y = monAngleRad;
+    monitorGroup.userData = { interactiveType: "monitor" };
     deskGroup.add(monitorGroup);
 
     // Bezel & Screen Material
@@ -575,6 +587,10 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
       scr.position.z = 0.15;
       monPivotSub.add(scr);
     }
+
+    monitorGroup.traverse((c) => {
+      c.userData.interactiveType = "monitor";
+    });
 
     // Target VESA mount point (center back of monitor in deskGroup space)
     const targetVesaX = monOffsetX;
@@ -781,6 +797,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     const matMesh = new THREE.Mesh(matGeo, matMeshMat);
     matMesh.position.set(kbOffsetX, deskH + deskT / 2 + 0.02, 0.6);
     matMesh.receiveShadow = true;
+    matMesh.userData = { interactiveType: "keyboard" };
     deskGroup.add(matMesh);
 
     // Keyboard (TKL: 3.6 × 1.4 units)
@@ -794,6 +811,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     const kbMesh = new THREE.Mesh(kbGeo, kbMat);
     kbMesh.position.set(kbOffsetX - 0.8, deskH + deskT / 2 + 0.1, 0.7);
     kbMesh.castShadow = true;
+    kbMesh.userData = { interactiveType: "keyboard" };
     deskGroup.add(kbMesh);
 
     // Mouse (0.65 × 1.15 units)
@@ -806,6 +824,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     const mouseMesh = new THREE.Mesh(mouseGeo, mouseMat);
     mouseMesh.position.set(kbOffsetX + 2.4, deskH + deskT / 2 + 0.11, 0.7);
     mouseMesh.castShadow = true;
+    mouseMesh.userData = { interactiveType: "keyboard" };
     deskGroup.add(mouseMesh);
 
     // -------------------------------------------------------------
@@ -820,7 +839,11 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     let pcZ = 0;
 
     const pcPlacement = positions.pcPlacement || "desk-right";
-    if (pcPlacement === "desk-left") {
+    if (positions.pcX !== undefined) {
+      pcX = positions.pcX / 100;
+      pcY = deskH + deskT / 2 + pcH / 2;
+      pcZ = 0;
+    } else if (pcPlacement === "desk-left") {
       pcX = -deskW / 2 + pcW / 2 + 0.4;
       pcY = deskH + deskT / 2 + pcH / 2;
       pcZ = 0;
@@ -836,6 +859,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
 
     const pcGroup = new THREE.Group();
     pcGroup.position.set(pcX, pcY, pcZ);
+    pcGroup.userData = { interactiveType: "pc" };
     deskGroup.add(pcGroup);
 
     // PC Chassis Box
@@ -863,6 +887,10 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     glassMesh.rotation.y = pcPlacement.includes("left") ? Math.PI / 2 : -Math.PI / 2;
     glassMesh.position.x = pcPlacement.includes("left") ? pcW / 2 + 0.01 : -pcW / 2 - 0.01;
     pcGroup.add(glassMesh);
+
+    pcGroup.traverse((c) => {
+      c.userData.interactiveType = "pc";
+    });
 
     // Internal RGB Fan Glow
     const pcLight = new THREE.PointLight(0xa855f7, 2.0, 5);
@@ -982,6 +1010,38 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     headMesh.rotation.x = -0.12;
     headMesh.castShadow = true;
     chairGroup.add(headMesh);
+
+    // -------------------------------------------------------------
+    // I. ACTIVE ITEM SELECTION DISC (선택된 물건 위치 3D 네온 링 가이드)
+    // -------------------------------------------------------------
+    let targetX = monOffsetX;
+    let targetZ = monCenterZ;
+    let ringRadius = Math.max(2.0, effectiveW * 0.38);
+    let ringColor = 0x38bdf8; // Sky blue for monitor
+
+    if (selectedItem === "pc") {
+      targetX = pcX;
+      targetZ = pcZ;
+      ringRadius = 1.9;
+      ringColor = 0xa855f7; // Purple for PC
+    } else if (selectedItem === "keyboard") {
+      targetX = kbOffsetX;
+      targetZ = 0.7;
+      ringRadius = 3.0;
+      ringColor = 0x10b981; // Emerald for keyboard/mat
+    }
+
+    const ringGeo = new THREE.RingGeometry(ringRadius * 0.88, ringRadius, 32);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: ringColor,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.75,
+    });
+    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+    ringMesh.rotation.x = -Math.PI / 2;
+    ringMesh.position.set(targetX, deskH + deskT / 2 + 0.04, targetZ);
+    deskGroup.add(ringMesh);
   }, [
     desk,
     monitor,
@@ -996,17 +1056,73 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     deskHeightUnits,
     deskThickUnits,
     isMotionDesk,
+    selectedItem,
   ]);
 
   useEffect(() => {
     buildScene();
   }, [buildScene]);
 
-  // Touch and Mouse Orbit Controller Handlers
+  // Touch and Mouse 3D Raycasting Item Drag & Orbit Handlers
   const handlePointerDown = (e: React.PointerEvent) => {
     isDraggingRef.current = true;
     lastMousePosRef.current = { x: e.clientX, y: e.clientY };
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    const container = mountRef.current;
+    if (!container || !sceneStateRef.current) return;
+
+    try {
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
+
+    // Normalized Device Coordinates (-1 to +1)
+    const rect = container.getBoundingClientRect();
+    const mouse = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1
+    );
+
+    raycasterRef.current.setFromCamera(mouse, sceneStateRef.current.camera);
+
+    // Test raycast against deskGroup children
+    const intersects = raycasterRef.current.intersectObjects(
+      sceneStateRef.current.deskGroup.children,
+      true
+    );
+
+    let hitType: "monitor" | "pc" | "keyboard" | null = null;
+    for (const hit of intersects) {
+      let curr: THREE.Object3D | null = hit.object;
+      while (curr && curr !== sceneStateRef.current.deskGroup) {
+        if (curr.userData?.interactiveType) {
+          hitType = curr.userData.interactiveType;
+          break;
+        }
+        curr = curr.parent;
+      }
+      if (hitType) break;
+    }
+
+    if (hitType) {
+      // Direct touch on interactive item!
+      activeDraggedItemRef.current = hitType;
+      setSelectedItem(hitType);
+      dragPlaneRef.current.set(new THREE.Vector3(0, 1, 0), -(deskHeightUnits + deskThickUnits / 2));
+      setDragFeedback(
+        `${hitType === "monitor" ? "🖥️ 모니터" : hitType === "pc" ? "💻 PC" : "⌨️ 키보드/패드"} 이동 중...`
+      );
+    } else if (interactMode === "drag" && selectedItem) {
+      // In drag mode, drag the active selected item
+      activeDraggedItemRef.current = selectedItem;
+      dragPlaneRef.current.set(new THREE.Vector3(0, 1, 0), -(deskHeightUnits + deskThickUnits / 2));
+      setDragFeedback(
+        `${selectedItem === "monitor" ? "🖥️ 모니터" : selectedItem === "pc" ? "💻 PC" : "⌨️ 키보드/패드"} 이동 중...`
+      );
+    } else {
+      activeDraggedItemRef.current = null;
+      setDragFeedback(null);
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -1015,7 +1131,68 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     const deltaY = e.clientY - lastMousePosRef.current.y;
     lastMousePosRef.current = { x: e.clientX, y: e.clientY };
 
-    // Update target angles (360° Horizontal Orbit, Vertical Pitch)
+    const dragged = activeDraggedItemRef.current;
+    if (dragged && onUpdatePosition) {
+      const container = mountRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const mouse = new THREE.Vector2(
+        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        -((e.clientY - rect.top) / rect.height) * 2 + 1
+      );
+      raycasterRef.current.setFromCamera(mouse, sceneStateRef.current.camera);
+      const intersectionPoint = new THREE.Vector3();
+      const hasIntersect = raycasterRef.current.ray.intersectPlane(
+        dragPlaneRef.current,
+        intersectionPoint
+      );
+
+      if (hasIntersect) {
+        const deskHalfMm = (desk?.deskWidth || 1400) / 2;
+
+        if (dragged === "monitor") {
+          const rawMm = intersectionPoint.x * 100;
+          const maxClamp = Math.max(200, deskHalfMm - 200);
+          const clampedX = Math.round(Math.max(-maxClamp, Math.min(maxClamp, rawMm)) / 10) * 10;
+
+          const rawDepthMm = Math.round((-intersectionPoint.z - deskDepthUnits * 0.22) * 100);
+          const clampedDepth = Math.max(-100, Math.min(100, Math.round(rawDepthMm / 10) * 10));
+
+          onUpdatePosition((prev) => ({
+            ...prev,
+            monitorX: clampedX,
+            monitorDepth: clampedDepth,
+          }));
+          setDragFeedback(
+            `🖥️ 모니터 X: ${clampedX > 0 ? `+${clampedX / 10}` : clampedX / 10}cm (앞뒤: ${
+              clampedDepth / 10
+            }cm)`
+          );
+        } else if (dragged === "pc") {
+          const rawMm = intersectionPoint.x * 100;
+          const maxClamp = Math.max(200, deskHalfMm - 180);
+          const clampedX = Math.round(Math.max(-maxClamp, Math.min(maxClamp, rawMm)) / 10) * 10;
+          onUpdatePosition((prev) => ({
+            ...prev,
+            pcX: clampedX,
+            pcPlacement: clampedX >= 0 ? "desk-right" : "desk-left",
+          }));
+          setDragFeedback(`💻 PC 본체 X: ${clampedX > 0 ? `+${clampedX / 10}` : clampedX / 10}cm`);
+        } else if (dragged === "keyboard") {
+          const rawMm = intersectionPoint.x * 100;
+          const maxClamp = Math.max(100, deskHalfMm - 450);
+          const clampedX = Math.round(Math.max(-maxClamp, Math.min(maxClamp, rawMm)) / 10) * 10;
+          onUpdatePosition((prev) => ({
+            ...prev,
+            keyboardX: clampedX,
+          }));
+          setDragFeedback(`⌨️ 키보드/패드 X: ${clampedX > 0 ? `+${clampedX / 10}` : clampedX / 10}cm`);
+        }
+      }
+      return;
+    }
+
+    // 360° Orbit rotation
     sceneStateRef.current.targetTheta -= deltaX * 0.008;
     sceneStateRef.current.targetPhi += deltaY * 0.008;
     setCameraView("free");
@@ -1023,10 +1200,53 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
 
   const handlePointerUp = (e: React.PointerEvent) => {
     isDraggingRef.current = false;
+    activeDraggedItemRef.current = null;
+    setTimeout(() => setDragFeedback(null), 1000);
     try {
       (e.target as HTMLElement).releasePointerCapture(e.pointerId);
     } catch {
       // ignore
+    }
+  };
+
+  const handleNudge = (direction: -1 | 1) => {
+    if (!onUpdatePosition) return;
+    const step = direction * 50; // 5cm
+    const deskHalfMm = (desk?.deskWidth || 1400) / 2;
+
+    if (selectedItem === "monitor") {
+      onUpdatePosition((prev) => {
+        const curr = prev.monitorX || 0;
+        const maxClamp = Math.max(200, deskHalfMm - 200);
+        const next = Math.max(-maxClamp, Math.min(maxClamp, curr + step));
+        return { ...prev, monitorX: next };
+      });
+    } else if (selectedItem === "pc") {
+      onUpdatePosition((prev) => {
+        const curr = prev.pcX !== undefined ? prev.pcX : deskHalfMm - 250;
+        const maxClamp = Math.max(200, deskHalfMm - 180);
+        const next = Math.max(-maxClamp, Math.min(maxClamp, curr + step));
+        return { ...prev, pcX: next, pcPlacement: next >= 0 ? "desk-right" : "desk-left" };
+      });
+    } else if (selectedItem === "keyboard") {
+      onUpdatePosition((prev) => {
+        const curr = prev.keyboardX || 0;
+        const maxClamp = Math.max(100, deskHalfMm - 450);
+        const next = Math.max(-maxClamp, Math.min(maxClamp, curr + step));
+        return { ...prev, keyboardX: next };
+      });
+    }
+  };
+
+  const handleResetCenter = () => {
+    if (!onUpdatePosition) return;
+    if (selectedItem === "monitor") {
+      onUpdatePosition((prev) => ({ ...prev, monitorX: 0, monitorDepth: 0 }));
+    } else if (selectedItem === "keyboard") {
+      onUpdatePosition((prev) => ({ ...prev, keyboardX: 0 }));
+    } else if (selectedItem === "pc") {
+      const deskHalfMm = (desk?.deskWidth || 1400) / 2;
+      onUpdatePosition((prev) => ({ ...prev, pcX: deskHalfMm - 250, pcPlacement: "desk-right" }));
     }
   };
 
@@ -1082,7 +1302,30 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-1 pointer-events-auto">
+        <div className="flex items-center gap-1.5 pointer-events-auto">
+          {/* Direct 3D Drag Mode Toggle */}
+          <button
+            onClick={() => setInteractMode(interactMode === "drag" ? "orbit" : "drag")}
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1 shadow-xs backdrop-blur-md border ${
+              interactMode === "drag"
+                ? "bg-emerald-600 text-white border-emerald-500 shadow-emerald-500/20"
+                : "bg-white/95 text-slate-800 border-gray-200 hover:bg-white"
+            }`}
+            title="3D 물건 직접 드래그 이동 ↔ 360도 카메라 시점 회전 모드 전환"
+          >
+            {interactMode === "drag" ? (
+              <>
+                <Hand className="w-3.5 h-3.5 text-white" />
+                <span>🖐️ 물건 드래그</span>
+              </>
+            ) : (
+              <>
+                <Rotate3d className="w-3.5 h-3.5 text-blue-600" />
+                <span>🎥 시점 회전</span>
+              </>
+            )}
+          </button>
+
           <button
             onClick={() => setAutoRotate(!autoRotate)}
             className={`p-1.5 rounded-xl text-xs font-bold transition backdrop-blur-md shadow-xs ${
@@ -1117,91 +1360,109 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
         </div>
       </div>
 
-      {/* 1.5. 모니터암 3D 인터랙티브 모션 퀵 컨트롤 바 */}
+      {/* 1.5. 3D 물건 직접 이동 & 모니터암 무빙 인터랙티브 툴바 */}
       <div className="absolute top-12 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
-        <div className="flex items-center gap-1.5 pointer-events-auto bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-2xl border border-gray-200/80 shadow-xs flex-wrap">
-          <span className="text-[10px] font-black text-gray-500 flex items-center gap-1">
-            <Maximize2 className="w-3 h-3 text-blue-600" />
-            모니터암 무빙
+        <div className="flex items-center gap-1 pointer-events-auto bg-white/95 backdrop-blur-md px-2 py-1.5 rounded-2xl border border-gray-200/80 shadow-xs flex-wrap">
+          <span className="text-[10px] font-black text-gray-500 flex items-center gap-1 mr-1">
+            <Move className="w-3 h-3 text-blue-600" />
+            물건 이동:
           </span>
+
+          {/* Item Selector Chips */}
+          <button
+            onClick={() => setSelectedItem("monitor")}
+            className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition border ${
+              selectedItem === "monitor"
+                ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                : "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200"
+            }`}
+          >
+            🖥️ 모니터
+          </button>
+          <button
+            onClick={() => setSelectedItem("pc")}
+            className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition border ${
+              selectedItem === "pc"
+                ? "bg-purple-600 text-white border-purple-600 shadow-2xs"
+                : "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200"
+            }`}
+          >
+            💻 PC 본체
+          </button>
+          <button
+            onClick={() => setSelectedItem("keyboard")}
+            className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition border ${
+              selectedItem === "keyboard"
+                ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
+                : "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200"
+            }`}
+          >
+            ⌨️ 키보드
+          </button>
+
+          {/* Step Nudge Buttons */}
+          <div className="flex items-center gap-0.5 ml-1 border-l border-gray-200 pl-1.5">
+            <button
+              onClick={() => handleNudge(-1)}
+              className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 active:scale-95"
+              title="좌측으로 5cm 이동"
+            >
+              ◀ 5cm
+            </button>
+            <button
+              onClick={handleResetCenter}
+              className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 active:scale-95"
+              title="선택 물건 중앙 정렬"
+            >
+              중앙
+            </button>
+            <button
+              onClick={() => handleNudge(1)}
+              className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 active:scale-95"
+              title="우측으로 5cm 이동"
+            >
+              5cm ▶
+            </button>
+          </div>
 
           {/* 90° Pivot Toggle */}
           <button
             onClick={() => onUpdatePosition?.((p) => ({ ...p, monitorPivot: !p.monitorPivot }))}
-            className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border ${
+            className={`ml-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold transition flex items-center gap-0.5 border ${
               positions.monitorPivot
                 ? "bg-purple-600 text-white border-purple-600 shadow-2xs"
                 : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
             }`}
-            title="가로/세로 90° 피벗 회전"
+            title="모니터 세로 90° 피벗 회전"
           >
-            <Rotate3d className="w-3 h-3" />
-            <span>{positions.monitorPivot ? "세로 90° (피벗중)" : "90° 피벗"}</span>
-          </button>
-
-          {/* Height Elevation Toggle */}
-          <button
-            onClick={() =>
-              onUpdatePosition?.((p) => ({
-                ...p,
-                monitorHeight: (p.monitorHeight ?? 80) >= 140 ? 20 : (p.monitorHeight ?? 80) + 60,
-              }))
-            }
-            className="px-2 py-0.5 rounded-lg text-[10px] font-bold transition bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 flex items-center gap-1"
-            title="모니터 높낮이 승하강"
-          >
-            <span>↕ 높이 {(positions.monitorHeight ?? 80) >= 120 ? "높게" : (positions.monitorHeight ?? 80) <= 40 ? "낮게" : "눈높이"}</span>
-          </button>
-
-          {/* Depth Toggle */}
-          <button
-            onClick={() =>
-              onUpdatePosition?.((p) => ({
-                ...p,
-                monitorDepth: (p.monitorDepth || 0) >= 80 ? -100 : (p.monitorDepth || 0) + 90,
-              }))
-            }
-            className="px-2 py-0.5 rounded-lg text-[10px] font-bold transition bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 flex items-center gap-1"
-            title="앞뒤 거리 조절"
-          >
-            <span>↔ {(positions.monitorDepth || 0) > 40 ? "앞으로" : (positions.monitorDepth || 0) < -40 ? "벽밀착" : "표준"}</span>
-          </button>
-
-          {/* Auto Demo Motion */}
-          <button
-            onClick={() => setIsDemoPlaying(!isDemoPlaying)}
-            className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border ${
-              isDemoPlaying
-                ? "bg-rose-500 text-white border-rose-500 animate-pulse"
-                : "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
-            }`}
-            title="모니터암 자유 무빙 시연"
-          >
-            {isDemoPlaying ? (
-              <>
-                <Square className="w-2.5 h-2.5 fill-current" />
-                <span>정지</span>
-              </>
-            ) : (
-              <>
-                <Play className="w-2.5 h-2.5 fill-current" />
-                <span>무빙 시연</span>
-              </>
-            )}
+            <Rotate3d className="w-2.5 h-2.5" />
+            <span>{positions.monitorPivot ? "세로" : "피벗"}</span>
           </button>
         </div>
       </div>
 
-      {/* 2. Three.js WebGL Interactive Stage (360° Touch / Mouse Rotate) */}
+      {/* 2. Three.js WebGL Interactive Stage (Direct Raycasting Drag / 360° Orbit) */}
       <div
         ref={mountRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onWheel={handleWheel}
-        className="w-full cursor-grab active:cursor-grabbing touch-none select-none relative"
+        className={`w-full touch-none select-none relative ${
+          interactMode === "drag"
+            ? "cursor-crosshair active:cursor-grabbing"
+            : "cursor-grab active:cursor-grabbing"
+        }`}
         style={{ height }}
-      />
+      >
+        {/* Floating Real-time Drag Feedback Pill */}
+        {dragFeedback && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900/90 text-white text-xs font-black px-3.5 py-1.5 rounded-full shadow-xl border border-cyan-400 backdrop-blur-md pointer-events-none z-20 flex items-center gap-1.5 animate-pulse">
+            <Move className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{dragFeedback}</span>
+          </div>
+        )}
+      </div>
 
       {/* 3. On-screen 3D Camera Angles Bar */}
       <div className="absolute bottom-11 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
@@ -1248,9 +1509,18 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
           </button>
         </div>
 
-        <div className="pointer-events-auto bg-black/60 text-white text-[10px] px-2 py-1 rounded-xl backdrop-blur-md flex items-center gap-1">
-          <Move className="w-3 h-3" />
-          <span>화면 드래그로 360° 회전</span>
+        <div className="pointer-events-auto bg-black/60 text-white text-[10px] px-2.5 py-1 rounded-xl backdrop-blur-md flex items-center gap-1">
+          {interactMode === "drag" ? (
+            <>
+              <Hand className="w-3 h-3 text-emerald-400" />
+              <span>화면 속 물건을 터치/드래그하여 이동</span>
+            </>
+          ) : (
+            <>
+              <Move className="w-3 h-3 text-blue-400" />
+              <span>화면 드래그로 360° 회전</span>
+            </>
+          )}
         </div>
       </div>
 

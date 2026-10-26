@@ -148,9 +148,27 @@ export const checkDeskCompatibility = (
       });
       penalty += 25;
     }
+
+    // 2-1. 책상 뒷면 하부 철제 프레임 간섭 정밀 진단
+    if (arm.id !== "arm_none" && desk.deskRearFrameClearance !== undefined) {
+      if (desk.deskRearFrameClearance < 40) {
+        issues.push({
+          severity: "warning",
+          title: `책상 뒷면 프레임 간섭 주의 (${desk.deskRearFrameClearance}mm)`,
+          desc: `${desk.name}은(는) 상판 뒷면 돌출 여유가 ${desk.deskRearFrameClearance}mm로 좁아, 일반 모니터암 C-클램프(깊이 50~70mm 필요) 직접 체결 시 하부 철제 프레임에 걸립니다. 상판 보강판을 거치목처럼 덧대거나, 그로밋(홀 타공) 설치를 권장합니다.`,
+        });
+        penalty += 15;
+      } else if (desk.deskRearFrameClearance >= 70) {
+        issues.push({
+          severity: "tip",
+          title: `모니터암 간섭 제로 전용 설계 (${desk.deskRearFrameClearance}mm)`,
+          desc: `상판 뒷면 프레임 이격 거리가 ${desk.deskRearFrameClearance}mm로 넉넉하여 어떠한 대형 클램프도 간섭 없이 원터치 체결 가능합니다.`,
+        });
+      }
+    }
   }
 
-  // 3. 책상 가로폭 vs 모니터 크기 조화
+  // 3. 책상 가로폭 vs 모니터 크기 조화 & 대형 책상 케이블 여유
   if (desk && monitor) {
     const deskW = desk.deskWidth || 1200;
     if (deskW <= 1200 && (monitor.monitorSize === 34 || monitor.monitorType === "dual")) {
@@ -160,6 +178,15 @@ export const checkDeskCompatibility = (
         desc: "34인치 와이드나 듀얼 모니터는 가로 폭이 80~100cm를 차지하므로, 1400mm 이상 책상을 선택하시면 스피커와 본체 배치가 훨씬 여유롭습니다.",
       });
       penalty += 10;
+    }
+
+    // 대형 책상 (1800mm ~ 2400mm) 케이블 롱 배선 팁
+    if (deskW >= 1800) {
+      issues.push({
+        severity: "tip",
+        title: `대형 와이드 데스크(${deskW}mm) 롱 케이블 구성 권장`,
+        desc: `가로폭이 넓어 본체와 모니터/콘센트 간 거리가 멀어지므로, 모니터 DP/HDMI 케이블 2m~3m 및 언더데스크 멀티탭 트레이를 구성하시면 선 당김 없이 깔끔합니다.`,
+      });
     }
   }
 
