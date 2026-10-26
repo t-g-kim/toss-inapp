@@ -480,9 +480,9 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
               {/* Desk Size Selector (1200mm ~ 2400mm 대형 규격) */}
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-gray-500">책상 규격 (1200 ~ 2400mm)</span>
+                  <span className="text-[11px] font-bold text-gray-500">책상 크기</span>
                   <span className="text-[11px] font-black text-blue-600">
-                    {currentDesk?.deskWidth}×{currentDesk?.deskDepth}mm (두께 {currentDesk?.deskThickness}mm)
+                    {currentDesk?.deskWidth}×{currentDesk?.deskDepth}mm · {currentDesk?.deskThickness}T
                   </span>
                 </div>
                 <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
@@ -690,13 +690,13 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                   {/* 1. 높낮이 (Elevation) */}
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-gray-700">모니터 높낮이 (승하강)</span>
+                      <span className="font-bold text-gray-700">모니터 높낮이</span>
                       <span className="text-[11px] text-blue-600 font-bold">
                         {(positions.monitorHeight ?? 80) >= 140
-                          ? "높게 (스탠딩/목건강)"
+                          ? "높게 (16cm)"
                           : (positions.monitorHeight ?? 80) <= 30
-                          ? "낮게 (바닥밀착)"
-                          : "눈높이 (최적 인체공학)"}
+                          ? "낮게 (2cm)"
+                          : "눈높이 (8cm)"}
                       </span>
                     </div>
                     <div className="grid grid-cols-3 gap-1.5">
@@ -736,13 +736,13 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                   {/* 2. 앞뒤 거리 (Depth / Extension) */}
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-gray-700">앞뒤 거리 조절 (벽밀착 vs 당김)</span>
+                      <span className="font-bold text-gray-700">앞뒤 거리 (깊이)</span>
                       <span className="text-[11px] text-blue-600 font-bold">
                         {(positions.monitorDepth || 0) > 40
-                          ? "앞으로 당김 (몰입감)"
+                          ? "앞으로 (+10cm)"
                           : (positions.monitorDepth || 0) < -40
-                          ? "벽 밀착 (상판 넓게)"
-                          : "표준 시야각"}
+                          ? "벽 밀착 (-10cm)"
+                          : "표준 (0cm)"}
                       </span>
                     </div>
                     <div className="grid grid-cols-3 gap-1.5">
@@ -782,9 +782,9 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                   {/* 3. 가로 ↔ 세로 피벗 회전 (90도) */}
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-gray-700">화면 회전 (90° 피벗)</span>
+                      <span className="font-bold text-gray-700">화면 피벗 회전</span>
                       <span className="text-[11px] text-purple-600 font-bold">
-                        {positions.monitorPivot ? "세로 모드 (코딩/웹툰/직캠)" : "가로 모드 (표준)"}
+                        {positions.monitorPivot ? "세로 (90° 피벗)" : "가로 (표준)"}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 gap-1.5">
@@ -815,10 +815,10 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                   {/* 4. 모니터 좌우 가로 위치 (미세 조절 슬라이더 & 프리셋) */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-gray-700">모니터 좌우 가로 위치</span>
+                      <span className="font-bold text-gray-700">좌우 가로 위치</span>
                       <span className="text-[11px] text-blue-600 font-black">
                         {positions.monitorX === 0
-                          ? "정중앙 (0cm)"
+                          ? "정중앙"
                           : positions.monitorX > 0
                           ? `우측 +${positions.monitorX / 10}cm`
                           : `좌측 ${positions.monitorX / 10}cm`}

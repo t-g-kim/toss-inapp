@@ -1289,172 +1289,87 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
   };
 
   return (
-    <div className="relative rounded-3xl overflow-hidden border border-toss-border bg-gradient-to-b from-slate-900/5 to-slate-900/10 shadow-md">
-      {/* 1. Top HUD Status Bar */}
-      <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
-        <div className="flex items-center gap-1.5 pointer-events-auto">
-          <span className="px-2.5 py-1 rounded-full text-[11px] font-black bg-white/95 text-toss-blue shadow-xs backdrop-blur-md border border-blue-100 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-500" />
-            실측 1:1 스케일 3D
-          </span>
-          <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-slate-800/80 text-white backdrop-blur-md">
-            {desk?.deskWidth}×{desk?.deskDepth}mm
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1.5 pointer-events-auto">
-          {/* Direct 3D Drag Mode Toggle */}
-          <button
-            onClick={() => setInteractMode(interactMode === "drag" ? "orbit" : "drag")}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1 shadow-xs backdrop-blur-md border ${
-              interactMode === "drag"
-                ? "bg-emerald-600 text-white border-emerald-500 shadow-emerald-500/20"
-                : "bg-white/95 text-slate-800 border-gray-200 hover:bg-white"
-            }`}
-            title="3D 물건 직접 드래그 이동 ↔ 360도 카메라 시점 회전 모드 전환"
-          >
-            {interactMode === "drag" ? (
-              <>
-                <Hand className="w-3.5 h-3.5 text-white" />
-                <span>🖐️ 물건 드래그</span>
-              </>
-            ) : (
-              <>
-                <Rotate3d className="w-3.5 h-3.5 text-blue-600" />
-                <span>🎥 시점 회전</span>
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={() => setAutoRotate(!autoRotate)}
-            className={`p-1.5 rounded-xl text-xs font-bold transition backdrop-blur-md shadow-xs ${
-              autoRotate
-                ? "bg-blue-600 text-white"
-                : "bg-white/90 text-toss-subtext hover:bg-white"
-            }`}
-            title="360도 자동 회전"
-          >
-            <Rotate3d className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setIsNightMode(!isNightMode)}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs backdrop-blur-md ${
-              isNightMode
-                ? "bg-amber-400/20 text-amber-300 border border-amber-400/40"
-                : "bg-slate-800 text-white hover:bg-slate-700"
-            }`}
-          >
-            {isNightMode ? (
-              <>
-                <Sun className="w-3.5 h-3.5 text-amber-400" />
-                <span>낮</span>
-              </>
-            ) : (
-              <>
-                <Moon className="w-3.5 h-3.5 text-indigo-300" />
-                <span>밤 조명</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* 1.5. 3D 물건 직접 이동 & 모니터암 무빙 인터랙티브 툴바 */}
-      <div className="absolute top-12 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
-        <div className="flex items-center gap-1 pointer-events-auto bg-white/95 backdrop-blur-md px-2 py-1.5 rounded-2xl border border-gray-200/80 shadow-xs flex-wrap">
-          <span className="text-[10px] font-black text-gray-500 flex items-center gap-1 mr-1">
-            <Move className="w-3 h-3 text-blue-600" />
-            물건 이동:
-          </span>
-
-          {/* Item Selector Chips */}
-          <button
-            onClick={() => setSelectedItem("monitor")}
-            className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition border ${
-              selectedItem === "monitor"
-                ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
-                : "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200"
-            }`}
-          >
-            🖥️ 모니터
-          </button>
-          <button
-            onClick={() => setSelectedItem("pc")}
-            className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition border ${
-              selectedItem === "pc"
-                ? "bg-purple-600 text-white border-purple-600 shadow-2xs"
-                : "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200"
-            }`}
-          >
-            💻 PC 본체
-          </button>
-          <button
-            onClick={() => setSelectedItem("keyboard")}
-            className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition border ${
-              selectedItem === "keyboard"
-                ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
-                : "bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200"
-            }`}
-          >
-            ⌨️ 키보드
-          </button>
-
-          {/* Step Nudge Buttons */}
-          <div className="flex items-center gap-0.5 ml-1 border-l border-gray-200 pl-1.5">
-            <button
-              onClick={() => handleNudge(-1)}
-              className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 active:scale-95"
-              title="좌측으로 5cm 이동"
-            >
-              ◀ 5cm
-            </button>
-            <button
-              onClick={handleResetCenter}
-              className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 active:scale-95"
-              title="선택 물건 중앙 정렬"
-            >
-              중앙
-            </button>
-            <button
-              onClick={() => handleNudge(1)}
-              className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 active:scale-95"
-              title="우측으로 5cm 이동"
-            >
-              5cm ▶
-            </button>
+    <div className="rounded-3xl overflow-hidden border border-toss-border bg-white shadow-md">
+      {/* 1. 3D Stage Canvas with Clean, Non-colliding Floating HUD */}
+      <div className="relative w-full overflow-hidden bg-gradient-to-b from-slate-900/5 to-slate-900/10" style={{ height }}>
+        {/* Top Floating HUD: Left Badge & Right Action Icons */}
+        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-10 pointer-events-none">
+          <div className="flex items-center gap-1 pointer-events-auto">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-white/95 text-toss-blue shadow-xs backdrop-blur-md border border-blue-100 flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-amber-500" />
+              1:1 3D
+            </span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800/80 text-white backdrop-blur-md">
+              {desk?.deskWidth}mm
+            </span>
           </div>
 
-          {/* 90° Pivot Toggle */}
-          <button
-            onClick={() => onUpdatePosition?.((p) => ({ ...p, monitorPivot: !p.monitorPivot }))}
-            className={`ml-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold transition flex items-center gap-0.5 border ${
-              positions.monitorPivot
-                ? "bg-purple-600 text-white border-purple-600 shadow-2xs"
-                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-            }`}
-            title="모니터 세로 90° 피벗 회전"
-          >
-            <Rotate3d className="w-2.5 h-2.5" />
-            <span>{positions.monitorPivot ? "세로" : "피벗"}</span>
-          </button>
-        </div>
-      </div>
+          <div className="flex items-center gap-1 pointer-events-auto">
+            {/* Mode Switcher */}
+            <button
+              onClick={() => setInteractMode(interactMode === "drag" ? "orbit" : "drag")}
+              className={`px-2 py-1 rounded-xl text-[10px] font-extrabold transition flex items-center gap-1 shadow-xs border backdrop-blur-md ${
+                interactMode === "drag"
+                  ? "bg-emerald-600 text-white border-emerald-500 shadow-emerald-500/20"
+                  : "bg-white/95 text-slate-800 border-gray-200 hover:bg-white"
+              }`}
+              title="드래그 이동 ↔ 360도 회전 모드 전환"
+            >
+              {interactMode === "drag" ? (
+                <>
+                  <Hand className="w-3 h-3 text-white" />
+                  <span>이동모드</span>
+                </>
+              ) : (
+                <>
+                  <Rotate3d className="w-3 h-3 text-blue-600" />
+                  <span>360°회전</span>
+                </>
+              )}
+            </button>
 
-      {/* 2. Three.js WebGL Interactive Stage (Direct Raycasting Drag / 360° Orbit) */}
-      <div
-        ref={mountRef}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onWheel={handleWheel}
-        className={`w-full touch-none select-none relative ${
-          interactMode === "drag"
-            ? "cursor-crosshair active:cursor-grabbing"
-            : "cursor-grab active:cursor-grabbing"
-        }`}
-        style={{ height }}
-      >
+            {/* Auto Rotate Icon Button */}
+            <button
+              onClick={() => setAutoRotate(!autoRotate)}
+              className={`p-1.5 rounded-xl text-xs font-bold transition backdrop-blur-md shadow-xs ${
+                autoRotate
+                  ? "bg-blue-600 text-white"
+                  : "bg-white/90 text-toss-subtext hover:bg-white"
+              }`}
+              title="360도 자동 회전"
+            >
+              <Rotate3d className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Night Mode Icon Button */}
+            <button
+              onClick={() => setIsNightMode(!isNightMode)}
+              className="p-1.5 rounded-xl text-xs font-bold transition shadow-xs backdrop-blur-md bg-slate-800 text-white hover:bg-slate-700"
+              title="낮 / 밤 조명 전환"
+            >
+              {isNightMode ? (
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
+              ) : (
+                <Moon className="w-3.5 h-3.5 text-indigo-300" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* 3D WebGL Canvas */}
+        <div
+          ref={mountRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onWheel={handleWheel}
+          className={`w-full h-full touch-none select-none relative ${
+            interactMode === "drag"
+              ? "cursor-crosshair active:cursor-grabbing"
+              : "cursor-grab active:cursor-grabbing"
+          }`}
+        />
+
         {/* Floating Real-time Drag Feedback Pill */}
         {dragFeedback && (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900/90 text-white text-xs font-black px-3.5 py-1.5 rounded-full shadow-xl border border-cyan-400 backdrop-blur-md pointer-events-none z-20 flex items-center gap-1.5 animate-pulse">
@@ -1462,72 +1377,154 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
             <span>{dragFeedback}</span>
           </div>
         )}
+
+        {/* Bottom Floating Bar: Camera Preset Views & Mode Guide */}
+        <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between z-10 pointer-events-none">
+          <div className="flex items-center gap-0.5 pointer-events-auto bg-white/90 backdrop-blur-md p-0.5 rounded-xl border border-gray-200/80 shadow-xs">
+            <button
+              onClick={() => handleSetView("free")}
+              className={`px-1.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                cameraView === "free"
+                  ? "bg-toss-blue text-white shadow-2xs"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              360°
+            </button>
+            <button
+              onClick={() => handleSetView("front")}
+              className={`px-1.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                cameraView === "front"
+                  ? "bg-toss-blue text-white shadow-2xs"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              눈높이
+            </button>
+            <button
+              onClick={() => handleSetView("top")}
+              className={`px-1.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                cameraView === "top"
+                  ? "bg-toss-blue text-white shadow-2xs"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              탑뷰
+            </button>
+            <button
+              onClick={() => handleSetView("side")}
+              className={`px-1.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                cameraView === "side"
+                  ? "bg-toss-blue text-white shadow-2xs"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              측면
+            </button>
+          </div>
+
+          <div className="pointer-events-auto bg-black/60 text-white text-[10px] px-2 py-1 rounded-xl backdrop-blur-md flex items-center gap-1">
+            {interactMode === "drag" ? (
+              <>
+                <Hand className="w-2.5 h-2.5 text-emerald-400" />
+                <span>화면 드래그 이동</span>
+              </>
+            ) : (
+              <>
+                <Move className="w-2.5 h-2.5 text-blue-400" />
+                <span>360° 회전</span>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* 3. On-screen 3D Camera Angles Bar */}
-      <div className="absolute bottom-11 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
-        <div className="flex items-center gap-1 pointer-events-auto bg-white/90 backdrop-blur-md p-1 rounded-2xl border border-gray-200/80 shadow-xs">
+      {/* 2. Dedicated 3D Item Position Controller Panel (Clean, Non-overlapping) */}
+      <div className="bg-white px-3 py-2.5 border-t border-gray-100 space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-black text-gray-800 flex items-center gap-1.5">
+            <Move className="w-3.5 h-3.5 text-blue-600" />
+            3D 물건 위치 직접 이동
+          </span>
+          <span className="text-[10px] text-gray-400">화면에서 직접 드래그 가능</span>
+        </div>
+
+        {/* Item Selection Tabs */}
+        <div className="grid grid-cols-3 gap-1.5">
           <button
-            onClick={() => handleSetView("free")}
-            className={`px-2 py-1 rounded-xl text-[10px] font-extrabold transition ${
-              cameraView === "free"
-                ? "bg-toss-blue text-white shadow-2xs"
-                : "text-gray-600 hover:bg-gray-100"
+            onClick={() => setSelectedItem("monitor")}
+            className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+              selectedItem === "monitor"
+                ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
             }`}
           >
-            360° 회전
+            🖥️ 모니터
           </button>
           <button
-            onClick={() => handleSetView("front")}
-            className={`px-2 py-1 rounded-xl text-[10px] font-extrabold transition ${
-              cameraView === "front"
-                ? "bg-toss-blue text-white shadow-2xs"
-                : "text-gray-600 hover:bg-gray-100"
+            onClick={() => setSelectedItem("pc")}
+            className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+              selectedItem === "pc"
+                ? "bg-purple-600 text-white border-purple-600 shadow-2xs"
+                : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
             }`}
           >
-            눈높이
+            💻 PC 본체
           </button>
           <button
-            onClick={() => handleSetView("top")}
-            className={`px-2 py-1 rounded-xl text-[10px] font-extrabold transition ${
-              cameraView === "top"
-                ? "bg-toss-blue text-white shadow-2xs"
-                : "text-gray-600 hover:bg-gray-100"
+            onClick={() => setSelectedItem("keyboard")}
+            className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+              selectedItem === "keyboard"
+                ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
+                : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
             }`}
           >
-            배치(탑뷰)
-          </button>
-          <button
-            onClick={() => handleSetView("side")}
-            className={`px-2 py-1 rounded-xl text-[10px] font-extrabold transition ${
-              cameraView === "side"
-                ? "bg-toss-blue text-white shadow-2xs"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
-          >
-            측면
+            ⌨️ 키보드
           </button>
         </div>
 
-        <div className="pointer-events-auto bg-black/60 text-white text-[10px] px-2.5 py-1 rounded-xl backdrop-blur-md flex items-center gap-1">
-          {interactMode === "drag" ? (
-            <>
-              <Hand className="w-3 h-3 text-emerald-400" />
-              <span>화면 속 물건을 터치/드래그하여 이동</span>
-            </>
-          ) : (
-            <>
-              <Move className="w-3 h-3 text-blue-400" />
-              <span>화면 드래그로 360° 회전</span>
-            </>
-          )}
+        {/* Nudge & Action Buttons */}
+        <div className="grid grid-cols-4 gap-1.5">
+          <button
+            onClick={() => handleNudge(-1)}
+            className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+            title="좌측으로 5cm 이동"
+          >
+            ◀ 5cm 좌
+          </button>
+          <button
+            onClick={handleResetCenter}
+            className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+            title="정중앙 정렬"
+          >
+            정중앙
+          </button>
+          <button
+            onClick={() => handleNudge(1)}
+            className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+            title="우측으로 5cm 이동"
+          >
+            5cm 우 ▶
+          </button>
+          <button
+            onClick={() => onUpdatePosition?.((p) => ({ ...p, monitorPivot: !p.monitorPivot }))}
+            className={`py-1.5 text-xs font-bold rounded-xl border transition flex items-center justify-center gap-0.5 ${
+              positions.monitorPivot
+                ? "bg-purple-600 text-white border-purple-600 shadow-2xs"
+                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+            }`}
+            title="가로/세로 90° 피벗 회전"
+          >
+            <Rotate3d className="w-3 h-3" />
+            <span>{positions.monitorPivot ? "세로중" : "피벗"}</span>
+          </button>
         </div>
       </div>
 
-      {/* 4. Bottom Specs Footer */}
-      <div className="px-4 py-2 bg-white/95 border-t border-gray-100 flex items-center justify-between text-xs">
-        <div className="flex items-center gap-2 text-[11px] text-gray-600">
-          <span className="font-extrabold text-toss-text">
+      {/* 3. Bottom Specs Footer */}
+      <div className="px-3.5 py-2 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs">
+        <div className="flex items-center gap-1.5 text-[11px] text-gray-600 truncate">
+          <span className="font-extrabold text-toss-text truncate">
             {desk?.brand} {desk?.deskWidth}mm
           </span>
           <span>·</span>
@@ -1536,9 +1533,9 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
           <span>{chair?.brand}</span>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <span className="text-[11px] text-gray-400">호환성</span>
-          <span className="font-black text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
+        <div className="flex items-center gap-1 shrink-0">
+          <span className="text-[10px] text-gray-400">호환성</span>
+          <span className="font-black text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
             {score}점
           </span>
         </div>
