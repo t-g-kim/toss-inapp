@@ -57,6 +57,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
   // 3D Direct Raycast Dragging & Item Selection States
   const [selectedItem, setSelectedItem] = useState<"monitor" | "pc" | "keyboard">("monitor");
   const [dragFeedback, setDragFeedback] = useState<string | null>(null);
+  const [interactionMode, setInteractionMode] = useState<"auto" | "orbit" | "drag">("auto");
 
   const activeDraggedItemRef = useRef<"monitor" | "pc" | "keyboard" | null>(null);
   const dragPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
@@ -441,7 +442,6 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
 
       const shelfGroup = new THREE.Group();
       shelfGroup.position.set(0, deskH + deskT / 2, -deskD * 0.18);
-      shelfGroup.userData = { interactiveType: "shelf" };
       deskGroup.add(shelfGroup);
 
       // Shelf Board Color
@@ -825,7 +825,6 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     const matMesh = new THREE.Mesh(matGeo, matMeshMat);
     matMesh.position.set(kbOffsetX, deskH + deskT / 2 + 0.02, 0.6);
     matMesh.receiveShadow = true;
-    matMesh.userData = { interactiveType: "keyboard" };
     deskGroup.add(matMesh);
 
     // Keyboard (TKL: 3.6 × 1.4 units)
@@ -1113,6 +1112,12 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
       // ignore
     }
 
+    if (interactionMode === "orbit") {
+      activeDraggedItemRef.current = null;
+      setDragFeedback(null);
+      return;
+    }
+
     // Normalized Device Coordinates (-1 to +1)
     const rect = container.getBoundingClientRect();
     const mouse = new THREE.Vector2(
@@ -1132,8 +1137,9 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     for (const hit of intersects) {
       let curr: THREE.Object3D | null = hit.object;
       while (curr && curr !== sceneStateRef.current.deskGroup) {
-        if (curr.userData?.interactiveType) {
-          hitType = curr.userData.interactiveType;
+        const type = curr.userData?.interactiveType;
+        if (type === "monitor" || type === "pc" || type === "keyboard") {
+          hitType = type;
           break;
         }
         curr = curr.parent;
@@ -1163,7 +1169,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     lastMousePosRef.current = { x: e.clientX, y: e.clientY };
 
     const dragged = activeDraggedItemRef.current;
-    if (dragged && onUpdatePosition) {
+    if (dragged && onUpdatePosition && interactionMode !== "orbit") {
       const container = mountRef.current;
       if (!container) return;
       const rect = container.getBoundingClientRect();
@@ -1233,21 +1239,52 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
       return;
     }
 
-    // 360° Orbit rotation
+    // 360° Orbit rotation with responsive angle clamping
     sceneStateRef.current.targetTheta -= deltaX * 0.008;
-    sceneStateRef.current.targetPhi += deltaY * 0.008;
+    sceneStateRef.current.targetPhi = Math.max(
+      0.1,
+      Math.min(Math.PI * 0.46, sceneStateRef.current.targetPhi + deltaY * 0.008)
+    );
     setCameraView("free");
   };
 
-  const handlePointerUp = (e: React.PointerEvent) => {
+  const handlePointerUp = (e?: React.PointerEvent) => {
     isDraggingRef.current = false;
     activeDraggedItemRef.current = null;
     setTimeout(() => setDragFeedback(null), 1000);
-    try {
-      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch {
-      // ignore
+    if (e) {
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
     }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      handlePointerDown({
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        target: e.target,
+        pointerId: 1,
+      } as any);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      handlePointerMove({
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+      } as any);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    handlePointerUp();
   };
 
   const handleNudge = (direction: -1 | 1) => {
@@ -1395,6 +1432,11 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
           onWheel={handleWheel}
           className="w-full h-full touch-none select-none relative cursor-grab active:cursor-grabbing"
         />
@@ -1452,9 +1494,45 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
             </button>
           </div>
 
-          <div className="pointer-events-auto bg-black/60 text-white text-[10px] px-2.5 py-1 rounded-xl backdrop-blur-md flex items-center gap-1.5">
-            <Hand className="w-2.5 h-2.5 text-emerald-400" />
-            <span>물건 터치: 이동 · 바탕: 360° 회전</span>
+          <div className="pointer-events-auto flex items-center gap-0.5 bg-black/60 p-0.5 rounded-xl backdrop-blur-md text-[10px] font-bold text-white shadow-xs">
+            <button
+              onClick={() => {
+                setInteractionMode("orbit");
+                activeDraggedItemRef.current = null;
+              }}
+              className={`px-2 py-0.8 rounded-lg transition ${
+                interactionMode === "orbit"
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-300 hover:text-white"
+              }`}
+            >
+              🔄 회전
+            </button>
+            <button
+              onClick={() => {
+                setInteractionMode("auto");
+                activeDraggedItemRef.current = null;
+              }}
+              className={`px-2 py-0.8 rounded-lg transition ${
+                interactionMode === "auto"
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-300 hover:text-white"
+              }`}
+            >
+              🖐️ 자동
+            </button>
+            <button
+              onClick={() => {
+                setInteractionMode("drag");
+              }}
+              className={`px-2 py-0.8 rounded-lg transition ${
+                interactionMode === "drag"
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-300 hover:text-white"
+              }`}
+            >
+              📦 이동
+            </button>
           </div>
         </div>
       </div>

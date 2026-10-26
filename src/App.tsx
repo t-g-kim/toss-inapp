@@ -141,10 +141,10 @@ export const App: React.FC = () => {
 
       {/* Main Container */}
       <div
-        className={`w-full transition-all duration-300 overflow-x-hidden ${
+        className={`w-full transition-all duration-300 ${
           deviceFrame
-            ? "max-w-[430px] rounded-none md:rounded-[40px] shadow-2xl overflow-hidden border-0 md:border-[10px] md:border-slate-800 bg-white min-h-screen md:min-h-[880px]"
-            : "max-w-md bg-white shadow-xl min-h-screen"
+            ? "max-w-[430px] rounded-none md:rounded-[40px] shadow-2xl border-0 md:border-[10px] md:border-slate-800 bg-white min-h-screen md:max-h-[92vh] overflow-y-auto overflow-x-hidden"
+            : "max-w-md bg-white shadow-xl min-h-screen overflow-x-hidden"
         }`}
       >
         {renderActiveApp()}

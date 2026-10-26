@@ -982,55 +982,58 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                           : `좌측 ${positions.monitorX / 10}cm`}
                       </span>
                     </div>
-                    <input
-                      type="range"
-                      min={-Math.floor(((currentDesk?.deskWidth || 1400) - 400) / 2)}
-                      max={Math.floor(((currentDesk?.deskWidth || 1400) - 400) / 2)}
-                      step={10}
-                      value={positions.monitorX || 0}
-                      onChange={(e) => setPositions((p) => ({ ...p, monitorX: Number(e.target.value) }))}
-                      className="w-full accent-blue-600 cursor-pointer h-2 bg-gray-200 rounded-lg appearance-none"
-                    />
-                    <div className="grid grid-cols-5 gap-1 text-[11px]">
+                    <div className="relative py-1">
+                      <input
+                        type="range"
+                        min={-Math.floor(((currentDesk?.deskWidth || 1400) - 400) / 2)}
+                        max={Math.floor(((currentDesk?.deskWidth || 1400) - 400) / 2)}
+                        step={10}
+                        value={positions.monitorX || 0}
+                        onChange={(e) => setPositions((p) => ({ ...p, monitorX: Number(e.target.value) }))}
+                        className="w-full accent-blue-600 cursor-pointer h-3 bg-gray-200 rounded-lg appearance-none touch-pan-x"
+                        style={{ touchAction: "pan-x" }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 text-[11px]">
                       <button
                         onClick={() =>
-                          setPositions((p) => ({
-                            ...p,
-                            monitorX: -Math.floor(((currentDesk?.deskWidth || 1400) - 400) / 2),
-                          }))
+                          setPositions((p) => {
+                            const max = Math.floor(((currentDesk?.deskWidth || 1400) - 400) / 2);
+                            return { ...p, monitorX: Math.max(-max, (p.monitorX || 0) - 50) };
+                          })
                         }
-                        className="py-1 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 font-bold"
+                        className="flex-1 py-1 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 font-bold"
                       >
-                        최좌측
+                        ◀ 5cm 좌
                       </button>
                       <button
                         onClick={() => setPositions((p) => ({ ...p, monitorX: -200 }))}
-                        className="py-1 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 font-bold"
+                        className="py-1 px-2 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 font-bold"
                       >
                         -20cm
                       </button>
                       <button
                         onClick={() => setPositions((p) => ({ ...p, monitorX: 0 }))}
-                        className="py-1 rounded-lg border bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 font-bold"
+                        className="py-1 px-2.5 rounded-lg border bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 font-bold"
                       >
                         정중앙
                       </button>
                       <button
                         onClick={() => setPositions((p) => ({ ...p, monitorX: 200 }))}
-                        className="py-1 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 font-bold"
+                        className="py-1 px-2 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 font-bold"
                       >
                         +20cm
                       </button>
                       <button
                         onClick={() =>
-                          setPositions((p) => ({
-                            ...p,
-                            monitorX: Math.floor(((currentDesk?.deskWidth || 1400) - 400) / 2),
-                          }))
+                          setPositions((p) => {
+                            const max = Math.floor(((currentDesk?.deskWidth || 1400) - 400) / 2);
+                            return { ...p, monitorX: Math.min(max, (p.monitorX || 0) + 50) };
+                          })
                         }
-                        className="py-1 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 font-bold"
+                        className="flex-1 py-1 rounded-lg border bg-white text-gray-700 hover:bg-gray-50 font-bold"
                       >
-                        최우측
+                        5cm 우 ▶
                       </button>
                     </div>
                   </div>

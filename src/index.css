@@ -34,3 +34,32 @@ body {
   transform: scale(0.97);
   opacity: 0.85;
 }
+
+/* Touch-friendly range slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: pan-x;
+  user-select: auto;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #3182f6;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #3182f6;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
