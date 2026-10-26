@@ -52,7 +52,7 @@ export const DEFAULT_ITEM_POSITIONS: DeskItemPositions = {
   monitorDepth: 0,
   monitorAngle: 0,
   monitorPivot: false,
-  pcPlacement: "desk-right",
+  pcPlacement: "floor-right",
   keyboardX: 0,
   speakerPlacement: "both",
   accPlacement: "right",

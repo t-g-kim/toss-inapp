@@ -569,6 +569,81 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                   </button>
                 ))}
               </div>
+
+              {/* Monitor Arm Quick Mount Option */}
+              <div className="space-y-1.5 text-xs pt-1.5 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-gray-500">모니터 거치</span>
+                  <span className="text-[11px] font-black text-blue-600">
+                    {hasArm
+                      ? currentArm?.name.includes("NB-F80")
+                        ? "NB-F80 모니터암 (1.8만)"
+                        : currentArm?.name.includes("BMA-2")
+                        ? "카멜 BMA-2 모니터암 (3.4만)"
+                        : currentArm?.name.includes("DMA-2")
+                        ? "카멜 듀얼 모니터암 (6.9만)"
+                        : currentArm?.name.includes("PMA-2D")
+                        ? "고중량 PMA-2D (8.9만)"
+                        : currentArm?.name.includes("어고트론")
+                        ? "어고트론 LX (19.8만)"
+                        : "가스스프링 암"
+                      : "기본 번들 스탠드 (0원)"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    onClick={() => {
+                      if (!hasArm) {
+                        handleSelectPart(
+                          "monitorArm",
+                          currentMonitor?.monitorType === "dual" ? "arm_camel_dma2" : "arm_camel_bma2"
+                        );
+                      }
+                    }}
+                    className={`py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 border ${
+                      hasArm
+                        ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span>🦾 모니터암 설치 (공중부양)</span>
+                  </button>
+                  <button
+                    onClick={() => handleSelectPart("monitorArm", "arm_none")}
+                    className={`py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 border ${
+                      !hasArm
+                        ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span>🖥️ 기본 스탠드 (바닥거치)</span>
+                  </button>
+                </div>
+
+                {hasArm && (
+                  <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar pt-0.5">
+                    {[
+                      { id: "arm_camel_bma2", label: "카멜 BMA-2 (3.4만)" },
+                      { id: "arm_nb_f80", label: "국민 NB-F80 (1.8만)" },
+                      { id: "arm_camel_dma2", label: "카멜 DMA-2 듀얼 (6.9만)" },
+                      { id: "arm_camel_pma2d", label: "고중량 PMA-2D (8.9만)" },
+                      { id: "arm_ergotron_lx", label: "어고트론 LX (19.8만)" },
+                    ].map((armOpt) => (
+                      <button
+                        key={armOpt.id}
+                        onClick={() => handleSelectPart("monitorArm", armOpt.id)}
+                        className={`px-2 py-1 text-[11px] font-bold rounded-lg border whitespace-nowrap shrink-0 transition ${
+                          build.monitorArm === armOpt.id
+                            ? "bg-slate-800 text-white border-slate-800 shadow-2xs"
+                            : "bg-gray-100 text-gray-600 border-transparent hover:bg-gray-200"
+                        }`}
+                      >
+                        {armOpt.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* 6. 데스크테리어 위치 조절 & 실측 잔여 공간 계산 바 */}
@@ -637,7 +712,7 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                   </div>
                   <div className="grid grid-cols-3 gap-1.5">
                     <button
-                      onClick={() => setPositions((p) => ({ ...p, pcPlacement: "desk-right" }))}
+                      onClick={() => setPositions((p) => ({ ...p, pcPlacement: "desk-right", pcX: undefined }))}
                       className={`py-1.5 text-xs font-bold rounded-xl border transition ${
                         positions.pcPlacement === "desk-right"
                           ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
@@ -647,7 +722,7 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                       책상 위 우측
                     </button>
                     <button
-                      onClick={() => setPositions((p) => ({ ...p, pcPlacement: "desk-left" }))}
+                      onClick={() => setPositions((p) => ({ ...p, pcPlacement: "desk-left", pcX: undefined }))}
                       className={`py-1.5 text-xs font-bold rounded-xl border transition ${
                         positions.pcPlacement === "desk-left"
                           ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
@@ -657,9 +732,9 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                       책상 위 좌측
                     </button>
                     <button
-                      onClick={() => setPositions((p) => ({ ...p, pcPlacement: "floor-right" }))}
+                      onClick={() => setPositions((p) => ({ ...p, pcPlacement: "floor-right", pcX: undefined }))}
                       className={`py-1.5 text-xs font-bold rounded-xl border transition ${
-                        positions.pcPlacement === "floor-right"
+                        positions.pcPlacement?.startsWith("floor")
                           ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
                           : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
                       }`}

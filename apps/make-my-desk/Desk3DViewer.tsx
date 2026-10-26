@@ -15,6 +15,8 @@ import {
   Square,
   RotateCw,
   Hand,
+  ArrowDown,
+  ArrowUp,
 } from "lucide-react";
 import {
   DeskPartOption,
@@ -647,48 +649,59 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
       // -------------------------------------------------------------
       // Case B: 가스스프링 모니터암 (유연한 3D 관절 기구학 모델링)
       // -------------------------------------------------------------
-      const armColor =
-        arm.id.includes("bma2") && deskColor === "white"
-          ? 0xf8fafc
-          : arm.id.includes("ergotron")
-          ? 0xd4d4d8
-          : 0x27272a;
+      const isWhiteArm = arm.id.includes("bma2") && deskColor === "white";
+      const isErgotron = arm.id.includes("ergotron");
+      const armColor = isWhiteArm ? 0xe2e8f0 : isErgotron ? 0xcbd5e1 : 0x1e293b;
 
       const armMat = new THREE.MeshStandardMaterial({
         color: armColor,
-        metalness: arm.id.includes("ergotron") ? 0.9 : 0.75,
-        roughness: arm.id.includes("ergotron") ? 0.2 : 0.35,
+        metalness: isErgotron ? 0.9 : 0.8,
+        roughness: isErgotron ? 0.2 : 0.3,
       });
 
-      // Clamp mounted at the rear edge of desk
-      const clampX = monOffsetX * 0.7; // slight offset for natural elbow folding
+      const pivotMat = new THREE.MeshStandardMaterial({
+        color: 0x334155, // metallic gunmetal pivot accent
+        metalness: 0.85,
+        roughness: 0.25,
+      });
+
+      // Clamp mounted firmly at the rear edge of desk
+      const clampX = monOffsetX * 0.6; // slightly offset for realistic folding
       const clampY = deskH + deskT / 2;
       const clampZ = -deskD / 2 + 0.35;
 
-      // Heavy C-Clamp bracket
-      const clampBracket = new THREE.Mesh(new THREE.BoxGeometry(0.9, deskT + 0.6, 0.9), armMat);
-      clampBracket.position.set(clampX, clampY - deskT / 2 + 0.15, clampZ);
+      // Heavy C-Clamp bracket wrapping around rear edge
+      const clampBracket = new THREE.Mesh(new THREE.BoxGeometry(1.0, deskT + 0.7, 1.0), pivotMat);
+      clampBracket.position.set(clampX, clampY - deskT / 2 + 0.1, clampZ);
       clampBracket.castShadow = true;
       deskGroup.add(clampBracket);
 
-      // Under-desk screw knob
+      // Under-desk heavy screw knob
       const screwKnob = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.24, 0.24, 0.6, 16),
-        new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.85 })
+        new THREE.CylinderGeometry(0.28, 0.28, 0.65, 16),
+        new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9 })
       );
-      screwKnob.position.set(clampX, clampY - deskT - 0.3, clampZ);
+      screwKnob.position.set(clampX, clampY - deskT - 0.35, clampZ);
       deskGroup.add(screwKnob);
 
-      // Swivel Base Turret on top of clamp
-      const baseTurret = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.48, 0.7, 24), armMat);
-      baseTurret.position.set(clampX, clampY + 0.35, clampZ);
+      // Swivel Base Turret with Chrome Ring on top of clamp
+      const baseTurret = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.54, 0.75, 24), armMat);
+      baseTurret.position.set(clampX, clampY + 0.38, clampZ);
       baseTurret.castShadow = true;
       deskGroup.add(baseTurret);
 
+      const baseRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.49, 0.05, 12, 24),
+        new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.95, roughness: 0.15 })
+      );
+      baseRing.rotation.x = Math.PI / 2;
+      baseRing.position.set(clampX, clampY + 0.75, clampZ);
+      deskGroup.add(baseRing);
+
       if (monType === "dual") {
         // Dual Monitor Arm: Central pole with dual branching articulating arms
-        const poleHeight = 2.6;
-        const mainPole = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, poleHeight, 16), armMat);
+        const poleHeight = 2.8;
+        const mainPole = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, poleHeight, 16), pivotMat);
         mainPole.position.set(clampX, clampY + poleHeight / 2 + 0.3, clampZ);
         mainPole.castShadow = true;
         deskGroup.add(mainPole);
@@ -697,38 +710,40 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
         [-2.8, 2.8].forEach((xTarget) => {
           const vesaX = monOffsetX + xTarget;
           const elbowPt = {
-            x: clampX + (vesaX - clampX) * 0.5,
-            y: clampY + 1.6 + monHeightOffset * 0.2,
-            z: clampZ + (targetVesaZ - clampZ) * 0.4 - 0.4,
+            x: clampX + (xTarget > 0 ? 2.2 : -2.2),
+            y: clampY + 1.8 + monHeightOffset * 0.2,
+            z: clampZ + (targetVesaZ - clampZ) * 0.4 - 0.2,
           };
 
-          drawLink({ x: clampX, y: clampY + 1.8, z: clampZ }, elbowPt, 0.32, armMat);
-          drawLink(elbowPt, { x: vesaX, y: targetVesaY, z: targetVesaZ }, 0.28, armMat);
+          drawLink({ x: clampX, y: clampY + 1.8, z: clampZ }, elbowPt, 0.36, armMat);
+          drawLink(elbowPt, { x: vesaX, y: targetVesaY, z: targetVesaZ }, 0.3, armMat);
 
-          const elbowJ = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.45, 16), armMat);
+          const elbowJ = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.5, 16), pivotMat);
           elbowJ.position.set(elbowPt.x, elbowPt.y, elbowPt.z);
           deskGroup.add(elbowJ);
 
-          const vesaPlate = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.75, 0.12), armMat);
+          const vesaPlate = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.85, 0.14), pivotMat);
           vesaPlate.position.set(vesaX, targetVesaY, targetVesaZ + 0.05);
           deskGroup.add(vesaPlate);
         });
       } else {
-        // Single Articulated Arm (NB-F80 / BMA-2 / PMA-2D style)
-        const elbowX = clampX + (targetVesaX - clampX) * 0.4 + 1.1;
-        const elbowY = clampY + 0.9 + monHeightOffset * 0.3;
-        const elbowZ = (clampZ + targetVesaZ) * 0.5 - 0.35;
+        // Single Articulated Arm (NB-F80 / BMA-2 / PMA-2D / Ergotron style)
+        // Fold elbow outward sideways so it is prominently visible from any front/angle!
+        const foldDir = monOffsetX >= 0 ? -1 : 1;
+        const elbowX = clampX + foldDir * 2.3;
+        const elbowY = clampY + 1.2 + monHeightOffset * 0.35;
+        const elbowZ = clampZ + 0.85;
 
         // Lower arm link (Base -> Elbow)
         drawLink(
-          { x: clampX, y: clampY + 0.7, z: clampZ },
+          { x: clampX, y: clampY + 0.75, z: clampZ },
           { x: elbowX, y: elbowY, z: elbowZ },
-          0.38,
+          0.42,
           armMat
         );
 
-        // Elbow Joint
-        const elbowJ = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.55, 20), armMat);
+        // Articulated Elbow Joint (Prominent metallic cylinder)
+        const elbowJ = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.65, 20), pivotMat);
         elbowJ.position.set(elbowX, elbowY, elbowZ);
         elbowJ.castShadow = true;
         deskGroup.add(elbowJ);
@@ -737,14 +752,28 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
         drawLink(
           { x: elbowX, y: elbowY, z: elbowZ },
           { x: targetVesaX, y: targetVesaY, z: targetVesaZ },
-          0.34,
+          0.38,
           armMat
         );
 
-        // VESA Head Plate
+        // Piston shaft accent inside upper arm
+        const pistonMid = {
+          x: (elbowX + targetVesaX) * 0.5,
+          y: (elbowY + targetVesaY) * 0.5 + 0.05,
+          z: (elbowZ + targetVesaZ) * 0.5,
+        };
+        const pistonMesh = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.12, 0.12, 1.4, 12),
+          new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.95, roughness: 0.15 })
+        );
+        pistonMesh.position.set(pistonMid.x, pistonMid.y, pistonMid.z);
+        pistonMesh.lookAt(targetVesaX, targetVesaY, targetVesaZ);
+        deskGroup.add(pistonMesh);
+
+        // VESA Head Plate (100x100mm bracket)
         const vesaPlate = new THREE.Mesh(
-          new THREE.BoxGeometry(0.85, 0.85, 0.15),
-          new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.85, roughness: 0.3 })
+          new THREE.BoxGeometry(0.9, 0.9, 0.16),
+          new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.85, roughness: 0.25 })
         );
         vesaPlate.position.set(targetVesaX, targetVesaY, targetVesaZ + 0.05);
         vesaPlate.castShadow = true;
@@ -834,27 +863,33 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     const pcD = 4.4;
     const pcH = 4.5;
 
-    let pcX = deskW / 2 - pcW / 2 - 0.4;
-    let pcY = deskH + deskT / 2 + pcH / 2;
+    const pcPlacement = positions.pcPlacement || "floor-right";
+    const isPcFloor = pcPlacement.startsWith("floor");
+
+    let pcX = deskW / 2 - pcW / 2 - 0.45;
+    let pcY = isPcFloor ? pcH / 2 : deskH + deskT / 2 + pcH / 2;
     let pcZ = 0;
 
-    const pcPlacement = positions.pcPlacement || "desk-right";
-    if (positions.pcX !== undefined) {
-      pcX = positions.pcX / 100;
-      pcY = deskH + deskT / 2 + pcH / 2;
-      pcZ = 0;
-    } else if (pcPlacement === "desk-left") {
-      pcX = -deskW / 2 + pcW / 2 + 0.4;
-      pcY = deskH + deskT / 2 + pcH / 2;
-      pcZ = 0;
-    } else if (pcPlacement === "floor-right") {
-      pcX = deskW / 2 + pcW / 2 + 0.8;
-      pcY = pcH / 2;
-      pcZ = 0;
-    } else if (pcPlacement === "floor-left") {
-      pcX = -deskW / 2 - pcW / 2 - 0.8;
-      pcY = pcH / 2;
-      pcZ = 0;
+    if (isPcFloor) {
+      pcY = pcH / 2; // Floor resting firmly underneath desk
+      const innerHalf = Math.max(1.0, deskW / 2 - pcW / 2 - 0.45);
+      if (positions.pcX !== undefined) {
+        pcX = Math.max(-innerHalf, Math.min(innerHalf, positions.pcX / 100));
+      } else if (pcPlacement === "floor-left") {
+        pcX = -innerHalf;
+      } else {
+        pcX = innerHalf;
+      }
+    } else {
+      pcY = deskH + deskT / 2 + pcH / 2; // Resting on desk surface
+      const deskSurfaceHalf = Math.max(1.0, deskW / 2 - pcW / 2 - 0.35);
+      if (positions.pcX !== undefined) {
+        pcX = Math.max(-deskSurfaceHalf, Math.min(deskSurfaceHalf, positions.pcX / 100));
+      } else if (pcPlacement === "desk-left") {
+        pcX = -deskSurfaceHalf;
+      } else {
+        pcX = deskSurfaceHalf;
+      }
     }
 
     const pcGroup = new THREE.Group();
@@ -884,8 +919,8 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
         opacity: 0.45,
       })
     );
-    glassMesh.rotation.y = pcPlacement.includes("left") ? Math.PI / 2 : -Math.PI / 2;
-    glassMesh.position.x = pcPlacement.includes("left") ? pcW / 2 + 0.01 : -pcW / 2 - 0.01;
+    glassMesh.rotation.y = pcX < 0 ? Math.PI / 2 : -Math.PI / 2;
+    glassMesh.position.x = pcX < 0 ? pcW / 2 + 0.01 : -pcW / 2 - 0.01;
     pcGroup.add(glassMesh);
 
     pcGroup.traverse((c) => {
@@ -1170,14 +1205,24 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
           );
         } else if (dragged === "pc") {
           const rawMm = intersectionPoint.x * 100;
-          const maxClamp = Math.max(200, deskHalfMm - 180);
+          const maxClamp = Math.max(150, deskHalfMm - 220);
           const clampedX = Math.round(Math.max(-maxClamp, Math.min(maxClamp, rawMm)) / 10) * 10;
-          onUpdatePosition((prev) => ({
-            ...prev,
-            pcX: clampedX,
-            pcPlacement: clampedX >= 0 ? "desk-right" : "desk-left",
-          }));
-          setDragFeedback(`💻 PC 본체 X: ${clampedX > 0 ? `+${clampedX / 10}` : clampedX / 10}cm`);
+          const isFloor = positions.pcPlacement?.startsWith("floor") ?? true;
+          onUpdatePosition((prev) => {
+            const floor = prev.pcPlacement?.startsWith("floor") ?? true;
+            return {
+              ...prev,
+              pcX: clampedX,
+              pcPlacement: floor
+                ? (clampedX >= 0 ? "floor-right" : "floor-left")
+                : (clampedX >= 0 ? "desk-right" : "desk-left"),
+            };
+          });
+          setDragFeedback(
+            `💻 PC 본체 (${isFloor ? "책상 아래" : "책상 위"}): ${
+              clampedX > 0 ? `+${clampedX / 10}` : clampedX / 10
+            }cm`
+          );
         } else if (dragged === "keyboard") {
           const rawMm = intersectionPoint.x * 100;
           const maxClamp = Math.max(100, deskHalfMm - 450);
@@ -1223,10 +1268,18 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
       });
     } else if (selectedItem === "pc") {
       onUpdatePosition((prev) => {
-        const curr = prev.pcX !== undefined ? prev.pcX : deskHalfMm - 250;
-        const maxClamp = Math.max(200, deskHalfMm - 180);
+        const isFloor = prev.pcPlacement?.startsWith("floor") ?? true;
+        const defaultX = isFloor ? deskHalfMm - 280 : deskHalfMm - 240;
+        const curr = prev.pcX !== undefined ? prev.pcX : defaultX;
+        const maxClamp = Math.max(150, deskHalfMm - 220);
         const next = Math.max(-maxClamp, Math.min(maxClamp, curr + step));
-        return { ...prev, pcX: next, pcPlacement: next >= 0 ? "desk-right" : "desk-left" };
+        return {
+          ...prev,
+          pcX: next,
+          pcPlacement: isFloor
+            ? (next >= 0 ? "floor-right" : "floor-left")
+            : (next >= 0 ? "desk-right" : "desk-left"),
+        };
       });
     } else if (selectedItem === "keyboard") {
       onUpdatePosition((prev) => {
@@ -1246,7 +1299,14 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
       onUpdatePosition((prev) => ({ ...prev, keyboardX: 0 }));
     } else if (selectedItem === "pc") {
       const deskHalfMm = (desk?.deskWidth || 1400) / 2;
-      onUpdatePosition((prev) => ({ ...prev, pcX: deskHalfMm - 250, pcPlacement: "desk-right" }));
+      onUpdatePosition((prev) => {
+        const isFloor = prev.pcPlacement?.startsWith("floor") ?? true;
+        return {
+          ...prev,
+          pcX: isFloor ? deskHalfMm - 280 : deskHalfMm - 240,
+          pcPlacement: isFloor ? "floor-right" : "desk-right",
+        };
+      });
     }
   };
 
@@ -1276,9 +1336,9 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
       state.targetPhi = Math.PI * 0.46;
       state.targetDistance = 28;
     } else if (view === "side") {
-      // Side view to inspect monitor arm and desk thickness
-      state.targetTheta = Math.PI / 2;
-      state.targetPhi = 0.3;
+      // 3/4 Side view angled to clearly inspect monitor arm, clamp, and desk thickness
+      state.targetTheta = Math.PI * 0.42;
+      state.targetPhi = 0.28;
       state.targetDistance = 22;
     } else {
       // Default isometric view
@@ -1419,7 +1479,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              측면
+              측면(암)
             </button>
           </div>
 
@@ -1463,13 +1523,13 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
           </button>
           <button
             onClick={() => setSelectedItem("pc")}
-            className={`py-1.5 text-xs font-bold rounded-xl border transition ${
+            className={`py-1.5 text-xs font-bold rounded-xl border transition flex items-center justify-center gap-1 ${
               selectedItem === "pc"
                 ? "bg-purple-600 text-white border-purple-600 shadow-2xs"
                 : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
             }`}
           >
-            💻 PC 본체
+            <span>💻 본체 ({positions.pcPlacement?.startsWith("floor") ? "바닥" : "위"})</span>
           </button>
           <button
             onClick={() => setSelectedItem("keyboard")}
@@ -1483,42 +1543,122 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
           </button>
         </div>
 
-        {/* Nudge & Action Buttons */}
-        <div className="grid grid-cols-4 gap-1.5">
-          <button
-            onClick={() => handleNudge(-1)}
-            className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
-            title="좌측으로 5cm 이동"
-          >
-            ◀ 5cm 좌
-          </button>
-          <button
-            onClick={handleResetCenter}
-            className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
-            title="정중앙 정렬"
-          >
-            정중앙
-          </button>
-          <button
-            onClick={() => handleNudge(1)}
-            className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
-            title="우측으로 5cm 이동"
-          >
-            5cm 우 ▶
-          </button>
-          <button
-            onClick={() => onUpdatePosition?.((p) => ({ ...p, monitorPivot: !p.monitorPivot }))}
-            className={`py-1.5 text-xs font-bold rounded-xl border transition flex items-center justify-center gap-0.5 ${
-              positions.monitorPivot
-                ? "bg-purple-600 text-white border-purple-600 shadow-2xs"
-                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-            }`}
-            title="가로/세로 90° 피벗 회전"
-          >
-            <Rotate3d className="w-3 h-3" />
-            <span>{positions.monitorPivot ? "세로중" : "피벗"}</span>
-          </button>
-        </div>
+        {/* Nudge & Action Buttons (Context-aware per selected item) */}
+        {selectedItem === "pc" ? (
+          <div className="grid grid-cols-4 gap-1.5">
+            <button
+              onClick={() => handleNudge(-1)}
+              className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+              title="좌측으로 5cm 이동"
+            >
+              ◀ 5cm 좌
+            </button>
+            <button
+              onClick={handleResetCenter}
+              className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+              title="우측 기본 위치 정렬"
+            >
+              기본 위치
+            </button>
+            <button
+              onClick={() => handleNudge(1)}
+              className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+              title="우측으로 5cm 이동"
+            >
+              5cm 우 ▶
+            </button>
+            <button
+              onClick={() =>
+                onUpdatePosition?.((p) => {
+                  const currentlyFloor = p.pcPlacement?.startsWith("floor") ?? true;
+                  return {
+                    ...p,
+                    pcPlacement: currentlyFloor ? "desk-right" : "floor-right",
+                    pcX: undefined,
+                  };
+                })
+              }
+              className={`py-1.5 text-xs font-bold rounded-xl border transition flex items-center justify-center gap-0.5 ${
+                positions.pcPlacement?.startsWith("floor")
+                  ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs"
+                  : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
+              }`}
+              title="책상 아래 바닥 ↔ 책상 위 이동"
+            >
+              {positions.pcPlacement?.startsWith("floor") ? (
+                <>
+                  <ArrowDown className="w-3 h-3" />
+                  <span>책상아래</span>
+                </>
+              ) : (
+                <>
+                  <ArrowUp className="w-3 h-3" />
+                  <span>책상위</span>
+                </>
+              )}
+            </button>
+          </div>
+        ) : selectedItem === "monitor" ? (
+          <div className="grid grid-cols-4 gap-1.5">
+            <button
+              onClick={() => handleNudge(-1)}
+              className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+              title="좌측으로 5cm 이동"
+            >
+              ◀ 5cm 좌
+            </button>
+            <button
+              onClick={handleResetCenter}
+              className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+              title="정중앙 정렬"
+            >
+              정중앙
+            </button>
+            <button
+              onClick={() => handleNudge(1)}
+              className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+              title="우측으로 5cm 이동"
+            >
+              5cm 우 ▶
+            </button>
+            <button
+              onClick={() => onUpdatePosition?.((p) => ({ ...p, monitorPivot: !p.monitorPivot }))}
+              className={`py-1.5 text-xs font-bold rounded-xl border transition flex items-center justify-center gap-0.5 ${
+                positions.monitorPivot
+                  ? "bg-purple-600 text-white border-purple-600 shadow-2xs"
+                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+              }`}
+              title="가로/세로 90° 피벗 회전"
+            >
+              <Rotate3d className="w-3 h-3" />
+              <span>{positions.monitorPivot ? "세로중" : "피벗"}</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-1.5">
+            <button
+              onClick={() => handleNudge(-1)}
+              className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+              title="좌측으로 5cm 이동"
+            >
+              ◀ 5cm 좌
+            </button>
+            <button
+              onClick={handleResetCenter}
+              className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+              title="정중앙 정렬"
+            >
+              정중앙
+            </button>
+            <button
+              onClick={() => handleNudge(1)}
+              className="py-1.5 text-xs font-bold rounded-xl border bg-white text-gray-700 border-gray-200 hover:bg-gray-50 active:scale-95"
+              title="우측으로 5cm 이동"
+            >
+              5cm 우 ▶
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 3. Bottom Specs Footer */}
