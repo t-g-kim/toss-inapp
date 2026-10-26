@@ -66,10 +66,10 @@ const APPS: MiniAppMeta[] = [
   },
   {
     id: "lotto-filter",
-    title: "AI 로또 통계 필터",
+    title: "AI 행운 로또 번호",
     category: "행운/복권",
     badge: { text: "주간 트래픽 1위", variant: "blue" },
-    desc: "빅데이터 통계로 홀짝·연속번호 제외 필터링 번호 5게임 추출",
+    desc: "빅데이터 통계·꿈 해몽·사주 행운 번호 조합 & 실시간 당첨 채점기",
     iconBg: "bg-amber-500",
     icon: <Dice5 className="w-5 h-5 text-white" />,
     revenueType: "보상형 광고 회전율 극대화",
