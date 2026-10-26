@@ -52,13 +52,13 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
   const [sortBy, setSortBy] = useState<"popular" | "pointLow" | "pointHigh" | "rating">("popular");
   const [myResidence, setMyResidence] = useState<RegionCode | "none">("none");
 
-  // Wishlist
+  // Wishlist (초기값 0개 빈 보관함)
   const [wishlistIds, setWishlistIds] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem("gohyang_wishlist");
-      return saved ? JSON.parse(saved) : ["meat-hoengseong-1", "seafood-jeju-galchi", "voucher-local-pay-1"];
+      const saved = localStorage.getItem("gohyang_wishlist_v1");
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return ["meat-hoengseong-1", "seafood-jeju-galchi"];
+      return [];
     }
   });
 
@@ -72,7 +72,7 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
   // Save wishlist
   useEffect(() => {
     try {
-      localStorage.setItem("gohyang_wishlist", JSON.stringify(wishlistIds));
+      localStorage.setItem("gohyang_wishlist_v1", JSON.stringify(wishlistIds));
     } catch (e) {
       console.error(e);
     }
@@ -236,7 +236,7 @@ export const GohyangGiftApp: React.FC<GohyangGiftAppProps> = ({ onBack }) => {
               <Heart
                 className={`w-3.5 h-3.5 ${wishlistIds.length > 0 ? "fill-red-500 text-red-500" : ""}`}
               />
-              보관함 ({wishlistIds.length})
+              보관함{wishlistIds.length > 0 ? ` (${wishlistIds.length})` : ""}
             </button>
           </div>
         </div>
