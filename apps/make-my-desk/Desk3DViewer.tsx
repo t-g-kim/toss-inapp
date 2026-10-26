@@ -123,13 +123,19 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     camera.lookAt(0, deskHeightUnits * 0.7, 0);
 
     // Renderer
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      powerPreference: "high-performance",
-    });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        powerPreference: "high-performance",
+      });
+    } catch (e) {
+      console.warn("WebGL initialization failed:", e);
+      return;
+    }
     renderer.setSize(width, heightPx);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -376,6 +382,70 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     }
 
     // -------------------------------------------------------------
+    // A-2. DESK SHELF / RISER (데스크 쉘프 / 모니터 받침 선반)
+    // -------------------------------------------------------------
+    const shelf = getPartOption("deskShelf", build.deskShelf);
+    const hasShelf = shelf && shelf.id !== "shelf_none";
+    const shelfElevation = hasShelf ? 0.9 : 0;
+
+    if (hasShelf) {
+      const shelfW = Math.min(deskW - 1.2, shelf.id.includes("dual") ? 9.8 : 10.0);
+      const shelfD = 2.3;
+      const shelfT = 0.2;
+
+      const shelfGroup = new THREE.Group();
+      shelfGroup.position.set(0, deskH + deskT / 2, -deskD * 0.18);
+      deskGroup.add(shelfGroup);
+
+      // Shelf Board Color
+      let shelfColor = 0xb8864d;
+      if (shelf.id.includes("wood")) {
+        shelfColor = desk?.name.includes("월넛") ? 0x543217 : 0xb8864d;
+      } else if (shelf.id.includes("aluminum")) {
+        shelfColor = 0xd4d4d8;
+      } else if (shelf.id.includes("felt")) {
+        shelfColor = 0x475569;
+      } else if (shelf.id.includes("acrylic")) {
+        shelfColor = 0x38bdf8;
+      } else if (deskColor === "white") {
+        shelfColor = 0xf8fafc;
+      } else if (deskColor === "black") {
+        shelfColor = 0x27272a;
+      }
+
+      const boardMesh = new THREE.Mesh(
+        new THREE.BoxGeometry(shelfW, shelfT, shelfD),
+        new THREE.MeshStandardMaterial({
+          color: shelfColor,
+          metalness: shelf.id.includes("aluminum") ? 0.7 : 0.1,
+          roughness: shelf.id.includes("aluminum") ? 0.3 : 0.6,
+          transparent: shelf.id.includes("acrylic"),
+          opacity: shelf.id.includes("acrylic") ? 0.75 : 1.0,
+        })
+      );
+      boardMesh.position.set(0, shelfElevation, 0);
+      boardMesh.castShadow = true;
+      boardMesh.receiveShadow = true;
+      shelfGroup.add(boardMesh);
+
+      // Two Riser Metal Legs
+      const riserMat = new THREE.MeshStandardMaterial({
+        color: 0x1e293b,
+        metalness: 0.8,
+        roughness: 0.3,
+      });
+      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.3, shelfElevation, shelfD * 0.85), riserMat);
+      legL.position.set(-shelfW / 2 + 0.35, shelfElevation / 2, 0);
+      legL.castShadow = true;
+      shelfGroup.add(legL);
+
+      const legR = new THREE.Mesh(new THREE.BoxGeometry(0.3, shelfElevation, shelfD * 0.85), riserMat);
+      legR.position.set(shelfW / 2 - 0.35, shelfElevation / 2, 0);
+      legR.castShadow = true;
+      shelfGroup.add(legR);
+    }
+
+    // -------------------------------------------------------------
     // B. MONITOR & MONITOR ARM (모니터 및 모니터암)
     // -------------------------------------------------------------
     const monSize = monitor?.monitorSize || 27;
@@ -384,7 +454,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     const monAngleRad = ((positions.monitorAngle || 0) * Math.PI) / 180;
 
     const monitorGroup = new THREE.Group();
-    monitorGroup.position.set(monOffsetX, deskH + deskT / 2, -deskD * 0.22);
+    monitorGroup.position.set(monOffsetX, deskH + deskT / 2 + shelfElevation * 0.5, -deskD * 0.22);
     monitorGroup.rotation.y = monAngleRad;
     deskGroup.add(monitorGroup);
 

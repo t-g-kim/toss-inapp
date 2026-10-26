@@ -27,15 +27,32 @@ export const getPartOption = (
   return DESK_PARTS[slot].find((p) => p.id === partId);
 };
 
-export const calculateTotalPrice = (build: DeskBuildState): number => {
-  let sum = 0;
+export const calculateTotalPrice = (
+  build: DeskBuildState,
+  options?: { includeDesk?: boolean; includeMonitor?: boolean }
+): { deskteriorTotal: number; fullTotal: number } => {
+  const includeDesk = options?.includeDesk ?? false;
+  const includeMonitor = options?.includeMonitor ?? false;
+
+  let deskteriorTotal = 0;
+  let fullTotal = 0;
+
   for (const [slot, id] of Object.entries(build)) {
     const part = getPartOption(slot as DeskSlotKey, id);
-    if (part) {
-      sum += part.price;
+    if (!part) continue;
+
+    fullTotal += part.price;
+
+    if (slot === "desk") {
+      if (includeDesk) deskteriorTotal += part.price;
+    } else if (slot === "monitor") {
+      if (includeMonitor) deskteriorTotal += part.price;
+    } else {
+      deskteriorTotal += part.price;
     }
   }
-  return sum;
+
+  return { deskteriorTotal, fullTotal };
 };
 
 export const checkDeskCompatibility = (

@@ -47,32 +47,35 @@ export const DEFAULT_ITEM_POSITIONS: DeskItemPositions = {
 };
 
 export type DeskSlotKey =
-  | "desk"
-  | "monitor"
+  | "deskShelf"
   | "monitorArm"
-  | "chair"
-  | "keyboardMouse"
   | "lightingMat"
-  | "accessories";
+  | "accessories"
+  | "keyboardMouse"
+  | "chair"
+  | "desk"
+  | "monitor";
 
 export const SLOT_LABELS: Record<DeskSlotKey, string> = {
-  desk: "데스크 / 책상",
-  monitor: "모니터 / 디스플레이",
+  deskShelf: "데스크 쉘프 / 모니터 받침 선반",
   monitorArm: "모니터암 / 거치대",
-  chair: "의자 / 인체공학 체어",
-  keyboardMouse: "키보드 & 마우스",
   lightingMat: "조명 & 데스크매트",
-  accessories: "케이블 & 편의 악세서리",
+  accessories: "선정리 트레이 & 편의 소품",
+  keyboardMouse: "키보드 & 마우스",
+  chair: "의자 / 인체공학 체어",
+  desk: "책상 (옵션: 새로 구매 시)",
+  monitor: "모니터 (옵션: 새로 구매 시)",
 };
 
 export const SLOT_ICONS: Record<DeskSlotKey, string> = {
-  desk: "Table",
-  monitor: "Monitor",
+  deskShelf: "Layers",
   monitorArm: "Maximize2",
-  chair: "Armchair",
-  keyboardMouse: "Keyboard",
   lightingMat: "Lamp",
   accessories: "Zap",
+  keyboardMouse: "Keyboard",
+  chair: "Armchair",
+  desk: "Table",
+  monitor: "Monitor",
 };
 
 export interface PurchaseLinks {
@@ -257,6 +260,49 @@ export const DESK_PARTS: Record<DeskSlotKey, DeskPartOption[]> = {
     },
   ],
 
+  deskShelf: [
+    {
+      id: "shelf_none",
+      name: "선반 미사용 (모니터암 직접 거치)",
+      brand: "없음",
+      price: 0,
+      tags: ["깔끔 미니멀", "모니터암 직결"],
+      specs: "선반 없이 책상 상판을 최대한 넓게 쓰는 심플한 세팅",
+    },
+    {
+      id: "shelf_wood_1000",
+      name: "원목 솔리드 데스크 쉘프 1000mm (월넛/오크)",
+      brand: "데스크랩",
+      price: 49000,
+      tags: ["인스타 1위", "원목 감성", "키보드 밑 수납"],
+      specs: "1000×230×110mm / 북미산 FAS 월넛·오크 / 알루미늄 다리 / 하단 키보드 수납",
+    },
+    {
+      id: "shelf_aluminum_dual",
+      name: "알루미늄 슬림 듀얼 모니터 받침 선반",
+      brand: "아트뮤",
+      price: 32000,
+      tags: ["맥북 감성", "듀얼 모니터", "쿨링 알루미늄"],
+      specs: "980×200×90mm / 4mm 통 알루미늄 합금 / 미끄럼 방지 실리콘 / 하중 25kg",
+    },
+    {
+      id: "shelf_felt_drawer",
+      name: "2단 모듈러 펠트 서랍 데스크 쉘프 1050mm",
+      brand: "오센트",
+      price: 69000,
+      tags: ["프리미엄", "펠트 서랍", "수납 극대화"],
+      specs: "1050×240×120mm / 펜·외장하드 숨김 서랍 / 천연 원목 상판 / 케이블 홀더",
+    },
+    {
+      id: "shelf_acrylic_clear",
+      name: "미니멀 아크릴 클리어 데스크 라이저",
+      brand: "뉴비",
+      price: 19000,
+      tags: ["투명 감성", "가성비", "공간 확장"],
+      specs: "500×200×80mm / 8mm 고강도 투명 아크릴 / 모던 클리어 뷰",
+    },
+  ],
+
   monitor: [
     {
       id: "mon_alphascan_27",
@@ -412,9 +458,28 @@ export const DESK_PARTS: Record<DeskSlotKey, DeskPartOption[]> = {
       armType: "single",
       armMaxDeskThickness: 66,
     },
+    {
+      id: "arm_none",
+      name: "모니터 기본 스탠드 거치 (0원)",
+      brand: "기본 번들",
+      price: 0,
+      tags: ["기본 스탠드", "비용 0원"],
+      specs: "별도 모니터암 없이 모니터 순정 받침대를 그대로 사용합니다.",
+      armMaxWeight: 10,
+      armType: "single",
+    },
   ],
 
   chair: [
+    {
+      id: "chair_existing",
+      name: "기존 보유 의자 사용 (0원)",
+      brand: "보유 가구",
+      price: 0,
+      tags: ["보유중", "비용 0원"],
+      specs: "현재 집/사무실에서 사용 중인 의자를 그대로 3D 배치합니다.",
+      chairType: "mesh",
+    },
     {
       id: "chair_linback_lb13",
       name: "린백 LB13HB 메쉬 요추지지 사무용 의자",
@@ -472,6 +537,15 @@ export const DESK_PARTS: Record<DeskSlotKey, DeskPartOption[]> = {
   ],
 
   keyboardMouse: [
+    {
+      id: "km_existing",
+      name: "기존 보유 키보드 & 마우스 (0원)",
+      brand: "보유 기기",
+      price: 0,
+      tags: ["보유중", "비용 0원"],
+      specs: "현재 사용 중인 키보드와 마우스를 그대로 책상 위에 배치합니다.",
+      keyboardType: "wireless",
+    },
     {
       id: "km_logitech_mk295",
       name: "로지텍 MK295 사일런트 무소음 무선 콤보",
@@ -578,6 +652,14 @@ export const DESK_PARTS: Record<DeskSlotKey, DeskPartOption[]> = {
 
   accessories: [
     {
+      id: "acc_none",
+      name: "추가 데스크 소품 없음 (0원)",
+      brand: "선택안함",
+      price: 0,
+      tags: ["미니멀", "비용 0원"],
+      specs: "추가 소품 없이 심플하고 넓은 상판을 유지합니다.",
+    },
+    {
       id: "acc_cable_tray_set",
       name: "언더데스크 케이블 메쉬 트레이 + 안전 6구 멀티탭 (3m)",
       brand: "데스커/현대",
@@ -630,7 +712,8 @@ export interface DeskPreset {
   subtitle: string;
   tag: string;
   tagColor: string;
-  totalPrice: number;
+  deskteriorPrice: number; // 데스크테리어 소품 전용 견적 (책상/모니터 제외)
+  totalPrice: number;      // 전체 신규 구매 견적
   parts: Record<DeskSlotKey, string>;
   highlights: string[];
 }
@@ -638,107 +721,117 @@ export interface DeskPreset {
 export const PRESET_SETUPS: DeskPreset[] = [
   {
     id: "preset_budget",
-    name: "30만원 알뜰 자취·학생 셋업",
-    subtitle: "원룸과 대학생을 위한 알짜배기 필수 7종 세트",
-    tag: "가성비 극대화",
+    name: "5만원 실속 선정리 & 데스크패드 팩",
+    subtitle: "모니터암 + 대형 가죽패드 + 언더데스크 메쉬 트레이",
+    tag: "알뜰 데스크테리어",
     tagColor: "bg-emerald-100 text-emerald-800",
-    totalPrice: 308600,
+    deskteriorPrice: 58700,
+    totalPrice: 296700,
     parts: {
-      desk: "desk_apix_1200",
-      monitor: "mon_alphascan_27",
+      deskShelf: "shelf_none",
       monitorArm: "arm_nb_f80",
-      chair: "chair_linback_lb13",
-      keyboardMouse: "km_logitech_mk295",
       lightingMat: "lm_leather_mat_900",
       accessories: "acc_cable_tray_set",
+      keyboardMouse: "km_existing",
+      chair: "chair_existing",
+      desk: "desk_apix_1200",
+      monitor: "mon_alphascan_27",
     },
-    highlights: ["알파스캔 27인치 FHD IPS", "국민 모니터암 NB F80", "바닥 선정리 완료 메쉬 트레이"],
+    highlights: ["국민 모니터암 NB F80", "900×400 가죽 방수 데스크패드", "선정리 종결 메쉬 트레이"],
   },
   {
     id: "preset_white_minimal",
-    name: "60만원 화이트 미니멀 감성 셋업",
-    subtitle: "인스타그램 데스크테리어 감성! 화이트 앤 클린",
+    name: "9만원 화이트 미니멀 조명 & 알루미늄 팩",
+    subtitle: "알루미늄 듀얼 받침 선반 + 화이트 스크린바 + 모니터암",
     tag: "인스타 감성 1위",
     tagColor: "bg-blue-100 text-blue-800",
-    totalPrice: 620900,
+    deskteriorPrice: 94900,
+    totalPrice: 408900,
     parts: {
+      deskShelf: "shelf_aluminum_dual",
+      monitorArm: "arm_camel_bma2",
+      lightingMat: "lm_baseus_iwok",
+      accessories: "acc_none",
+      keyboardMouse: "km_existing",
+      chair: "chair_existing",
       desk: "desk_dodot_1206",
       monitor: "mon_samsung_g3",
-      monitorArm: "arm_camel_bma2",
-      chair: "chair_sidiz_t50_light",
-      keyboardMouse: "km_aula_f87_g304",
-      lightingMat: "lm_baseus_iwok",
-      accessories: "acc_magsafe_3in1",
     },
     highlights: [
-      "두닷 콰트로 에어 올화이트 상판",
-      "시디즈 T50 라이트 화이트쉘",
-      "화이트 스크린바 & 맥세이프 거치대",
+      "알루미늄 슬림 듀얼 모니터 선반",
+      "시력보호 비대칭 스크린바 조명",
+      "카멜 BMA-2 화이트 모니터암",
     ],
   },
   {
-    id: "preset_dev_pro",
-    name: "100만원 개발자·맥북 듀얼 셋업",
-    subtitle: "하루 10시간 코딩도 거뜬한 생산성 끝판왕",
-    tag: "개발자 추천",
-    tagColor: "bg-purple-100 text-purple-800",
-    totalPrice: 1047900,
+    id: "preset_wood_shelf",
+    name: "13만원 북미산 원목 쉘프 & 펠트 셋업 팩",
+    subtitle: "Grovemade 스타일 1000mm 원목 데스크 쉘프 + 4mm 울 펠트 매트",
+    tag: "원목 감성 추천",
+    tagColor: "bg-amber-100 text-amber-800",
+    deskteriorPrice: 129900,
+    totalPrice: 463900,
     parts: {
-      desk: "desk_desker_1400",
-      monitor: "mon_dell_dual_24",
-      monitorArm: "arm_camel_dma2",
-      chair: "chair_duoback_d3",
-      keyboardMouse: "km_logitech_mx_set",
+      deskShelf: "shelf_wood_1000",
+      monitorArm: "arm_camel_bma2",
       lightingMat: "lm_felt_wool_mat",
       accessories: "acc_cable_tray_set",
+      keyboardMouse: "km_existing",
+      chair: "chair_existing",
+      desk: "desk_desker_1400",
+      monitor: "mon_dell_g2724d",
     },
     highlights: [
-      "델 24인치 IPS 듀얼 패키지 & 모니터암",
-      "로지텍 MX Master 3S + Keys S 마스터 세트",
-      "데스커 1400 배선홀형 책상",
+      "1000mm 원목 솔리드 데스크 쉘프",
+      "키보드 소음 흡수 4mm 울 펠트 매트",
+      "언더데스크 케이블 메쉬 트레이",
     ],
   },
   {
-    id: "preset_gaming_ultrawide",
-    name: "150만원 올블랙 34인치 게이밍 셋업",
-    subtitle: "21:9 WQHD 와이드 시야와 몰입형 RGB 사운드",
+    id: "preset_gaming_rgb",
+    name: "18만원 올블랙 RGB & 고중량 와이드 팩",
+    subtitle: "울트라와이드 전용 고중량 모니터암 + 스마트 RGB 조명 + 3in1",
     tag: "e스포츠 게이밍",
     tagColor: "bg-rose-100 text-rose-800",
-    totalPrice: 1530900,
+    deskteriorPrice: 181900,
+    totalPrice: 909900,
     parts: {
+      deskShelf: "shelf_acrylic_clear",
+      monitorArm: "arm_camel_pma2d",
+      lightingMat: "lm_rgb_gaming_mat",
+      accessories: "acc_magsafe_3in1",
+      keyboardMouse: "km_existing",
+      chair: "chair_existing",
       desk: "desk_209_1600",
       monitor: "mon_lg_34wn750",
-      monitorArm: "arm_camel_pma2d",
-      chair: "chair_zenix_prime",
-      keyboardMouse: "km_logitech_gpro_set",
-      lightingMat: "lm_philips_hue",
-      accessories: "acc_aluminum_headset",
     },
     highlights: [
-      "LG 34인치 WQHD 울트라와이드 모니터",
-      "카멜 PMA-2D 고중량 지지 모니터암",
-      "필립스 휴 화면 싱크 스마트 RGB 라이트바",
+      "15kg 지지 카멜 PMA-2D 고중량 암",
+      "14가지 모드 RGB 와이드 장패드",
+      "알루미늄 3in1 맥세이프 고속 충전기",
     ],
   },
   {
-    id: "preset_high_motion",
-    name: "220만원 하이엔드 모션데스크 셋업",
-    subtitle: "전동 높이조절과 4K 디스플레이, 프리미엄 인체공학",
-    tag: "하이엔드 플래그십",
-    tagColor: "bg-amber-100 text-amber-800",
-    totalPrice: 2200700,
+    id: "preset_dev_master",
+    name: "25만원 프로 개발자 듀얼 선반 & 벤큐 헤일로 팩",
+    subtitle: "2단 펠트 서랍 데스크 쉘프 + 듀얼 모니터암 + 벤큐 헤일로 조명",
+    tag: "개발자 끝판왕",
+    tagColor: "bg-purple-100 text-purple-800",
+    deskteriorPrice: 251900,
+    totalPrice: 1475900,
     parts: {
-      desk: "desk_lunalab_dual",
-      monitor: "mon_lg_32un650",
-      monitorArm: "arm_ergotron_lx",
-      chair: "chair_sidiz_t50_air",
-      keyboardMouse: "km_logitech_mx_set",
+      deskShelf: "shelf_felt_drawer",
+      monitorArm: "arm_camel_dma2",
       lightingMat: "lm_benq_halo",
-      accessories: "acc_belkin_65w_gan",
+      accessories: "acc_cable_tray_set",
+      keyboardMouse: "km_existing",
+      chair: "chair_existing",
+      desk: "desk_desker_1400",
+      monitor: "mon_dell_dual_24",
     },
     highlights: [
-      "루나랩 듀얼모터 전동 모션데스크",
-      "어고트론 LX 10년 보증 특허 모니터암",
+      "2단 모듈러 펠트 서랍 데스크 쉘프",
+      "카멜 DMA-2 듀얼 모니터암",
       "벤큐 ScreenBar Halo 무선 다이얼 조명",
     ],
   },
