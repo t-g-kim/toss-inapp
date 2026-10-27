@@ -5,19 +5,25 @@ import {
   HAIR_COLORS,
   GLASSES_OPTIONS,
   GLASSES_COLORS,
+  LENS_TINTS,
+  BEARD_OPTIONS,
+  ACCESSORY_OPTIONS,
   FaceShapeKey,
   FaceShapeInfo,
   HairOption,
   HairColorOption,
   GlassesOption,
   GlassesColorOption,
+  LensTintOption,
+  BeardOption,
+  AccessoryOption,
   calculateCompatibility,
 } from "./catalog";
 import {
   DIAGNOSIS_QUESTIONS,
   calculateDiagnosisResult,
 } from "./engine";
-import { FaceCanvasViewer } from "./FaceCanvasViewer";
+import { FaceCanvasViewer, TouchControlMode } from "./FaceCanvasViewer";
 import { ShareCardModal } from "./ShareCardModal";
 import {
   TossHeader,
@@ -46,6 +52,9 @@ import {
   Smile,
   ShieldCheck,
   Camera,
+  Hand,
+  Sun,
+  Flame,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -54,7 +63,7 @@ interface FaceFitAppProps {
 }
 
 type MainTab = "fitting" | "diagnosis" | "guide";
-type SubCategory = "face" | "hair" | "glasses" | "preset";
+type SubCategory = "face" | "hair" | "glasses" | "detail" | "preset";
 
 export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
   const [currentTab, setCurrentTab] = useState<MainTab>("fitting");
@@ -66,6 +75,10 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
   const [selectedHairColorId, setSelectedHairColorId] = useState<string>("color_natural_black");
   const [selectedGlassesId, setSelectedGlassesId] = useState<string>("glasses_arnel");
   const [selectedGlassesColorId, setSelectedGlassesColorId] = useState<string>("frame_matte_black");
+  const [selectedLensTintId, setSelectedLensTintId] = useState<string>("lens_clear");
+  const [selectedBeardId, setSelectedBeardId] = useState<string>("beard_none");
+  const [selectedAccessoryId, setSelectedAccessoryId] = useState<string>("acc_none");
+  const [touchControlMode, setTouchControlMode] = useState<TouchControlMode>("sculpt");
   const [hairGenderFilter, setHairGenderFilter] = useState<"all" | "male" | "female">("all");
 
   // User uploaded photo
@@ -92,6 +105,9 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
   const currentHairColor = HAIR_COLORS.find((c) => c.id === selectedHairColorId) || HAIR_COLORS[0];
   const currentGlasses = GLASSES_OPTIONS.find((g) => g.id === selectedGlassesId) || GLASSES_OPTIONS[0];
   const currentGlassesColor = GLASSES_COLORS.find((c) => c.id === selectedGlassesColorId) || GLASSES_COLORS[0];
+  const currentLensTint = LENS_TINTS.find((t) => t.id === selectedLensTintId) || LENS_TINTS[0];
+  const currentBeard = BEARD_OPTIONS.find((b) => b.id === selectedBeardId) || BEARD_OPTIONS[0];
+  const currentAccessory = ACCESSORY_OPTIONS.find((a) => a.id === selectedAccessoryId) || ACCESSORY_OPTIONS[0];
 
   const compatibility = calculateCompatibility(selectedFaceKey, selectedHairId, selectedGlassesId);
 
@@ -116,6 +132,10 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
     setSelectedHairColorId("color_natural_black");
     setSelectedGlassesId("glasses_arnel");
     setSelectedGlassesColorId("frame_matte_black");
+    setSelectedLensTintId("lens_clear");
+    setSelectedBeardId("beard_none");
+    setSelectedAccessoryId("acc_none");
+    setTouchControlMode("sculpt");
     setUserPhotoUrl(null);
   };
 
@@ -127,12 +147,18 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
     hairColor: string;
     glasses: string;
     glassesColor: string;
+    lensTint?: string;
+    beard?: string;
+    accessory?: string;
   }) => {
     setSelectedFaceKey(preset.face);
     setSelectedHairId(preset.hair);
     setSelectedHairColorId(preset.hairColor);
     setSelectedGlassesId(preset.glasses);
     setSelectedGlassesColorId(preset.glassesColor);
+    if (preset.lensTint) setSelectedLensTintId(preset.lensTint);
+    if (preset.beard) setSelectedBeardId(preset.beard);
+    if (preset.accessory) setSelectedAccessoryId(preset.accessory);
     confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 } });
   };
 
@@ -268,11 +294,16 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
             hairColor={currentHairColor}
             glasses={currentGlasses}
             glassesColor={currentGlassesColor}
+            lensTint={currentLensTint}
+            beard={currentBeard}
+            accessory={currentAccessory}
             compatibility={compatibility}
             userPhotoUrl={userPhotoUrl}
             onPhotoUpload={handlePhotoUpload}
             onPhotoClear={handlePhotoClear}
             svgRefCallback={setSvgElement}
+            activeControlMode={touchControlMode}
+            onControlModeChange={setTouchControlMode}
           />
 
           {/* 실시간 어울림 진단 카드 */}
@@ -302,11 +333,14 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
             </div>
           </div>
 
-          {/* 피팅 옵션 4대 카테고리 탭 (얼굴형 / 헤어 / 안경 / 추천세트) */}
-          <div className="bg-slate-200/80 p-1 rounded-2xl flex items-center justify-between text-xs font-bold">
+          {/* 피팅 옵션 5대 카테고리 탭 (얼굴형 / 헤어 / 안경 / 수염·모자 / 추천세트) */}
+          <div className="bg-slate-200/80 p-1 rounded-2xl flex items-center justify-between text-xs font-bold gap-1">
             <button
-              onClick={() => setSubCategory("face")}
-              className={`flex-1 py-2 rounded-xl flex items-center justify-center gap-1 transition-all ${
+              onClick={() => {
+                setSubCategory("face");
+                setTouchControlMode("sculpt");
+              }}
+              className={`flex-1 py-2 px-0.5 rounded-xl flex items-center justify-center gap-1 transition-all ${
                 subCategory === "face" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
               }`}
             >
@@ -314,8 +348,11 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
               <span>얼굴형</span>
             </button>
             <button
-              onClick={() => setSubCategory("hair")}
-              className={`flex-1 py-2 rounded-xl flex items-center justify-center gap-1 transition-all ${
+              onClick={() => {
+                setSubCategory("hair");
+                setTouchControlMode("hair");
+              }}
+              className={`flex-1 py-2 px-0.5 rounded-xl flex items-center justify-center gap-1 transition-all ${
                 subCategory === "hair" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
               }`}
             >
@@ -323,22 +360,34 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
               <span>헤어</span>
             </button>
             <button
-              onClick={() => setSubCategory("glasses")}
-              className={`flex-1 py-2 rounded-xl flex items-center justify-center gap-1 transition-all ${
+              onClick={() => {
+                setSubCategory("glasses");
+                setTouchControlMode("glasses");
+              }}
+              className={`flex-1 py-2 px-0.5 rounded-xl flex items-center justify-center gap-1 transition-all ${
                 subCategory === "glasses" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
               }`}
             >
               <Glasses className="w-3.5 h-3.5" />
-              <span>안경</span>
+              <span>안경·틴트</span>
+            </button>
+            <button
+              onClick={() => setSubCategory("detail")}
+              className={`flex-1 py-2 px-0.5 rounded-xl flex items-center justify-center gap-1 transition-all ${
+                subCategory === "detail" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>수염·모자</span>
             </button>
             <button
               onClick={() => setSubCategory("preset")}
-              className={`flex-1 py-2 rounded-xl flex items-center justify-center gap-1 transition-all ${
+              className={`flex-1 py-2 px-0.5 rounded-xl flex items-center justify-center gap-1 transition-all ${
                 subCategory === "preset" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>추천세트</span>
+              <Flame className="w-3.5 h-3.5 text-amber-500" />
+              <span>세트</span>
             </button>
           </div>
 
@@ -348,16 +397,16 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
             {subCategory === "face" && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-slate-800">5대 대표 얼굴형 선택</h4>
+                  <h4 className="text-xs font-bold text-slate-800">대표 얼굴형 선택 & 윤곽 직접 깎기</h4>
                   <button
                     onClick={() => setCurrentTab("diagnosis")}
                     className="text-[11px] text-[#3182F6] font-semibold flex items-center gap-0.5 hover:underline"
                   >
-                    내 얼굴형 진단하기 <ChevronRight className="w-3 h-3" />
+                    10초 진단하기 <ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
                   {(Object.keys(FACE_SHAPES) as FaceShapeKey[]).map((key) => {
                     const item = FACE_SHAPES[key];
                     const isSelected = selectedFaceKey === key;
@@ -376,6 +425,17 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
                       </button>
                     );
                   })}
+                </div>
+
+                {/* 직접 터치 조각 힌트 배너 */}
+                <div className="p-3 bg-blue-50/80 rounded-xl text-xs space-y-1 border border-blue-100">
+                  <div className="flex items-center gap-1.5 font-bold text-blue-900">
+                    <Hand className="w-3.5 h-3.5 text-[#3182F6]" />
+                    <span>손으로 직접 넣을 곳 넣고 깎기</span>
+                  </div>
+                  <p className="text-slate-700 leading-relaxed text-[11px]">
+                    화면 속 <strong>동그라미 핸들</strong>을 손가락으로 드래그하면 광대뼈와 턱선이 실시간으로 쏙 들어갑니다.
+                  </p>
                 </div>
 
                 {/* 현재 선택된 얼굴형 설명 */}
@@ -561,6 +621,117 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
                     })}
                   </div>
                 </div>
+
+                {/* 렌즈 틴트 & 선글라스 선택 */}
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-xs font-bold text-slate-800">
+                      렌즈 틴트: <span className="font-semibold text-[#3182F6]">{currentLensTint.name}</span>
+                    </h5>
+                    <span className="text-[10px] text-slate-400">{currentLensTint.badge}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                    {LENS_TINTS.map((lt) => {
+                      const isSelected = selectedLensTintId === lt.id;
+                      return (
+                        <button
+                          key={lt.id}
+                          onClick={() => setSelectedLensTintId(lt.id)}
+                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold shrink-0 border transition-all ${
+                            isSelected
+                              ? "bg-blue-50 border-[#3182F6] text-[#3182F6] ring-1 ring-[#3182F6]"
+                              : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                          }`}
+                        >
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0"
+                            style={{
+                              backgroundColor: lt.tintColor === "transparent" ? "#F1F5F9" : lt.tintColor,
+                              opacity: lt.opacity > 0 ? Math.max(lt.opacity, 0.4) : 1,
+                            }}
+                          />
+                          <span>{lt.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 4. 디테일 & 악세서리 (수염 / 모자) */}
+            {subCategory === "detail" && (
+              <div className="space-y-4">
+                {/* 모자 & 헤어 악세서리 */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-slate-800">
+                      모자 & 헤어 악세서리: <span className="text-[#3182F6]">{currentAccessory.name}</span>
+                    </h4>
+                    <span className="text-[10px] text-slate-400">힙한 무드 완성</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {ACCESSORY_OPTIONS.map((acc) => {
+                      const isSelected = selectedAccessoryId === acc.id;
+                      return (
+                        <button
+                          key={acc.id}
+                          onClick={() => setSelectedAccessoryId(acc.id)}
+                          className={`p-2.5 rounded-xl border text-left transition-all ${
+                            isSelected
+                              ? "bg-blue-50/70 border-[#3182F6] ring-1 ring-[#3182F6]"
+                              : "bg-white border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-bold text-slate-900">{acc.name}</span>
+                            <span className="text-[10px] font-semibold text-blue-600 bg-blue-100/60 px-1.5 py-0.5 rounded">
+                              {acc.badge}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 line-clamp-1">{acc.desc}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 수염 스타일 */}
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-slate-800">
+                      수염 그루밍: <span className="text-[#3182F6]">{currentBeard.name}</span>
+                    </h4>
+                    <span className="text-[10px] text-slate-400">턱선 & 남성미 보완</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {BEARD_OPTIONS.map((bd) => {
+                      const isSelected = selectedBeardId === bd.id;
+                      return (
+                        <button
+                          key={bd.id}
+                          onClick={() => setSelectedBeardId(bd.id)}
+                          className={`p-2.5 rounded-xl border text-left transition-all ${
+                            isSelected
+                              ? "bg-blue-50/70 border-[#3182F6] ring-1 ring-[#3182F6]"
+                              : "bg-white border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-bold text-slate-900">{bd.name}</span>
+                            <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
+                              {bd.badge}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 line-clamp-1">{bd.desc}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -611,8 +782,34 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
                       hairColor: "color_ash_grey",
                       glasses: "glasses_clear_horn",
                       glassesColor: "frame_crystal_clear",
+                      lensTint: "lens_clear",
                       badge: "트렌드",
                       score: 95,
+                    },
+                    {
+                      name: "스트릿 힙스터 (볼캡 & 선셋 틴트)",
+                      face: "diamond" as FaceShapeKey,
+                      hair: "hair_short_guile",
+                      hairColor: "color_natural_black",
+                      glasses: "glasses_octa_metal",
+                      glassesColor: "frame_matte_black",
+                      lensTint: "lens_sunset_orange",
+                      accessory: "acc_ballcap",
+                      badge: "스트릿",
+                      score: 99,
+                    },
+                    {
+                      name: "빈티지 아티스트 (베레모 & 클래식 콧수염)",
+                      face: "oblong" as FaceShapeKey,
+                      hair: "hair_leaf",
+                      hairColor: "color_dark_espresso",
+                      glasses: "glasses_crown_panto",
+                      glassesColor: "frame_amber_tortoise",
+                      lensTint: "lens_retro_yellow",
+                      accessory: "acc_beret",
+                      beard: "beard_mustache",
+                      badge: "예술가",
+                      score: 97,
                     },
                   ].map((preset, idx) => (
                     <div

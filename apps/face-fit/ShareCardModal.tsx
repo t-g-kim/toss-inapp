@@ -73,8 +73,14 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({
 
     let avatarSvgString: string | undefined = undefined;
     if (svgElement && !userPhotoUrl) {
+      const cloned = svgElement.cloneNode(true) as SVGSVGElement;
+      // 핸들 및 점선 제거 (완성된 깨끗한 아바타만 포토카드에 포함)
+      cloned.querySelector("#sculptHandles")?.remove();
+      cloned.querySelector("#glassesTransformBox")?.remove();
+      cloned.querySelector("#hairTransformBox")?.remove();
+
       const serializer = new XMLSerializer();
-      avatarSvgString = serializer.serializeToString(svgElement);
+      avatarSvgString = serializer.serializeToString(cloned);
     }
 
     renderShareCardCanvas({
