@@ -51,6 +51,11 @@ export function generateCoupangAuth(
   return `CEA algorithm=HmacSHA256, access-key=${accessKey}, signed-date=${datetime}, signature=${signature}`;
 }
 
+// 쿠팡 검색 API 시간당 호출 한도(10회 내외, 초과 3회 시 계정 제한) 보호용 서킷 브레이커
+let apiCallCount = 0;
+let apiCircuitOpen = false;
+const MAX_SEARCH_API_CALLS_PER_RUN = 8;
+
 export async function fetchCoupangLowestPrice(
   keyword: string,
   referencePrice?: number,
@@ -65,6 +70,19 @@ export async function fetchCoupangLowestPrice(
   const cleanKeyword = cleanSearchQuery(keyword, categoryKey);
   const fallbackSearchUrl = `https://link.coupang.com/re/AFFSRP?lptag=${COUPANG_SUBID}&pageKey=${encodeURIComponent(cleanKeyword)}`;
 
+  if (apiCircuitOpen || apiCallCount >= MAX_SEARCH_API_CALLS_PER_RUN) {
+    return {
+      query: keyword,
+      price: null,
+      productName: null,
+      productUrl: fallbackSearchUrl,
+      source: "coupang",
+      isApiLinked: false,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  apiCallCount++;
   const urlPath = "/v2/providers/affiliate_open_api/apis/openapi/products/search";
   const queryStr = `keyword=${encodeURIComponent(cleanKeyword)}&limit=10`;
   const fullUrl = `https://api-gateway.coupang.com${urlPath}?${queryStr}`;
@@ -79,6 +97,9 @@ export async function fetchCoupangLowestPrice(
     });
 
     if (!res.ok) {
+      if (res.status === 403 || res.status === 429) {
+        apiCircuitOpen = true;
+      }
       console.warn(`[CoupangAPI] Response not ok (${res.status}) for "${keyword}"`);
       return {
         query: keyword,
@@ -92,6 +113,19 @@ export async function fetchCoupangLowestPrice(
     }
 
     const data: any = await res.json();
+    if (data?.rCode === "403" || data?.rCode === 403) {
+      apiCircuitOpen = true;
+      console.warn(`[CoupangAPI] Hourly limit reached (${data?.rMessage}), switching remaining items to safe affiliate search links.`);
+      return {
+        query: keyword,
+        price: null,
+        productName: null,
+        productUrl: fallbackSearchUrl,
+        source: "coupang",
+        isApiLinked: false,
+        timestamp: new Date().toISOString(),
+      };
+    }
     const items = data?.data?.productData || [];
     const candidates: Array<{ title: string; price: number; url: string }> = [];
 

@@ -6,6 +6,7 @@ export interface DeskPartOption {
   tags?: string[];
   specs: string;
   imgUrl?: string;
+  searchQuery?: string;
   buyUrl?: string;
   danawaUrl?: string;
   // Specific physical specs for compatibility checks & 3D real-scale rendering
@@ -92,6 +93,7 @@ export const SLOT_ICONS: Record<DeskSlotKey, string> = {
 
 export interface PurchaseLinks {
   partName: string;
+  searchQuery: string;
   naver: string;
   danawa: string;
   coupang: string;
@@ -101,29 +103,136 @@ export interface PurchaseLinks {
 export const USER_COUPANG_SUBID = "AF6914951";
 export const USER_COUPANG_PARTNERS_URL = `https://link.coupang.com/re/AFFSRP?lptag=${USER_COUPANG_SUBID}&pageKey=%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%85%8C%EB%A6%AC%EC%96%B4`;
 
-export const getCleanSearchQuery = (name: string): string => {
+export const makeCoupangPartnersSearchUrl = (query: string): string => {
+  const q = encodeURIComponent(query.trim());
+  return `https://link.coupang.com/re/AFFSRP?lptag=${USER_COUPANG_SUBID}&pageKey=${q}`;
+};
+
+// 제품 ID별 최적화된 쿠팡/다나와/쇼핑 검색 키워드 매핑 (특수문자·복합상품·수식어로 인한 검색 실패 원천 차단)
+export const OPTIMIZED_SEARCH_QUERIES: Record<string, string> = {
+  // 책상 (Desk)
+  desk_apix_1200: "에이픽스 GD001 1200 게이밍 책상",
+  desk_dodot_1206: "두닷 콰트로 에어 1206 책상",
+  desk_desker_1200: "데스커 컴퓨터 데스크 1200",
+  desk_desker_1400: "데스커 컴퓨터 데스크 1400",
+  desk_dodot_1407: "두닷 콰트로 에어 1407 책상",
+  desk_209_1600: "209애비뉴 제로데스크 1600",
+  desk_dodot_1608: "두닷 콰트로 에어 1608 책상",
+  desk_zenix_motion: "제닉스 아레나 전동 모션데스크 1200",
+  desk_lunalab_dual: "루나랩 듀얼모터 모션데스크",
+  desk_erectus_pro: "에렉투스 모션데스크 1600",
+  desk_dodot_1808: "두닷 콰트로 에어 1808 책상",
+  desk_desker_1800: "데스커 컴퓨터 데스크 1800",
+  desk_209_2000: "209애비뉴 제로데스크 2000",
+  desk_dodot_2008: "두닷 콰트로 2008 책상",
+  desk_dodot_2108: "두닷 콰트로 책상",
+  desk_desker_2400: "데스커 빅테이블",
+  desk_209_2400: "209애비뉴 제로데스크 2400",
+  desk_lunalab_2400_motion: "루나랩 듀얼모터 모션데스크",
+
+  // 데스크 쉘프 (Desk Shelf)
+  shelf_wood_1000: "원목 데스크 쉘프 모니터 받침대",
+  shelf_aluminum_dual: "아트뮤 알루미늄 모니터 받침대",
+  shelf_felt_drawer: "원목 2단 데스크 쉘프 모니터 선반",
+  shelf_acrylic_clear: "투명 아크릴 모니터 받침대",
+
+  // 모니터 (Monitor)
+  mon_alphascan_27: "알파스캔 AOC 27B2H2 27인치 모니터",
+  mon_samsung_g3: "삼성 오디세이 G3 27인치 모니터",
+  mon_lg_27gp850: "LG 울트라기어 27GP850 모니터",
+  mon_dell_g2724d: "델 G2724D 27인치 모니터",
+  mon_samsung_s7_32: "삼성 뷰피니티 S7 32인치 4K 모니터",
+  mon_lg_32un650: "LG전자 32UN650 32인치 4K 모니터",
+  mon_lg_34wn750: "LG 울트라와이드 34인치 모니터",
+  mon_dell_dual_24: "델 P2422H 24인치 모니터",
+
+  // 모니터암 (Monitor Arm)
+  arm_nb_f80: "NB F80 모니터암",
+  arm_camel_bma2: "카멜마운트 BMA2 싱글 모니터암",
+  arm_camel_dma2: "카멜마운트 DMA2 듀얼 모니터암",
+  arm_camel_pma2d: "카멜마운트 PMA2D 고중량 모니터암",
+  arm_ergotron_lx: "어고트론 LX 모니터암",
+
+  // 의자 (Chair)
+  chair_linback_lb13: "린백 LB13HB 메쉬 사무용 의자",
+  chair_zenix_prime: "제닉스 아레나 프라임 게이밍 의자",
+  chair_sidiz_t50_light: "시디즈 T50 라이트 T500L 의자",
+  chair_duoback_d3: "듀오백 D3 메쉬 의자",
+  chair_sidiz_t50_air: "시디즈 T50 에어 T500HLDA 의자",
+  chair_sidiz_t80: "시디즈 T80 의자",
+
+  // 키보드 & 마우스 (Keyboard & Mouse)
+  km_logitech_mk295: "로지텍 MK295 무소음 무선 키보드 마우스 세트",
+  km_aula_f87_g304: "독거미 F87 Pro 유무선 기계식 키보드",
+  km_logitech_mx_set: "로지텍 MX Keys S MX Master 3S",
+  km_razer_wireless_set: "레이저 블랙위도우 V3 Pro 무선 키보드",
+  km_logitech_gpro_set: "로지텍 G PRO X SUPERLIGHT 2 무선 마우스",
+
+  // 조명 & 데스크매트 (Lighting & Mat)
+  lm_baseus_iwok: "베이스어스 모니터 LED 스크린바 조명",
+  lm_benq_halo: "벤큐 스크린바 헤일로 모니터 조명",
+  lm_philips_hue: "필립스 휴 플레이 라이트바",
+  lm_leather_mat_900: "방수 가죽 대형 데스크패드 900x400",
+  lm_felt_wool_mat: "울 펠트 데스크매트 900x400",
+  lm_rgb_gaming_mat: "에이픽스 RGB 게이밍 장패드",
+
+  // 선정리 & 액세서리 (Accessories)
+  acc_cable_tray_set: "무타공 언더데스크 멀티탭 선정리 트레이",
+  acc_arm_plate: "카멜마운트 모니터암 상판 보강판",
+  acc_magsafe_3in1: "아트뮤 3in1 맥세이프 무선충전 거치대",
+  acc_aluminum_headset: "알루미늄 헤드셋 거치대 스탠드",
+  acc_desktop_humidifier: "오아 무선 미니 가습기",
+  acc_belkin_65w_gan: "벨킨 65W GaN 듀얼 USB-C 충전기",
+};
+
+export const getCleanSearchQuery = (name: string, partId?: string): string => {
+  if (partId && OPTIMIZED_SEARCH_QUERIES[partId]) {
+    return OPTIMIZED_SEARCH_QUERIES[partId];
+  }
   if (!name) return "";
+
+  // 이름 기반으로 DESK_PARTS에서 매칭되는 항목이 있으면 최적화된 검색어 우선 반환
+  for (const list of Object.values(DESK_PARTS)) {
+    const found = list.find((item) => item.name === name);
+    if (found) {
+      if (found.searchQuery) return found.searchQuery;
+      if (OPTIMIZED_SEARCH_QUERIES[found.id]) return OPTIMIZED_SEARCH_QUERIES[found.id];
+    }
+  }
+
   let clean = name;
+  // 복합 구성(+)일 경우 첫 번째 주력 상품 위주로 추출하거나 + 기호 제거
+  if (clean.includes("+")) {
+    clean = clean.split("+")[0].trim();
+  }
+  clean = clean.replace(/×/g, "x");
   clean = clean.replace(/\s*\([^\)]*\)/g, " ");
-  clean = clean.replace(/\b(국민|가성비|추천|인기|신형|공식|정품|단품|세트)\b/g, " ");
+  clean = clean.replace(/[\/]/g, " ");
+  clean = clean.replace(
+    /\b(국민|가성비|추천|인기|신형|공식|정품|단품|세트|솔리드|모듈러|미니멀|플래그십|인체공학|중역|하이엔드|4기둥|슈퍼|와이드|모던|프리미엄)\b/g,
+    " "
+  );
   return clean.replace(/\s+/g, " ").trim();
 };
 
 export const getPurchaseLinks = (
   partName: string,
   customBuyUrl?: string,
-  customDanawaUrl?: string
+  customDanawaUrl?: string,
+  customSearchQuery?: string
 ): PurchaseLinks => {
-  const cleanName = getCleanSearchQuery(partName) || partName;
+  const cleanName = customSearchQuery || getCleanSearchQuery(partName) || partName;
   const q = encodeURIComponent(cleanName);
 
+  const isGenericAffiliate = !customBuyUrl || customBuyUrl.includes("link.coupang.com/a/hJYE2tA1Lw");
   const coupangSearchUrl = `https://link.coupang.com/re/AFFSRP?lptag=${USER_COUPANG_SUBID}&pageKey=${q}`;
 
   return {
     partName,
+    searchQuery: cleanName,
     naver: `https://search.shopping.naver.com/search/all?query=${q}`,
-    danawa: customDanawaUrl || `https://search.danawa.com/?query=${q}&tab=main`,
-    coupang: customBuyUrl || coupangSearchUrl,
+    danawa: customDanawaUrl || `https://search.danawa.com/dsearch.php?query=${q}&tab=main`,
+    coupang: isGenericAffiliate ? coupangSearchUrl : customBuyUrl,
     ohou: `https://ohou.se/productions/feed?query=${q}`,
   };
 };
@@ -854,6 +963,22 @@ export const DESK_PARTS: Record<DeskSlotKey, DeskPartOption[]> = {
     },
   ],
 };
+
+// 모든 DESK_PARTS 품목에 최적화된 쿠팡 파트너스 직링크(buyUrl) 및 다나와 링크(danawaUrl) 자동 주입
+for (const slotItems of Object.values(DESK_PARTS)) {
+  for (const item of slotItems) {
+    if (item.price > 0) {
+      const sq = item.searchQuery || OPTIMIZED_SEARCH_QUERIES[item.id] || getCleanSearchQuery(item.name, item.id);
+      item.searchQuery = sq;
+      if (!item.buyUrl) {
+        item.buyUrl = makeCoupangPartnersSearchUrl(sq);
+      }
+      if (!item.danawaUrl) {
+        item.danawaUrl = `https://search.danawa.com/dsearch.php?query=${encodeURIComponent(sq)}&tab=main`;
+      }
+    }
+  }
+}
 
 export interface DeskPreset {
   id: string;

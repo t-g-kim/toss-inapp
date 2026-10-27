@@ -17,13 +17,13 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
 }) => {
   if (!isOpen || !part) return null;
 
-  const links = getPurchaseLinks(part.name, part.buyUrl, part.danawaUrl);
+  const links = getPurchaseLinks(part.name, part.buyUrl, part.danawaUrl, part.searchQuery);
 
   const platforms = [
     {
       id: "coupang",
       name: "쿠팡 (Coupang)",
-      tag: "로켓배송",
+      tag: "로켓배송 최저가",
       tagColor: "bg-rose-100 text-rose-700 font-bold",
       desc: "내일 바로 도착하는 로켓와우 배송 & 안심 무료 반품",
       url: links.coupang,
@@ -59,15 +59,15 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
     },
   ];
 
-  const handleOpenLink = (url: string) => {
-    if (typeof window !== "undefined") {
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full shadow-2xl flex flex-col border border-gray-100 overflow-hidden max-h-[92vh]">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full shadow-2xl flex flex-col border border-gray-100 overflow-hidden max-h-[92vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="p-5 pb-3 border-b border-gray-100 flex items-start justify-between bg-gradient-to-b from-blue-50/40 to-white">
           <div className="min-w-0 flex-1 pr-2">
@@ -84,7 +84,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
               <span className="text-sm font-extrabold text-toss-blue">
                 {part.price.toLocaleString()}원
               </span>
-              <span className="text-[11px] text-gray-400">기준 시세</span>
+              <span className="text-[11px] text-gray-400">기준 시세 · 검색어: {links.searchQuery}</span>
             </div>
             <p className="text-xs text-gray-500 mt-1 line-clamp-1">{part.specs}</p>
           </div>
@@ -106,12 +106,14 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
           {platforms.map((p) => {
             const Icon = p.icon;
             return (
-              <button
+              <a
                 key={p.id}
-                onClick={() => handleOpenLink(p.url)}
-                className={`w-full p-3.5 rounded-2xl border transition text-left flex items-center justify-between group active:scale-[0.99] shadow-2xs ${
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`w-full p-3.5 rounded-2xl border transition text-left flex items-center justify-between group active:scale-[0.99] shadow-2xs no-underline ${
                   p.highlight
-                    ? "border-rose-200 bg-rose-50/40 hover:bg-rose-50/70 hover:border-rose-400"
+                    ? "border-rose-300 bg-rose-50/60 hover:bg-rose-100/70 hover:border-rose-500 ring-1 ring-rose-200/60"
                     : "border-gray-200/80 hover:border-toss-blue bg-white hover:bg-blue-50/30"
                 }`}
               >
@@ -119,7 +121,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition ${
                       p.highlight
-                        ? "bg-rose-100 text-rose-600"
+                        ? "bg-rose-500 text-white shadow-2xs"
                         : "bg-gray-100 group-hover:bg-blue-100/60 text-gray-700 group-hover:text-toss-blue"
                     }`}
                   >
@@ -127,7 +129,13 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-extrabold text-gray-900 group-hover:text-toss-blue transition">
+                      <span
+                        className={`text-sm font-extrabold transition ${
+                          p.highlight
+                            ? "text-rose-700 group-hover:text-rose-800"
+                            : "text-gray-900 group-hover:text-toss-blue"
+                        }`}
+                      >
                         {p.name}
                       </span>
                       <span className={`px-1.5 py-0.2 rounded text-[10px] ${p.tagColor}`}>
@@ -138,10 +146,17 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
                   </div>
                 </div>
 
-                <div className="shrink-0 pl-2 text-gray-400 group-hover:text-toss-blue transition">
+                <div
+                  className={`shrink-0 pl-2 transition flex items-center gap-1 text-xs font-bold ${
+                    p.highlight
+                      ? "text-rose-600 group-hover:text-rose-700"
+                      : "text-gray-400 group-hover:text-toss-blue"
+                  }`}
+                >
+                  {p.highlight && <span className="text-[11px]">바로가기</span>}
                   <ExternalLink className="w-4 h-4" />
                 </div>
-              </button>
+              </a>
             );
           })}
         </div>

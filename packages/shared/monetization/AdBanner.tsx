@@ -49,23 +49,35 @@ export const AdBanner: React.FC<AdBannerProps> = ({
           <h4 className="text-sm font-bold text-gray-900 truncate">{title}</h4>
           <p className="text-xs text-gray-600 truncate mt-0.5">{subtitle}</p>
         </div>
-        <button
-          onClick={() => {
-            if (onClick) {
-              onClick();
-            } else if (url) {
-              if (typeof window !== "undefined") {
-                window.open(url, "_blank", "noopener,noreferrer");
+        {url && !onClick ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 flex items-center gap-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition active:scale-95 shadow-sm whitespace-nowrap cursor-pointer no-underline"
+          >
+            <span>{actionText}</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        ) : (
+          <button
+            onClick={() => {
+              if (onClick) {
+                onClick();
+              } else if (url) {
+                if (typeof window !== "undefined") {
+                  window.open(url, "_blank", "noopener,noreferrer");
+                }
+              } else {
+                alert("[스폰서 광고] 외부 안내 페이지로 이동합니다.");
               }
-            } else {
-              alert("[스폰서 광고] 외부 안내 페이지로 이동합니다.");
-            }
-          }}
-          className="shrink-0 flex items-center gap-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition active:scale-95 shadow-sm whitespace-nowrap cursor-pointer"
-        >
-          <span>{actionText}</span>
-          <ExternalLink className="w-3 h-3" />
-        </button>
+            }}
+            className="shrink-0 flex items-center gap-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition active:scale-95 shadow-sm whitespace-nowrap cursor-pointer"
+          >
+            <span>{actionText}</span>
+            <ExternalLink className="w-3 h-3" />
+          </button>
+        )}
       </div>
     </div>
   );

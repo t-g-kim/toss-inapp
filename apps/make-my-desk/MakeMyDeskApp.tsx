@@ -14,7 +14,9 @@ import {
   PRESET_SETUPS,
   DeskPreset,
   getPurchaseLinks,
+  getCleanSearchQuery,
   USER_COUPANG_SUBID,
+  USER_COUPANG_PARTNERS_URL,
   DeskItemPositions,
   DEFAULT_ITEM_POSITIONS,
 } from "./catalog";
@@ -253,20 +255,23 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
     ).forEach((slot) => {
       const part = getPartOption(slot, build[slot]);
       if (part && part.price > 0) {
-        lines.push(`• ${SLOT_LABELS[slot]}: ${part.name} (${part.price.toLocaleString()}원)`);
+        const link = getPurchaseLinks(part.name, part.buyUrl, part.danawaUrl, part.searchQuery).coupang;
+        lines.push(`• ${SLOT_LABELS[slot]}: ${part.name} (${part.price.toLocaleString()}원)\n  👉 최저가: ${link}`);
       }
     });
 
     if (includeDeskInPrice && currentDesk) {
-      lines.push(`• 책상(신규구매): ${currentDesk.name} (${currentDesk.price.toLocaleString()}원)`);
+      const link = getPurchaseLinks(currentDesk.name, currentDesk.buyUrl, currentDesk.danawaUrl, currentDesk.searchQuery).coupang;
+      lines.push(`• 책상(신규구매): ${currentDesk.name} (${currentDesk.price.toLocaleString()}원)\n  👉 최저가: ${link}`);
     }
     if (includeMonitorInPrice && currentMonitor) {
-      lines.push(`• 모니터(신규구매): ${currentMonitor.name} (${currentMonitor.price.toLocaleString()}원)`);
+      const link = getPurchaseLinks(currentMonitor.name, currentMonitor.buyUrl, currentMonitor.danawaUrl, currentMonitor.searchQuery).coupang;
+      lines.push(`• 모니터(신규구매): ${currentMonitor.name} (${currentMonitor.price.toLocaleString()}원)\n  👉 최저가: ${link}`);
     }
 
     lines.push(`------------------------`);
     lines.push(
-      `* 쿠팡 데스크테리어 최저가: https://link.coupang.com/re/AFFSRP?lptag=${USER_COUPANG_SUBID}&pageKey=%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%85%8C%EB%A6%AC%EC%96%B4`
+      `* 쿠팡 데스크테리어 최저가 모음: ${USER_COUPANG_PARTNERS_URL}`
     );
 
     navigator.clipboard.writeText(lines.join("\n"));
@@ -366,20 +371,30 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
               <Bookmark className="w-3.5 h-3.5 text-blue-600" />
               <span>보관</span>
             </button>
-            <button
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  window.open(
-                    `https://link.coupang.com/re/AFFSRP?lptag=${USER_COUPANG_SUBID}&pageKey=%EB%8D%B0%EC%8A%A4%ED%81%AC%ED%85%8C%EB%A6%AC%EC%96%B4`,
-                    "_blank"
-                  );
+            <a
+              href={(() => {
+                if (selectedSlot) {
+                  const focused = getPartOption(selectedSlot, build[selectedSlot]);
+                  if (focused && focused.price > 0) {
+                    return getPurchaseLinks(focused.name, focused.buyUrl, focused.danawaUrl, focused.searchQuery).coupang;
+                  }
                 }
-              }}
-              className="px-3.5 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1"
+                const firstActive = (
+                  ["deskShelf", "monitorArm", "lightingMat", "accessories", "keyboardMouse", "chair"] as DeskSlotKey[]
+                )
+                  .map((s) => getPartOption(s, build[s]))
+                  .find((p) => p && p.price > 0);
+                return firstActive
+                  ? getPurchaseLinks(firstActive.name, firstActive.buyUrl, firstActive.danawaUrl, firstActive.searchQuery).coupang
+                  : USER_COUPANG_PARTNERS_URL;
+              })()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1 no-underline"
             >
               <ShoppingBag className="w-3.5 h-3.5" />
               <span>쿠팡 최저가</span>
-            </button>
+            </a>
           </div>
         </div>
 
@@ -1256,17 +1271,35 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                             </p>
                           </div>
 
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-1.5 shrink-0">
                             {currentPart && currentPart.price > 0 && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleOpenPurchase(slot, currentPart);
-                                }}
-                                className="px-2.5 py-1 text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg font-bold transition flex items-center gap-1"
-                              >
-                                <ShoppingBag className="w-3 h-3" /> 구매
-                              </button>
+                              <>
+                                <a
+                                  href={
+                                    getPurchaseLinks(
+                                      currentPart.name,
+                                      currentPart.buyUrl,
+                                      currentPart.danawaUrl,
+                                      currentPart.searchQuery
+                                    ).coupang
+                                  }
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="px-2.5 py-1 text-xs bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold transition flex items-center gap-1 shadow-2xs no-underline"
+                                >
+                                  <ShoppingBag className="w-3 h-3" /> 쿠팡
+                                </a>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenPurchase(slot, currentPart);
+                                  }}
+                                  className="px-2 py-1 text-xs bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-toss-blue rounded-lg font-bold transition"
+                                >
+                                  비교
+                                </button>
+                              </>
                             )}
                             <ChevronDown
                               className={`w-4 h-4 text-gray-400 transition-transform ${
@@ -1285,6 +1318,15 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                             {options.map((option) => {
                               const isSelected = build[slot] === option.id;
                               const isNoneChair = isChairSlot && option.id === "chair_none";
+                              const optLinks =
+                                option.price > 0
+                                  ? getPurchaseLinks(
+                                      option.name,
+                                      option.buyUrl,
+                                      option.danawaUrl,
+                                      option.searchQuery
+                                    )
+                                  : null;
 
                               return (
                                 <div
@@ -1331,16 +1373,28 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                                           ? "미배치 (0원)"
                                           : "보유중 (0원)"}
                                       </span>
-                                      {option.price > 0 && (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleOpenPurchase(slot, option);
-                                          }}
-                                          className="mt-1.5 px-2 py-0.8 text-[11px] bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-md transition shadow-2xs"
-                                        >
-                                          쿠팡
-                                        </button>
+                                      {option.price > 0 && optLinks && (
+                                        <div className="mt-1.5 flex items-center justify-end gap-1">
+                                          <a
+                                            href={optLinks.coupang}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="px-2 py-1 text-[11px] bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-md transition shadow-2xs inline-flex items-center gap-0.5 no-underline"
+                                          >
+                                            <span>쿠팡</span>
+                                            <ExternalLink className="w-2.5 h-2.5" />
+                                          </a>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleOpenPurchase(slot, option);
+                                            }}
+                                            className="px-1.5 py-1 text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-md transition"
+                                          >
+                                            비교
+                                          </button>
+                                        </div>
                                       )}
                                     </div>
                                   </div>
@@ -1397,6 +1451,112 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
               </div>
             </TossCard>
 
+            {/* Real-time Lowest Price Hub Card (쿠팡 파트너스 & 최저가 모아보기) */}
+            <TossCard
+              title="🔍 내 셋업 품목별 쿠팡 로켓배송 최저가"
+              subtitle="선택하신 데스크테리어 품목을 쿠팡·오늘의집·다나와에서 즉시 확인하세요"
+              padding="sm"
+            >
+              <div className="space-y-2 pt-1 text-xs">
+                {/* 1. Selected Build Items Individual Quick Coupang Links */}
+                <div className="divide-y divide-gray-100 rounded-xl border border-gray-200/80 bg-gray-50/50 overflow-hidden">
+                  {(
+                    [
+                      "deskShelf",
+                      "monitorArm",
+                      "lightingMat",
+                      "accessories",
+                      "keyboardMouse",
+                      "chair",
+                      ...(includeDeskInPrice ? (["desk"] as DeskSlotKey[]) : []),
+                      ...(includeMonitorInPrice ? (["monitor"] as DeskSlotKey[]) : []),
+                    ] as DeskSlotKey[]
+                  ).map((slot) => {
+                    const part = getPartOption(slot, build[slot]);
+                    if (!part || part.price <= 0) return null;
+                    const links = getPurchaseLinks(
+                      part.name,
+                      part.buyUrl,
+                      part.danawaUrl,
+                      part.searchQuery
+                    );
+                    return (
+                      <div
+                        key={slot}
+                        className="p-2.5 flex items-center justify-between gap-2 bg-white hover:bg-rose-50/20 transition"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] font-bold text-gray-400 block">
+                            {SLOT_LABELS[slot]}
+                          </span>
+                          <span className="text-xs font-extrabold text-gray-900 truncate block">
+                            {part.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-xs font-extrabold text-toss-blue mr-0.5">
+                            {part.price.toLocaleString()}원
+                          </span>
+                          <a
+                            href={links.coupang}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2 py-1 bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-bold rounded-lg flex items-center gap-0.5 transition shadow-2xs no-underline"
+                          >
+                            <span>쿠팡</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                          <button
+                            onClick={() => handleOpenPurchase(slot, part)}
+                            className="px-2 py-1 bg-gray-100 hover:bg-blue-50 text-gray-700 hover:text-toss-blue text-[11px] font-bold rounded-lg transition"
+                          >
+                            비교
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 2. Featured Coupang Partners Link */}
+                <a
+                  href={(() => {
+                    const armName = getPartOption("monitorArm", build.monitorArm);
+                    const lightName = getPartOption("lightingMat", build.lightingMat);
+                    const target = armName && armName.price > 0 ? armName : lightName;
+                    return target
+                      ? getPurchaseLinks(target.name, target.buyUrl, target.danawaUrl, target.searchQuery).coupang
+                      : USER_COUPANG_PARTNERS_URL;
+                  })()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full p-3 bg-gradient-to-r from-rose-50 to-pink-50 hover:from-rose-100/80 hover:to-pink-100/80 border border-rose-200/90 rounded-2xl text-left transition flex items-center justify-between group cursor-pointer shadow-2xs no-underline"
+                >
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 bg-rose-500 text-white rounded-md whitespace-nowrap shrink-0">
+                        [광고] 쿠팡 로켓
+                      </span>
+                      <span className="text-xs font-black text-rose-900 group-hover:text-rose-700 truncate">
+                        내 데스크테리어 소품 쿠팡 로켓배송 특가 검색
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-rose-700/80 mt-0.5 truncate">
+                      모니터암 · 데스크 쉘프 · 스크린바 조명 로켓와우 내일 도착
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0 px-2 py-1 bg-white/90 rounded-lg text-rose-600 font-bold text-[11px] border border-rose-200 shadow-2xs">
+                    <span className="whitespace-nowrap">바로가기</span>
+                    <ExternalLink className="w-3 h-3 shrink-0" />
+                  </div>
+                </a>
+
+                <p className="text-[10px] text-gray-400 text-center pt-0.5">
+                  * 이 포스팅(서비스)은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
+                </p>
+              </div>
+            </TossCard>
+
             {/* Cross Promotion: Make My PC */}
             <div
               onClick={() => {
@@ -1447,11 +1607,6 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
                 <RotateCcw className="w-3.5 h-3.5 mr-1 inline" /> 5만원 가성비 셋업으로 초기화
               </TossButton>
             </div>
-
-            <AdBanner
-              title="삼성화재 다이렉트 착 가구/인테리어 화재보험"
-              subtitle="소중한 내 방 전자기기 보장 & 1분 만에 보험료 계산"
-            />
           </>
         )}
 
@@ -1560,6 +1715,14 @@ export const MakeMyDeskApp: React.FC<MakeMyDeskAppProps> = ({ onBack, onNavigate
             </TossCard>
           </div>
         )}
+
+        {/* User Coupang Partners Bottom Banner */}
+        <AdBanner
+          title="쿠팡 로켓배송 데스크테리어·모니터암·조명 특가"
+          subtitle="로켓와우 회원 내일 아침 도착 & 카드 즉시할인"
+          actionText="[광고] 쿠팡 특가 보기"
+          url={USER_COUPANG_PARTNERS_URL}
+        />
       </div>
 
       {/* Purchase Modal */}

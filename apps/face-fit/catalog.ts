@@ -1,4 +1,4 @@
-export type FaceShapeKey = "oval" | "round" | "square" | "heart" | "oblong";
+export type FaceShapeKey = "oval" | "round" | "square" | "heart" | "oblong" | "diamond";
 
 export interface FaceShapeInfo {
   id: FaceShapeKey;
@@ -162,6 +162,33 @@ export const FACE_SHAPES: Record<FaceShapeKey, FaceShapeInfo> = {
     stylingAdvice: {
       hair: "이마를 앞머리로 살짝 가려주고 옆머리 볼륨을 풍성하게 살려 가로폭을 넓혀주면 이상적인 계란형처럼 보여요.",
       glasses: "세로 상하폭이 깊은 아넬형 뿔테나 오버사이즈 안경을 착용하면 긴 중안부를 단절시켜 얼굴이 작아 보입니다.",
+    },
+  },
+  diamond: {
+    id: "diamond",
+    name: "다이아몬드형",
+    englishName: "Diamond Face",
+    emoji: "💎",
+    badge: "샤프 & 세련미",
+    desc: "광대 라인이 매력적이고 이마와 턱 끝으로 갈수록 갸름해지는 서구적이고 샤프한 마름모꼴 얼굴형입니다.",
+    proportions: {
+      ratio: "세로 1.35 : 가로 1.0 (입체적)",
+      jawline: "날렵하고 뾰족한 턱선",
+      forehead: "슬림하고 좁은 이마",
+      cheekbone: "존재감 넘치는 입체적 광대",
+    },
+    svgModifiers: {
+      jawWidth: 0.86,
+      chinDrop: 1.04,
+      foreheadWidth: 0.88,
+      cheekCurve: 1.25,
+    },
+    bestHair: ["사이드뱅 롱웨이브", "리프컷", "시스루 댄디컷", "허쉬컷"],
+    bestGlasses: ["원형 티타늄 메탈", "크라운판토", "타원형 뿔테", "보스턴형 콤비"],
+    worstGlasses: ["가로폭이 너무 좁아 광대를 부각하는 직사각 메탈"],
+    stylingAdvice: {
+      hair: "광대 옆선을 부드럽게 감싸주는 사이드뱅이나 자연스러운 리프컷을 매치하면 매력적인 입체감이 돋보입니다.",
+      glasses: "각진 광대를 중화해주는 부드러운 원형이나 크라운판토 프레임을 선택하면 고급스러운 인상이 완성됩니다.",
     },
   },
 };
@@ -613,6 +640,54 @@ export const GLASSES_COLORS: GlassesColorOption[] = [
   },
 ];
 
+export interface LensTintOption {
+  id: string;
+  name: string;
+  badge: string;
+  color: string;
+  opacity: number;
+}
+
+export const LENS_TINTS: LensTintOption[] = [
+  { id: "lens_clear", name: "클리어 (도수렌즈)", badge: "투명 데일리", color: "#ffffff", opacity: 0.08 },
+  { id: "lens_dark", name: "다크 블랙 선글라스", badge: "UV 차단 선글라스", color: "#09090b", opacity: 0.8 },
+  { id: "lens_green", name: "클래식 그린 틴트", badge: "레이벤 시그니처", color: "#14532d", opacity: 0.62 },
+  { id: "lens_yellow", name: "레트로 옐로우 틴트", badge: "야간 & 스트릿 무드", color: "#eab308", opacity: 0.52 },
+  { id: "lens_ocean", name: "오션 블루 틴트", badge: "청량 힙스터", color: "#0284c7", opacity: 0.58 },
+  { id: "lens_rose", name: "빈티지 로즈 틴트", badge: "감성 페미닌", color: "#f43f5e", opacity: 0.48 },
+  { id: "lens_sunset", name: "선셋 오렌지 틴트", badge: "Y2K 레트로 룩", color: "#ea580c", opacity: 0.58 },
+];
+
+export interface BeardOption {
+  id: string;
+  name: string;
+  badge: string;
+  desc: string;
+}
+
+export const BEARD_OPTIONS: BeardOption[] = [
+  { id: "beard_none", name: "클린 쉐이빙", badge: "수염 없음", desc: "깔끔하고 단정한 인상" },
+  { id: "beard_mustache", name: "클래식 콧수염", badge: "신사적 무드", desc: "인중에 얇고 단정하게 다듬은 콧수염" },
+  { id: "beard_goatee", name: "턱수염 고티", badge: "샤프한 턱선", desc: "턱 끝에 포인트를 주어 턱선을 갸름하게 보완" },
+  { id: "beard_short_boxed", name: "댄디 턱선 수염", badge: "카리스마", desc: "턱선 라인을 따라 정리된 정갈한 수염" },
+  { id: "beard_stubble", name: "러프 섀도우", badge: "남성미", desc: "자연스러운 하루치 수염 그림자" },
+];
+
+export interface AccessoryOption {
+  id: string;
+  name: string;
+  badge: string;
+  desc: string;
+}
+
+export const ACCESSORY_OPTIONS: AccessoryOption[] = [
+  { id: "acc_none", name: "착용 안 함", badge: "헤어 본연 스타일", desc: "기본 헤어스타일 강조" },
+  { id: "acc_ballcap", name: "스트릿 볼캡", badge: "캐주얼 힙스터", desc: "깊이 눌러쓴 스트릿 볼캡" },
+  { id: "acc_beanie", name: "감성 숏 비니", badge: "미니멀 무드", desc: "이마선 위에 걸친 와치캡 비니" },
+  { id: "acc_beret", name: "클래식 베레모", badge: "예술가 감성", desc: "사선으로 얹은 프렌치 베레모" },
+  { id: "acc_headband", name: "스포티 헤어밴드", badge: "액티브 무드", desc: "앞머리를 넘긴 스포티 밴드" },
+];
+
 // 어울림 점수 계산 함수
 export interface StylingCompatibility {
   score: number; // 70 ~ 99
@@ -655,6 +730,8 @@ export function calculateCompatibility(
     score += 3; // 각진형 + 원형메탈 유화 보완
   } else if (faceKey === "oblong" && glasses.shapeStyle === "arnel") {
     score += 3; // 긴형 + 상하폭 넓은 아넬 중안부 단절
+  } else if (faceKey === "diamond" && (glasses.shapeStyle === "round_metal" || glasses.shapeStyle === "crown_panto")) {
+    score += 3; // 다이아몬드형 + 라운드 프레임 광대 완화
   }
 
   // 범위 클램핑 (72 ~ 99)
