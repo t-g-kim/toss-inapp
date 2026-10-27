@@ -21,9 +21,11 @@ import {
   Bed,
   Gift,
   Monitor,
+  Glasses,
 } from "lucide-react";
 
 export type AppId =
+  | "face-fit"
   | "gohyang-gift"
   | "lotto-filter"
   | "salary-hero"
@@ -56,6 +58,16 @@ interface MiniAppMeta {
 }
 
 const APPS: MiniAppMeta[] = [
+  {
+    id: "face-fit",
+    title: "페이스핏 (얼굴형 헤어&안경 피팅)",
+    category: "스타일/뷰티",
+    badge: { text: "신규 런칭", variant: "blue" },
+    desc: "내 얼굴형에 딱 맞는 14종 인생 헤어 & 8종 트렌디 안경 가상 피팅, 친구 투표 공유까지!",
+    iconBg: "bg-blue-600",
+    icon: <Glasses className="w-5 h-5 text-white" />,
+    revenueType: "포토카드 공유 바이럴 + 스타일 리포트",
+  },
   {
     id: "gohyang-gift",
     title: "고향사랑 답례품 & 환급 계산기",

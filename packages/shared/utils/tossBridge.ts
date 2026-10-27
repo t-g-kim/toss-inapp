@@ -32,6 +32,8 @@ export const getInitialAppFromUrl = (): string | null => {
     match: "money-match",
     receipt: "spending-receipt",
     pc: "make-my-pc",
+    face: "face-fit",
+    facefit: "face-fit",
   };
 
   return pathMap[path] || null;
