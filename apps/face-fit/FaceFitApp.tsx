@@ -70,15 +70,26 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
   const [subCategory, setSubCategory] = useState<SubCategory>("face");
 
   // Selection states
-  const [selectedFaceKey, setSelectedFaceKey] = useState<FaceShapeKey>("oval");
-  const [selectedHairId, setSelectedHairId] = useState<string>("hair_seethrough_dandy");
+  const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const [selectedFaceKey, setSelectedFaceKey] = useState<FaceShapeKey>(
+    (urlParams?.get("face") as FaceShapeKey) || "oval"
+  );
+  const [selectedHairId, setSelectedHairId] = useState<string>(
+    urlParams?.get("hair") || "hair_seethrough_dandy"
+  );
   const [selectedHairColorId, setSelectedHairColorId] = useState<string>("color_natural_black");
-  const [selectedGlassesId, setSelectedGlassesId] = useState<string>("glasses_arnel");
+  const [selectedGlassesId, setSelectedGlassesId] = useState<string>(
+    urlParams?.get("glasses") || "glasses_arnel"
+  );
   const [selectedGlassesColorId, setSelectedGlassesColorId] = useState<string>("frame_matte_black");
-  const [selectedLensTintId, setSelectedLensTintId] = useState<string>("lens_clear");
+  const [selectedLensTintId, setSelectedLensTintId] = useState<string>(
+    urlParams?.get("tint") || "lens_clear"
+  );
   const [selectedBeardId, setSelectedBeardId] = useState<string>("beard_none");
   const [selectedAccessoryId, setSelectedAccessoryId] = useState<string>("acc_none");
-  const [touchControlMode, setTouchControlMode] = useState<TouchControlMode>("sculpt");
+  const [touchControlMode, setTouchControlMode] = useState<TouchControlMode>(
+    (urlParams?.get("mode") as TouchControlMode) || "sculpt"
+  );
   const [hairGenderFilter, setHairGenderFilter] = useState<"all" | "male" | "female">("all");
 
   // User uploaded photo

@@ -10,6 +10,8 @@ import {
   AccessoryOption,
   StylingCompatibility,
 } from "./catalog";
+import { GlassesSvgRenderer } from "./GlassesSvgRenderer";
+import { HairSvgRenderer } from "./HairSvgRenderer";
 import {
   Sparkles,
   Eye,
@@ -25,6 +27,7 @@ import {
   Smile,
   Hand,
   Check,
+  User,
 } from "lucide-react";
 
 export type TouchControlMode = "sculpt" | "glasses" | "hair" | "clean";
@@ -43,7 +46,6 @@ interface FaceCanvasViewerProps {
   onPhotoUpload: (file: File) => void;
   onPhotoClear: () => void;
   svgRefCallback?: (svgElement: SVGSVGElement | null) => void;
-  // External control mode if passed
   activeControlMode?: TouchControlMode;
   onControlModeChange?: (mode: TouchControlMode) => void;
 }
@@ -62,47 +64,58 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
   onPhotoUpload,
   onPhotoClear,
   svgRefCallback,
-  activeControlMode: externalMode,
+  activeControlMode,
   onControlModeChange,
 }) => {
+  // 모델 성별 상태: 남성형 / 여성형 (헤어 성별에 따라 스마트 기본값 제공)
+  const [modelGender, setModelGender] = useState<"male" | "female">(
+    hair.gender === "female" ? "female" : "male"
+  );
+
+  // 헤어 변경 시 성별이 명확한 경우 자동 동기화 (사용자가 수동 변경 가능)
+  useEffect(() => {
+    if (hair.gender === "female") {
+      setModelGender("female");
+    } else if (hair.gender === "male") {
+      setModelGender("male");
+    }
+  }, [hair.id, hair.gender]);
+
+  // 터치 조작 모드 (윤곽조각 / 안경직접조절 / 헤어직접조절 / 완성본)
   const [internalMode, setInternalMode] = useState<TouchControlMode>("sculpt");
-  const controlMode = externalMode !== undefined ? externalMode : internalMode;
-  const setControlMode = (m: TouchControlMode) => {
-    setInternalMode(m);
-    if (onControlModeChange) onControlModeChange(m);
+  const controlMode = activeControlMode || internalMode;
+  const setControlMode = (mode: TouchControlMode) => {
+    setInternalMode(mode);
+    if (onControlModeChange) onControlModeChange(mode);
   };
 
-  const [showOriginal, setShowOriginal] = useState(false);
-  const [showAdjustPanel, setShowAdjustPanel] = useState(false);
-  const [photoOpacity, setPhotoOpacity] = useState(0.9);
-
-  // 1. 얼굴 윤곽 실시간 조각 파라미터 (손으로 직접 넣고 깎기)
-  const [jawMod, setJawMod] = useState(faceShape.svgModifiers.jawWidth);
+  // 실시간 윤곽 조각 모디파이어 (1.0 = 기본)
   const [cheekMod, setCheekMod] = useState(faceShape.svgModifiers.cheekCurve);
+  const [jawMod, setJawMod] = useState(faceShape.svgModifiers.jawWidth);
   const [chinMod, setChinMod] = useState(faceShape.svgModifiers.chinDrop);
   const [foreheadMod, setForeheadMod] = useState(faceShape.svgModifiers.foreheadWidth);
 
-  // 얼굴형 프리셋 변경 시 동기화
+  // 얼굴형 변경 시 베이스 수치 동기화
   useEffect(() => {
-    setJawMod(faceShape.svgModifiers.jawWidth);
     setCheekMod(faceShape.svgModifiers.cheekCurve);
+    setJawMod(faceShape.svgModifiers.jawWidth);
     setChinMod(faceShape.svgModifiers.chinDrop);
     setForeheadMod(faceShape.svgModifiers.foreheadWidth);
-  }, [faceShape]);
+  }, [faceShape.id]);
 
-  // 2. 안경 위치 & 크기 직접 터치 조절 파라미터
-  const [glassesScale, setGlassesScale] = useState(1.0);
+  // 안경 직접 위치(X, Y) 및 크기(Scale)
   const [glassesOffsetX, setGlassesOffsetX] = useState(0);
   const [glassesOffsetY, setGlassesOffsetY] = useState(0);
+  const [glassesScale, setGlassesScale] = useState(1.0);
 
-  // 3. 헤어 볼륨 & 위치 직접 터치 조절 파라미터
+  // 헤어 볼륨/스케일 및 높낮이(Y)
   const [hairScale, setHairScale] = useState(1.0);
   const [hairOffsetY, setHairOffsetY] = useState(0);
 
   // 드래그 제스처 상태
   const [isDragging, setIsDragging] = useState(false);
   const [dragTarget, setDragTarget] = useState<
-    "cheek_l" | "cheek_r" | "jaw_l" | "jaw_r" | "chin" | "forehead_l" | "forehead_r" | "glasses_move" | "glasses_scale" | "hair_move" | "hair_scale" | null
+    "cheek_l" | "cheek_r" | "jaw_l" | "jaw_r" | "chin" | "glasses_move" | "glasses_scale" | "hair_move" | "hair_scale" | null
   >(null);
   const [dragStartPos, setDragStartPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [initialValues, setInitialValues] = useState<any>({});
@@ -110,28 +123,30 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
   const svgRef = useRef<SVGSVGElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ViewBox: 400 x 460
+  // 비포/애프터 비교 및 정밀 패널
+  const [showOriginal, setShowOriginal] = useState(false);
+  const [showAdjustPanel, setShowAdjustPanel] = useState(false);
+  const [photoOpacity, setPhotoOpacity] = useState(0.85);
+
+  // ViewBox: 400 x 480
   const cx = 200;
-  const cy = 200;
+  const headTopY = 96;
+  const chinY = 175 + 95 * chinMod; // ~270 for oval
+  const cheekW = (modelGender === "female" ? 74 : 78) * cheekMod;
+  const jawW = (modelGender === "female" ? 56 : 64) * jawMod;
+  const foreheadW = (modelGender === "female" ? 68 : 72) * foreheadMod;
 
-  // Head proportions computed with user's direct sculpted modifiers
-  const headTopY = 75;
-  const chinY = 175 + 100 * chinMod; // ~275 for oval
-  const cheekW = 80 * cheekMod;
-  const jawW = 66 * jawMod;
-  const foreheadW = 76 * foreheadMod;
-
-  // Sculpted head contour path
+  // 인체공학적 부드러운 헤드 컨투어 패스 (황금 비율 두상)
   const facePath = `
-    M ${cx - foreheadW} 135
-    C ${cx - foreheadW * 1.05} ${headTopY}, ${cx + foreheadW * 1.05} ${headTopY}, ${cx + foreheadW} 135
-    C ${cx + cheekW} 180, ${cx + jawW} 250, ${cx + 18} ${chinY - 6}
-    Q ${cx} ${chinY}, ${cx - 18} ${chinY - 6}
-    C ${cx - jawW} 250, ${cx - cheekW} 180, ${cx - foreheadW} 135
+    M ${cx - foreheadW} 145
+    C ${cx - foreheadW * 1.02} ${headTopY}, ${cx + foreheadW * 1.02} ${headTopY}, ${cx + foreheadW} 145
+    C ${cx + cheekW} 185, ${cx + jawW} 242, ${cx + (modelGender === "female" ? 12 : 16)} ${chinY - 5}
+    Q ${cx} ${chinY}, ${cx - (modelGender === "female" ? 12 : 16)} ${chinY - 5}
+    C ${cx - jawW} 242, ${cx - cheekW} 185, ${cx - foreheadW} 145
     Z
   `;
 
-  // 터치/마우스 좌표를 SVG 뷰박스 (0~400, 0~460) 좌표로 변환
+  // 터치/마우스 좌표를 SVG 뷰박스 (0~400, 0~480) 좌표로 변환
   const getSvgCoordinates = (clientX: number, clientY: number) => {
     if (!svgRef.current) return { x: 0, y: 0 };
     const pt = svgRef.current.createSVGPoint();
@@ -146,7 +161,7 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
   // 드래그 시작
   const handlePointerDown = (
     e: React.PointerEvent,
-    target: "cheek_l" | "cheek_r" | "jaw_l" | "jaw_r" | "chin" | "forehead_l" | "forehead_r" | "glasses_move" | "glasses_scale" | "hair_move" | "hair_scale"
+    target: "cheek_l" | "cheek_r" | "jaw_l" | "jaw_r" | "chin" | "glasses_move" | "glasses_scale" | "hair_move" | "hair_scale"
   ) => {
     e.stopPropagation();
     e.preventDefault();
@@ -178,125 +193,116 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
     const dy = pos.y - dragStartPos.y;
 
     if (dragTarget === "cheek_l") {
-      // 좌측 광대 드래그: 오른쪽으로 밀면 광대 쏙 넣기(-), 왼쪽으로 당기면 광대 키우기(+)
-      const deltaMod = -dx / 70;
-      setCheekMod(Math.min(1.4, Math.max(0.75, initialValues.cheekMod + deltaMod)));
+      const nextCheek = Math.max(0.72, Math.min(1.35, initialValues.cheekMod - dx / 80));
+      setCheekMod(nextCheek);
     } else if (dragTarget === "cheek_r") {
-      // 우측 광대 드래그: 왼쪽으로 밀면 광대 쏙 넣기(-), 오른쪽으로 당기면 광대 키우기(+)
-      const deltaMod = dx / 70;
-      setCheekMod(Math.min(1.4, Math.max(0.75, initialValues.cheekMod + deltaMod)));
+      const nextCheek = Math.max(0.72, Math.min(1.35, initialValues.cheekMod + dx / 80));
+      setCheekMod(nextCheek);
     } else if (dragTarget === "jaw_l") {
-      // 좌측 턱선 드래그: 오른쪽으로 밀면 V라인 턱 깎기(-), 왼쪽으로 당기면 사각턱(+)
-      const deltaMod = -dx / 60;
-      setJawMod(Math.min(1.4, Math.max(0.72, initialValues.jawMod + deltaMod)));
+      const nextJaw = Math.max(0.70, Math.min(1.35, initialValues.jawMod - dx / 70));
+      setJawMod(nextJaw);
     } else if (dragTarget === "jaw_r") {
-      // 우측 턱선 드래그: 왼쪽으로 밀면 V라인 턱 깎기(-), 오른쪽으로 당기면 사각턱(+)
-      const deltaMod = dx / 60;
-      setJawMod(Math.min(1.4, Math.max(0.72, initialValues.jawMod + deltaMod)));
+      const nextJaw = Math.max(0.70, Math.min(1.35, initialValues.jawMod + dx / 70));
+      setJawMod(nextJaw);
     } else if (dragTarget === "chin") {
-      // 턱끝 드래그: 위로 올리면 턱끝 줄이기(-), 아래로 내리면 턱끝 늘리기(+)
-      const deltaMod = dy / 80;
-      setChinMod(Math.min(1.35, Math.max(0.75, initialValues.chinMod + deltaMod)));
-    } else if (dragTarget === "forehead_l" || dragTarget === "forehead_r") {
-      const sign = dragTarget === "forehead_r" ? 1 : -1;
-      const deltaMod = (dx * sign) / 70;
-      setForeheadMod(Math.min(1.3, Math.max(0.78, initialValues.foreheadMod + deltaMod)));
+      const nextChin = Math.max(0.75, Math.min(1.30, initialValues.chinMod + dy / 100));
+      setChinMod(nextChin);
     } else if (dragTarget === "glasses_move") {
       setGlassesOffsetX(initialValues.glassesOffsetX + dx);
       setGlassesOffsetY(initialValues.glassesOffsetY + dy);
     } else if (dragTarget === "glasses_scale") {
       const scaleDelta = (dx + dy) / 100;
-      setGlassesScale(Math.min(1.35, Math.max(0.7, initialValues.glassesScale + scaleDelta)));
+      setGlassesScale(Math.max(0.75, Math.min(1.35, initialValues.glassesScale + scaleDelta)));
     } else if (dragTarget === "hair_move") {
       setHairOffsetY(initialValues.hairOffsetY + dy);
     } else if (dragTarget === "hair_scale") {
-      const scaleDelta = (dx - dy) / 100;
-      setHairScale(Math.min(1.3, Math.max(0.8, initialValues.hairScale + scaleDelta)));
+      const scaleDelta = (dx + dy) / 100;
+      setHairScale(Math.max(0.80, Math.min(1.35, initialValues.hairScale + scaleDelta)));
     }
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (isDragging) {
-      try {
-        (e.target as Element).releasePointerCapture(e.pointerId);
-      } catch {}
       setIsDragging(false);
       setDragTarget(null);
     }
   };
 
-  // 원터치 퀵 조각 프리셋 (성형 깎기)
-  const applyQuickTuck = (type: "v_line" | "cheek_in" | "chin_short" | "reset") => {
-    if (type === "v_line") {
-      setJawMod((prev) => Math.max(0.72, prev - 0.1));
-    } else if (type === "cheek_in") {
-      setCheekMod((prev) => Math.max(0.75, prev - 0.1));
-    } else if (type === "chin_short") {
-      setChinMod((prev) => Math.max(0.75, prev - 0.1));
-    } else if (type === "reset") {
-      setJawMod(faceShape.svgModifiers.jawWidth);
+  // 1초 원터치 쏙 넣기 액션
+  const applyQuickTuck = (action: "v_line" | "cheek_in" | "chin_short" | "reset") => {
+    if (action === "v_line") {
+      setJawMod(0.82);
+    } else if (action === "cheek_in") {
+      setCheekMod(0.85);
+    } else if (action === "chin_short") {
+      setChinMod(0.90);
+    } else if (action === "reset") {
       setCheekMod(faceShape.svgModifiers.cheekCurve);
+      setJawMod(faceShape.svgModifiers.jawWidth);
       setChinMod(faceShape.svgModifiers.chinDrop);
       setForeheadMod(faceShape.svgModifiers.foreheadWidth);
-      setGlassesScale(1.0);
       setGlassesOffsetX(0);
       setGlassesOffsetY(0);
-      setHairScale(1.0);
+      setGlassesScale(1.0);
       setHairOffsetY(0);
+      setHairScale(1.0);
     }
   };
 
   return (
-    <div className="relative w-full max-w-[420px] mx-auto bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 flex flex-col items-center select-none">
-      {/* 1. 상단 터치 조작 모드 탭 (얼굴 윤곽 조각 / 안경 직접 조절 / 헤어 직접 조절 / 깔끔 보기) */}
-      <div className="w-full bg-slate-100 p-1.5 border-b border-slate-200 flex items-center justify-between text-xs font-bold">
-        <button
-          onClick={() => setControlMode("sculpt")}
-          className={`flex-1 py-1.5 px-1 rounded-xl flex items-center justify-center gap-1 transition-all ${
-            controlMode === "sculpt" ? "bg-white text-[#3182F6] shadow-xs" : "text-slate-600 hover:text-slate-900"
-          }`}
-          title="얼굴 윤곽을 직접 손으로 깎고 넣기"
-        >
-          <Smile className="w-3.5 h-3.5" />
-          <span>윤곽조각</span>
-        </button>
-
-        <button
-          onClick={() => setControlMode("glasses")}
-          className={`flex-1 py-1.5 px-1 rounded-xl flex items-center justify-center gap-1 transition-all ${
-            controlMode === "glasses" ? "bg-white text-[#3182F6] shadow-xs" : "text-slate-600 hover:text-slate-900"
-          }`}
-          title="안경을 손으로 직접 줄이고 늘리고 이동"
-        >
-          <Glasses className="w-3.5 h-3.5" />
-          <span>안경조절</span>
-        </button>
-
-        <button
-          onClick={() => setControlMode("hair")}
-          className={`flex-1 py-1.5 px-1 rounded-xl flex items-center justify-center gap-1 transition-all ${
-            controlMode === "hair" ? "bg-white text-[#3182F6] shadow-xs" : "text-slate-600 hover:text-slate-900"
-          }`}
-          title="헤어 볼륨과 높낮이 직접 조절"
-        >
-          <Scissors className="w-3.5 h-3.5" />
-          <span>헤어조절</span>
-        </button>
-
-        <button
-          onClick={() => setControlMode("clean")}
-          className={`py-1.5 px-2.5 rounded-xl flex items-center justify-center gap-1 transition-all ${
-            controlMode === "clean" ? "bg-slate-800 text-white shadow-xs" : "text-slate-500 hover:text-slate-800"
-          }`}
-          title="핸들을 숨기고 완성된 스타일 확인"
-        >
-          <Eye className="w-3.5 h-3.5" />
-          <span>완성본</span>
-        </button>
+    <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200/90 flex flex-col select-none">
+      {/* 1. 상단 모드 스위처 바 (4개 모드 균등 분할) */}
+      <div className="w-full px-3 py-2 bg-slate-50/90 border-b border-slate-200 text-xs">
+        <div className="grid grid-cols-4 gap-1 w-full bg-slate-200/80 p-0.5 rounded-xl font-bold">
+          <button
+            onClick={() => setControlMode("sculpt")}
+            className={`flex items-center justify-center gap-1 py-1 rounded-lg transition-all ${
+              controlMode === "sculpt"
+                ? "bg-white text-[#3182F6] shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Smile className="w-3.5 h-3.5" />
+            <span>윤곽조각</span>
+          </button>
+          <button
+            onClick={() => setControlMode("glasses")}
+            className={`flex items-center justify-center gap-1 py-1 rounded-lg transition-all ${
+              controlMode === "glasses"
+                ? "bg-white text-[#3182F6] shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Glasses className="w-3.5 h-3.5" />
+            <span>안경조절</span>
+          </button>
+          <button
+            onClick={() => setControlMode("hair")}
+            className={`flex items-center justify-center gap-1 py-1 rounded-lg transition-all ${
+              controlMode === "hair"
+                ? "bg-white text-[#3182F6] shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Scissors className="w-3.5 h-3.5" />
+            <span>헤어조절</span>
+          </button>
+          <button
+            onClick={() => setControlMode("clean")}
+            className={`flex items-center justify-center gap-1 py-1 rounded-lg transition-all ${
+              controlMode === "clean"
+                ? "bg-white text-emerald-600 shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <Check className="w-3.5 h-3.5" />
+            <span>완성본</span>
+          </button>
+        </div>
       </div>
 
-      {/* 2. 원터치 퀵 조각 툴바 (윤곽조각 모드일 때 노출) */}
-      {controlMode === "sculpt" && (
+      {/* 2. 쏙 넣기 빠른 액션 칩 바 (윤곽조각 모드일 때 노출) */}
+      {controlMode === "sculpt" && !showOriginal && (
         <div className="w-full px-3 py-1.5 bg-blue-50/70 border-b border-blue-100 flex items-center gap-1.5 overflow-x-auto text-[11px] font-semibold text-slate-700">
           <span className="text-blue-700 shrink-0 font-bold flex items-center gap-0.5">
             <Hand className="w-3 h-3" /> 터치 쏙 넣기:
@@ -330,7 +336,7 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
 
       {/* 3. 메인 인터랙티브 SVG 뷰어 (직접 터치 조작 지원) */}
       <div
-        className="relative w-full aspect-[4/5] bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200/90 flex items-center justify-center overflow-hidden touch-none"
+        className="relative w-full aspect-[4/5] bg-gradient-to-b from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0]/80 flex items-center justify-center overflow-hidden touch-none"
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       >
@@ -345,15 +351,39 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
           />
         )}
 
-        {/* 상단 뱃지 & 비포비교 버튼 */}
+        {/* 상단 뱃지 & 모델 성별 스위치 & 비포비교 버튼 */}
         <div className="absolute top-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between pointer-events-none">
-          <div className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-white/95 backdrop-blur-md rounded-full shadow-xs border border-slate-200">
+          <div className="pointer-events-auto flex items-center gap-1.5 px-2.5 py-1 bg-white/95 backdrop-blur-md rounded-full shadow-xs border border-slate-200">
             <Sparkles className="w-3.5 h-3.5 text-[#3182F6]" />
             <span className="text-xs font-semibold text-slate-700">{faceShape.name}</span>
             <span className="text-xs font-bold text-[#3182F6]">{compatibility.score}점</span>
           </div>
 
           <div className="pointer-events-auto flex items-center gap-1.5">
+            {/* 남성 / 여성 아바타 모델 전환 */}
+            <div className="flex items-center gap-0.5 bg-white/95 backdrop-blur-md border border-slate-200 p-0.5 rounded-full shadow-xs text-[11px] font-bold">
+              <button
+                onClick={() => setModelGender("male")}
+                className={`px-2 py-0.5 rounded-full transition-colors ${
+                  modelGender === "male"
+                    ? "bg-[#3182F6] text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                남성
+              </button>
+              <button
+                onClick={() => setModelGender("female")}
+                className={`px-2 py-0.5 rounded-full transition-colors ${
+                  modelGender === "female"
+                    ? "bg-rose-500 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                여성
+              </button>
+            </div>
+
             <button
               onMouseDown={() => setShowOriginal(true)}
               onMouseUp={() => setShowOriginal(false)}
@@ -367,24 +397,35 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
           </div>
         </div>
 
-        {/* SVG 아바타 & 조작 레이어 */}
+        {/* SVG 고품질 아바타 & 조작 레이어 */}
         <svg
           ref={(el) => {
             svgRef.current = el;
             if (svgRefCallback) svgRefCallback(el);
           }}
-          viewBox="0 0 400 460"
+          viewBox="0 0 400 480"
           className="relative z-10 w-full h-full object-contain cursor-default"
         >
           <defs>
-            <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#fee2cc" />
-              <stop offset="65%" stopColor="#fad0b2" />
-              <stop offset="100%" stopColor="#f3be9b" />
-            </linearGradient>
+            {/* 3D 페이스 입체 피부 그라데이션 (중앙 하이라이트 & 외곽 은은한 음영) */}
+            <radialGradient id="faceShadeGrad" cx="50%" cy="46%" r="54%">
+              <stop offset="0%" stopColor="#fff2e8" />
+              <stop offset="60%" stopColor="#fde0cc" />
+              <stop offset="85%" stopColor="#f7c8ac" />
+              <stop offset="100%" stopColor="#eab090" />
+            </radialGradient>
 
+            {/* 여성형 화사한 핑크빛 피부 */}
+            <radialGradient id="femaleFaceGrad" cx="50%" cy="45%" r="55%">
+              <stop offset="0%" stopColor="#fff5ee" />
+              <stop offset="62%" stopColor="#fee4d4" />
+              <stop offset="85%" stopColor="#fac7ae" />
+              <stop offset="100%" stopColor="#f1b194" />
+            </radialGradient>
+
+            {/* 귀 입체 그라데이션 */}
             <linearGradient id="earGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#f7c5a4" />
+              <stop offset="0%" stopColor="#f8cbb0" />
               <stop offset="100%" stopColor="#ebb18c" />
             </linearGradient>
 
@@ -394,123 +435,475 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
               <stop offset="100%" stopColor={lensTint.color} stopOpacity={Math.min(1.0, lensTint.opacity + 0.15)} />
             </linearGradient>
 
+            {/* 렌즈 광택 반사광 */}
             <linearGradient id="lensReflect" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#ffffff" stopOpacity="0.45" />
               <stop offset="35%" stopColor="#ffffff" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.0" />
+              <stop offset="65%" stopColor="#ffffff" stopOpacity="0.0" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.25" />
             </linearGradient>
 
+            {/* 헤어 그라데이션 */}
             <linearGradient id="hairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor={hairColor.highlightHex} />
-              <stop offset="50%" stopColor={hairColor.mainHex} />
+              <stop offset="45%" stopColor={hairColor.mainHex} />
               <stop offset="100%" stopColor={hairColor.shadowHex} />
             </linearGradient>
 
-            <linearGradient id="lipGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#f48fb1" />
-              <stop offset="100%" stopColor="#e91e63" />
+            {/* 입술 틴트 그라데이션 (여성: 체리 로즈 틴트) */}
+            <radialGradient id="femaleLipGrad" cx="50%" cy="45%" r="55%">
+              <stop offset="0%" stopColor="#f43f5e" />
+              <stop offset="60%" stopColor="#fb7185" />
+              <stop offset="100%" stopColor="#fda4af" />
+            </radialGradient>
+
+            {/* 입술 틴트 그라데이션 (남성: 자연스러운 생기 웜톤) */}
+            <radialGradient id="maleLipGrad" cx="50%" cy="45%" r="55%">
+              <stop offset="0%" stopColor="#e11d48" stopOpacity="0.65" />
+              <stop offset="70%" stopColor="#f43f5e" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#fca5a5" stopOpacity="0.15" />
+            </radialGradient>
+
+            {/* 눈동자 리치 홍채 그라데이션 */}
+            <radialGradient id="irisGrad" cx="45%" cy="38%" r="52%">
+              <stop offset="0%" stopColor="#451a03" />
+              <stop offset="65%" stopColor="#1c1917" />
+              <stop offset="100%" stopColor="#09090b" />
+            </radialGradient>
+
+            {/* 안구 상단 눈꺼풀 그림자 그라데이션 */}
+            <linearGradient id="eyeShadowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#94a3b8" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
-          {/* 목 & 어깨 */}
-          {!userPhotoUrl && (
-            <g id="neckAndBody">
-              <path
-                d="M 160 220 L 160 275 C 160 290 120 310 50 335 L 50 460 L 350 460 L 350 335 C 280 310 240 290 240 220 Z"
-                fill="url(#skinGrad)"
-                stroke="#dca47e"
-                strokeWidth="1.2"
-              />
-              <ellipse cx="200" cy="272" rx="26" ry="6" fill="#dca47e" opacity="0.3" />
-
-              <path
-                d="M 125 315 Q 200 345 275 315 L 350 460 L 50 460 Z"
-                fill="#1e293b"
-              />
-              <path
-                d="M 125 315 Q 200 345 275 315"
-                fill="none"
-                stroke="#334155"
-                strokeWidth="5"
-              />
+          {/* 헤어 백 레이어 (뒤통수 & 어깨 뒤로 흐르는 뒷머리 볼륨 - 인체 뒤에 렌더링) */}
+          {!showOriginal && (
+            <g
+              id="hairBackLayer"
+              transform={`translate(${cx}, ${120 + hairOffsetY}) scale(${hairScale}) translate(${-cx}, -120)`}
+            >
+              <HairSvgRenderer hairId={hair.id} color={hairColor} cx={cx} foreheadW={foreheadW} layer="back" />
             </g>
           )}
 
-          {/* 얼굴 윤곽 및 이목구비 */}
+          {/* 목 & 쇄골 & 모던 스타일리시 의상 */}
           {!userPhotoUrl && (
-            <g id="headContour">
-              <ellipse cx={cx - cheekW - 7} cy="198" rx="10" ry="18" fill="url(#earGrad)" stroke="#dca47e" strokeWidth="1.2" />
-              <ellipse cx={cx - cheekW - 6} cy="198" rx="4.5" ry="9" fill="#dca47e" opacity="0.35" />
-
-              <ellipse cx={cx + cheekW + 7} cy="198" rx="10" ry="18" fill="url(#earGrad)" stroke="#dca47e" strokeWidth="1.2" />
-              <ellipse cx={cx + cheekW + 6} cy="198" rx="4.5" ry="9" fill="#dca47e" opacity="0.35" />
-
-              {/* 얼굴형 윤곽선 */}
+            <g id="neckAndBody">
+              {/* 목 기둥 */}
               <path
-                d={facePath}
-                fill="url(#skinGrad)"
-                stroke="#dca47e"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
+                d={
+                  modelGender === "female"
+                    ? `M 172 220 L 172 275 C 172 295, 125 325, 30 375 L 30 480 L 370 480 L 370 375 C 275 325, 228 295, 228 220 Z`
+                    : `M 166 220 L 166 270 C 166 295, 120 320, 20 370 L 20 480 L 380 480 L 380 370 C 280 320, 234 295, 234 220 Z`
+                }
+                fill={modelGender === "female" ? "url(#femaleFaceGrad)" : "url(#faceShadeGrad)"}
               />
 
-              {/* 볼 생기 */}
-              <ellipse cx={cx - 42} cy="216" rx="15" ry="7" fill="#f43f5e" opacity="0.09" />
-              <ellipse cx={cx + 42} cy="216" rx="15" ry="7" fill="#f43f5e" opacity="0.09" />
+              {/* 턱 아래 목 그림자 (Jaw Ambient Occlusion Shadow) */}
+              <ellipse
+                cx={cx}
+                cy={chinY + 7}
+                rx={jawW * 0.68}
+                ry="11"
+                fill="#b47953"
+                opacity="0.22"
+              />
 
-              {/* 눈썹 */}
+              {/* 목빗근(흉쇄유돌근) & 목 라인 음영 */}
               <path
-                d={`M ${cx - 58} 175 Q ${cx - 38} 168 ${cx - 18} 176`}
-                fill="none"
-                stroke={hairColor.shadowHex}
-                strokeWidth="3.0"
+                d={`M ${cx - 24} 242 Q ${cx - 18} 278 ${cx - 14} 302`}
+                stroke="#c28b66"
+                strokeWidth="1.2"
                 strokeLinecap="round"
+                fill="none"
+                opacity="0.32"
               />
               <path
-                d={`M ${cx + 58} 175 Q ${cx + 38} 168 ${cx + 18} 176`}
-                fill="none"
-                stroke={hairColor.shadowHex}
-                strokeWidth="3.0"
+                d={`M ${cx + 24} 242 Q ${cx + 18} 278 ${cx + 14} 302`}
+                stroke="#c28b66"
+                strokeWidth="1.2"
                 strokeLinecap="round"
+                fill="none"
+                opacity="0.32"
               />
 
-              {/* 눈 */}
-              <g id="eyes">
-                <path d={`M ${cx - 56} 196 Q ${cx - 38} 187 ${cx - 20} 196`} fill="#ffffff" stroke="#1f2937" strokeWidth="1.8" />
-                <path d={`M ${cx - 56} 196 Q ${cx - 38} 205 ${cx - 20} 196`} fill="#ffffff" stroke="#1f2937" strokeWidth="1.2" />
-                <circle cx={cx - 38} cy="196" r="5.5" fill="#18181b" />
-                <circle cx={cx - 40} cy="194" r="1.8" fill="#ffffff" />
-
-                <path d={`M ${cx + 20} 196 Q ${cx + 38} 187 ${cx + 56} 196`} fill="#ffffff" stroke="#1f2937" strokeWidth="1.8" />
-                <path d={`M ${cx + 20} 196 Q ${cx + 38} 205 ${cx + 56} 196`} fill="#ffffff" stroke="#1f2937" strokeWidth="1.2" />
-                <circle cx={cx + 38} cy="196" r="5.5" fill="#18181b" />
-                <circle cx={cx + 36} cy="194" r="1.8" fill="#ffffff" />
+              {/* 쇄골 뼈 음영 라인 (Clavicle) */}
+              <g id="clavicle" opacity="0.35">
+                <path
+                  d={`M ${cx - 85} 324 Q ${cx - 45} 326 ${cx - 14} 312`}
+                  stroke="#c28b66"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <path
+                  d={`M ${cx + 85} 324 Q ${cx + 45} 326 ${cx + 14} 312`}
+                  stroke="#c28b66"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  fill="none"
+                />
               </g>
 
-              {/* 코 */}
+              {/* 모던 프리미엄 의상 (어깨를 완벽히 감싸는 깔끔한 K-패션 스웨트셔츠 / 니트) */}
+              {modelGender === "female" ? (
+                // 여성형: 차분하고 세련된 슬레이트 보트넥 니트
+                <g id="femaleOutfit">
+                  <path
+                    d={`M 25 380 C 75 340, 120 318, ${cx - 45} 308 Q ${cx} 334 ${cx + 45} 308 C 280 318, 325 340, 375 380 L 385 480 L 15 480 Z`}
+                    fill="#334155"
+                  />
+                  {/* 니트 넥라인 립 디테일 */}
+                  <path
+                    d={`M ${cx - 45} 308 Q ${cx} 334 ${cx + 45} 308`}
+                    fill="none"
+                    stroke="#475569"
+                    strokeWidth="5.5"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d={`M ${cx - 42} 306 Q ${cx} 332 ${cx + 42} 306`}
+                    fill="none"
+                    stroke="#1e293b"
+                    strokeWidth="1.2"
+                    opacity="0.6"
+                  />
+                </g>
+              ) : (
+                // 남성형: 클래식 딥네이비 크루넥 맨투맨 (어깨 완전 커버 & 탄탄한 핏)
+                <g id="maleOutfit">
+                  <path
+                    d={`M 15 375 C 65 335, 115 315, ${cx - 42} 305 Q ${cx} 328 ${cx + 42} 305 C 285 315, 335 335, 385 375 L 390 480 L 10 480 Z`}
+                    fill="#1e293b"
+                  />
+                  {/* 크루넥 시보리 밴드 */}
+                  <path
+                    d={`M ${cx - 42} 305 Q ${cx} 328 ${cx + 42} 305`}
+                    fill="none"
+                    stroke="#334155"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d={`M ${cx - 38} 303 Q ${cx} 326 ${cx + 38} 303`}
+                    fill="none"
+                    stroke="#0f172a"
+                    strokeWidth="1.5"
+                    opacity="0.8"
+                  />
+                  {/* 라글란 어깨 절개선 */}
+                  <path
+                    d={`M ${cx - 42} 308 Q ${cx - 90} 340 ${cx - 120} 420`}
+                    stroke="#0f172a"
+                    strokeWidth="1.4"
+                    opacity="0.4"
+                    fill="none"
+                  />
+                  <path
+                    d={`M ${cx + 42} 308 Q ${cx + 90} 340 ${cx + 120} 420`}
+                    stroke="#0f172a"
+                    strokeWidth="1.4"
+                    opacity="0.4"
+                    fill="none"
+                  />
+                </g>
+              )}
+            </g>
+          )}
+
+          {/* 얼굴 윤곽 및 정밀 이목구비 */}
+          {!userPhotoUrl && (
+            <g id="headContour">
+              {/* 귀 (Ears) - 섬세한 이륜/대이륜/이주 음영 */}
+              <g id="ears">
+                {/* 좌측 귀 외곽 */}
+                <ellipse cx={cx - cheekW - 7} cy="196" rx="10" ry="19" fill="url(#earGrad)" stroke="#dca47e" strokeWidth="1.2" />
+                <path
+                  d={`M ${cx - cheekW - 7} 182 C ${cx - cheekW - 13} 188, ${cx - cheekW - 13} 203, ${cx - cheekW - 5} 208`}
+                  fill="none"
+                  stroke="#c28b66"
+                  strokeWidth="1.4"
+                  opacity="0.6"
+                />
+                <circle cx={cx - cheekW - 4} cy="196" r="2.2" fill="#c28b66" opacity="0.5" />
+
+                {/* 우측 귀 외곽 */}
+                <ellipse cx={cx + cheekW + 7} cy="196" rx="10" ry="19" fill="url(#earGrad)" stroke="#dca47e" strokeWidth="1.2" />
+                <path
+                  d={`M ${cx + cheekW + 7} 182 C ${cx + cheekW + 13} 188, ${cx + cheekW + 13} 203, ${cx + cheekW + 5} 208`}
+                  fill="none"
+                  stroke="#c28b66"
+                  strokeWidth="1.4"
+                  opacity="0.6"
+                />
+                <circle cx={cx + cheekW + 4} cy="196" r="2.2" fill="#c28b66" opacity="0.5" />
+              </g>
+
+              {/* 얼굴형 윤곽 (3D 래디얼 그라데이션) */}
               <path
-                d={`M ${cx} 192 L ${cx} 224 Q ${cx + 5} 230 ${cx} 232 Q ${cx - 6} 232 ${cx - 8} 228`}
+                d={facePath}
+                fill={modelGender === "female" ? "url(#femaleFaceGrad)" : "url(#faceShadeGrad)"}
+                stroke="none"
+              />
+
+              {/* 하안부 턱선 및 볼 윤곽선 */}
+              <path
+                d={`
+                  M ${cx - cheekW} 175
+                  C ${cx - cheekW} 185, ${cx - jawW} 242, ${cx - (modelGender === "female" ? 12 : 16)} ${chinY - 5}
+                  Q ${cx} ${chinY}, ${cx + (modelGender === "female" ? 12 : 16)} ${chinY - 5}
+                  C ${cx + jawW} 242, ${cx + cheekW} 185, ${cx + cheekW} 175
+                `}
                 fill="none"
                 stroke="#dca47e"
-                strokeWidth="1.8"
+                strokeWidth="1.3"
                 strokeLinecap="round"
-                strokeLinejoin="round"
               />
-              <circle cx={cx - 5} cy="229" r="1.1" fill="#c28b66" />
-              <circle cx={cx + 5} cy="229" r="1.1" fill="#c28b66" />
 
-              {/* 입술 */}
+              {/* 은은한 볼 생기 & 치크 블러셔 (Cheek Blush) */}
+              <ellipse
+                cx={cx - 42}
+                cy="214"
+                rx={modelGender === "female" ? 17 : 13}
+                ry={modelGender === "female" ? 9 : 6}
+                fill={modelGender === "female" ? "#fb7185" : "#f43f5e"}
+                opacity={modelGender === "female" ? 0.22 : 0.12}
+              />
+              <ellipse
+                cx={cx + 42}
+                cy="214"
+                rx={modelGender === "female" ? 17 : 13}
+                ry={modelGender === "female" ? 9 : 6}
+                fill={modelGender === "female" ? "#fb7185" : "#f43f5e"}
+                opacity={modelGender === "female" ? 0.22 : 0.12}
+              />
+
+              {/* 눈썹 (Eyebrows) */}
+              <g id="eyebrows">
+                {modelGender === "female" ? (
+                  // 여성형: 부드러운 아치형 파우더 브로우
+                  <>
+                    <path
+                      d={`M ${cx - 52} 173 Q ${cx - 34} 166 ${cx - 16} 174`}
+                      fill="none"
+                      stroke={hairColor.shadowHex}
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      opacity="0.82"
+                    />
+                    <path
+                      d={`M ${cx + 52} 173 Q ${cx + 34} 166 ${cx + 16} 174`}
+                      fill="none"
+                      stroke={hairColor.shadowHex}
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      opacity="0.82"
+                    />
+                  </>
+                ) : (
+                  // 남성형: 샤프하고 또렷한 스트레이트 브로우
+                  <>
+                    <path
+                      d={`M ${cx - 54} 174 Q ${cx - 36} 167 ${cx - 16} 175`}
+                      fill="none"
+                      stroke={hairColor.shadowHex}
+                      strokeWidth="3.0"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d={`M ${cx + 54} 174 Q ${cx + 36} 167 ${cx + 16} 175`}
+                      fill="none"
+                      stroke={hairColor.shadowHex}
+                      strokeWidth="3.0"
+                      strokeLinecap="round"
+                    />
+                  </>
+                )}
+              </g>
+
+              {/* 눈 (Eyes) - 초고화질 K-뷰티 매력적인 눈망울 */}
+              <g id="eyes">
+                {/* 좌측 눈 (Left Eye) */}
+                <g id="leftEye">
+                  {/* 쌍꺼풀 라인 */}
+                  <path
+                    d={`M ${cx - 52} 184 Q ${cx - 36} 179 ${cx - 20} 185`}
+                    fill="none"
+                    stroke="#c28b66"
+                    strokeWidth="1.0"
+                    strokeLinecap="round"
+                    opacity="0.65"
+                  />
+                  {/* 흰자위 */}
+                  <path
+                    d={`M ${cx - 54} 192 Q ${cx - 36} 182 ${cx - 18} 192 Q ${cx - 36} 201 ${cx - 54} 192 Z`}
+                    fill="#ffffff"
+                  />
+                  {/* 안구 상단 그림자 */}
+                  <path
+                    d={`M ${cx - 54} 192 Q ${cx - 36} 182 ${cx - 18} 192 Q ${cx - 36} 189 ${cx - 54} 192 Z`}
+                    fill="url(#eyeShadowGrad)"
+                  />
+                  {/* 홍채 & 동공 & 캐치라이트 */}
+                  <circle cx={cx - 36} cy="191.5" r="5.8" fill="url(#irisGrad)" />
+                  <circle cx={cx - 36} cy="191.5" r="2.6" fill="#000000" />
+                  <circle cx={cx - 38} cy="189.5" r="1.8" fill="#ffffff" />
+                  <circle cx={cx - 34} cy="193.5" r="0.9" fill="#ffffff" opacity="0.8" />
+                  {/* 상단 아이라인 & 속눈썹 */}
+                  <path
+                    d={`M ${cx - 55} 192 C ${cx - 48} 183, ${cx - 24} 183, ${cx - 17} 192`}
+                    fill="none"
+                    stroke="#0f172a"
+                    strokeWidth={modelGender === "female" ? "2.4" : "2.0"}
+                    strokeLinecap="round"
+                  />
+                  {/* 여성형 눈꼬리 윙 */}
+                  {modelGender === "female" && (
+                    <path
+                      d={`M ${cx - 53} 191 Q ${cx - 58} 189 ${cx - 59} 187`}
+                      stroke="#0f172a"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                  )}
+                  {/* 애교살 음영 (자연스럽고 은은한 하이라이트 & 섀도우) */}
+                  <path
+                    d={`M ${cx - 50} 196 Q ${cx - 36} 200 ${cx - 22} 196`}
+                    fill="none"
+                    stroke="#fff5ee"
+                    strokeWidth="1.2"
+                    opacity="0.28"
+                  />
+                  <path
+                    d={`M ${cx - 48} 198 Q ${cx - 36} 202 ${cx - 24} 198`}
+                    fill="none"
+                    stroke="#c28b66"
+                    strokeWidth="0.9"
+                    opacity="0.22"
+                  />
+                </g>
+
+                {/* 우측 눈 (Right Eye) */}
+                <g id="rightEye">
+                  {/* 쌍꺼풀 라인 */}
+                  <path
+                    d={`M ${cx + 20} 185 Q ${cx + 36} 179 ${cx + 52} 184`}
+                    fill="none"
+                    stroke="#c28b66"
+                    strokeWidth="1.0"
+                    strokeLinecap="round"
+                    opacity="0.65"
+                  />
+                  {/* 흰자위 */}
+                  <path
+                    d={`M ${cx + 18} 192 Q ${cx + 36} 182 ${cx + 54} 192 Q ${cx + 36} 201 ${cx + 18} 192 Z`}
+                    fill="#ffffff"
+                  />
+                  {/* 안구 상단 그림자 */}
+                  <path
+                    d={`M ${cx + 18} 192 Q ${cx + 36} 182 ${cx + 54} 192 Q ${cx + 36} 189 ${cx + 18} 192 Z`}
+                    fill="url(#eyeShadowGrad)"
+                  />
+                  {/* 홍채 & 동공 & 캐치라이트 */}
+                  <circle cx={cx + 36} cy="191.5" r="5.8" fill="url(#irisGrad)" />
+                  <circle cx={cx + 36} cy="191.5" r="2.6" fill="#000000" />
+                  <circle cx={cx + 34} cy="189.5" r="1.8" fill="#ffffff" />
+                  <circle cx={cx + 38} cy="193.5" r="0.9" fill="#ffffff" opacity="0.8" />
+                  {/* 상단 아이라인 */}
+                  <path
+                    d={`M ${cx + 17} 192 C ${cx + 24} 183, ${cx + 48} 183, ${cx + 55} 192`}
+                    fill="none"
+                    stroke="#0f172a"
+                    strokeWidth={modelGender === "female" ? "2.4" : "2.0"}
+                    strokeLinecap="round"
+                  />
+                  {/* 여성형 눈꼬리 윙 */}
+                  {modelGender === "female" && (
+                    <path
+                      d={`M ${cx + 53} 191 Q ${cx + 58} 189 ${cx + 59} 187`}
+                      stroke="#0f172a"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                  )}
+                  {/* 애교살 */}
+                  <path
+                    d={`M ${cx + 22} 196 Q ${cx + 36} 200 ${cx + 50} 196`}
+                    fill="none"
+                    stroke="#fff5ee"
+                    strokeWidth="1.2"
+                    opacity="0.28"
+                  />
+                  <path
+                    d={`M ${cx + 24} 198 Q ${cx + 36} 202 ${cx + 48} 198`}
+                    fill="none"
+                    stroke="#c28b66"
+                    strokeWidth="0.9"
+                    opacity="0.22"
+                  />
+                </g>
+              </g>
+
+              {/* 코 (Nose) - 3D 콧대 음영 & 코끝 콧망울 하이라이트 */}
+              <g id="nose">
+                {/* 콧대 좌측 자연스러운 음영 */}
+                <path
+                  d={`M ${cx - 3} 188 L ${cx - 4} 214 Q ${cx - 8} 222 ${cx - 8} 225`}
+                  fill="none"
+                  stroke="#c28b66"
+                  strokeWidth="1.3"
+                  strokeLinecap="round"
+                  opacity="0.4"
+                />
+                {/* 콧망울 및 콧구멍 곡선 */}
+                <path
+                  d={`M ${cx - 8} 225 Q ${cx} 229 ${cx + 8} 225`}
+                  fill="none"
+                  stroke="#c28b66"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+                {/* 콧구멍 소프트 음영 */}
+                <ellipse cx={cx - 5} cy="226" rx="2.0" ry="1.2" fill="#a46d49" opacity="0.55" />
+                <ellipse cx={cx + 5} cy="226" rx="2.0" ry="1.2" fill="#a46d49" opacity="0.55" />
+                {/* 코끝 물광 하이라이트 */}
+                <circle cx={cx} cy="222.5" r="2.4" fill="#ffffff" opacity="0.45" />
+              </g>
+
+              {/* 입술 (Lips) - 한국형 틴트 그라데이션 & 물광 볼륨 */}
               <g id="mouth">
+                {/* 인중(Philtrum) 라인 */}
+                <line x1={cx - 2.5} y1="232" x2={cx - 3.5} y2="240" stroke="#c28b66" strokeWidth="0.8" opacity="0.32" />
+                <line x1={cx + 2.5} y1="232" x2={cx + 3.5} y2="240" stroke="#c28b66" strokeWidth="0.8" opacity="0.32" />
+
+                {/* 윗입술 큐피트 활 (M라인) */}
                 <path
-                  d={`M ${cx - 20} 248 Q ${cx - 9} 244 ${cx} 246 Q ${cx + 9} 244 ${cx + 20} 248 Q ${cx} 251 ${cx - 20} 248 Z`}
-                  fill="url(#lipGrad)"
-                  opacity="0.85"
+                  d={`M ${cx - 20} 244 Q ${cx - 9} 240 ${cx} 242 Q ${cx + 9} 240 ${cx + 20} 244 Q ${cx} 246 ${cx - 20} 244 Z`}
+                  fill={modelGender === "female" ? "url(#femaleLipGrad)" : "url(#maleLipGrad)"}
                 />
+                {/* 입술 중앙 분할 라인 */}
                 <path
-                  d={`M ${cx - 20} 248 Q ${cx} 260 ${cx + 20} 248 Q ${cx} 252 ${cx - 20} 248 Z`}
-                  fill="url(#lipGrad)"
-                  opacity="0.95"
+                  d={`M ${cx - 19} 245 Q ${cx} 247.5 ${cx + 19} 245`}
+                  fill="none"
+                  stroke="#9f1239"
+                  strokeWidth="1.1"
+                  strokeLinecap="round"
+                  opacity="0.55"
                 />
+                {/* 아랫입술 볼륨 립 */}
+                <path
+                  d={`M ${cx - 19} 245 Q ${cx} 256 ${cx + 19} 245 Q ${cx} 247 ${cx - 19} 245 Z`}
+                  fill={modelGender === "female" ? "url(#femaleLipGrad)" : "url(#maleLipGrad)"}
+                />
+                {/* 입꼬리 음영 */}
+                <circle cx={cx - 20} cy="244" r="0.8" fill="#9f1239" opacity="0.5" />
+                <circle cx={cx + 20} cy="244" r="0.8" fill="#9f1239" opacity="0.5" />
+                {/* 아랫입술 은은한 물광 틴트 하이라이트 */}
+                <ellipse cx={cx} cy="250.5" rx="5.5" ry="1.2" fill="#ffffff" opacity={modelGender === "female" ? 0.35 : 0.18} />
               </g>
 
               {/* 수염 (Beard) 렌더링 */}
@@ -518,17 +911,17 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
             </g>
           )}
 
-          {/* 가상 피팅 레이어 (헤어, 안경, 모자) */}
+          {/* 가상 피팅 레이어 (헤어 프론트, 안경, 모자) */}
           {!showOriginal && (
             <g id="virtualFittingLayer">
-              {/* 1. 헤어스타일 렌더링 */}
+              {/* 1. 헤어 프론트 레이어 (정수리 볼륨 & 앞머리 가닥 & 옆머리 - 얼굴 앞에 렌더링) */}
               <g
-                id="hairStyle"
+                id="hairStyleFront"
                 transform={`translate(${cx}, ${120 + hairOffsetY}) scale(${hairScale}) translate(${-cx}, -120)`}
                 onClick={() => setControlMode("hair")}
                 className="cursor-pointer"
               >
-                {renderCleanHairSvg(hair.id, hairColor, cx, foreheadW)}
+                <HairSvgRenderer hairId={hair.id} color={hairColor} cx={cx} foreheadW={foreheadW} layer="front" />
               </g>
 
               {/* 2. 모자 / 악세서리 렌더링 */}
@@ -538,14 +931,14 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
                 </g>
               )}
 
-              {/* 3. 안경 프레임 렌더링 */}
+              {/* 3. 안경 프레임 렌더링 (8대 스타일 고품질 아세테이트/메탈 렌더러 연결) */}
               <g
                 id="eyewearFrame"
-                transform={`translate(${cx + glassesOffsetX}, ${196 + glassesOffsetY}) scale(${glassesScale}) translate(${-cx}, -196)`}
+                transform={`translate(${cx + glassesOffsetX}, ${192 + glassesOffsetY}) scale(${glassesScale}) translate(${-cx}, -192)`}
                 onClick={() => setControlMode("glasses")}
                 className="cursor-pointer"
               >
-                {renderCleanGlassesSvg(glasses, glassesColor, lensTint, cx)}
+                <GlassesSvgRenderer glasses={glasses} color={glassesColor} lensTint={lensTint} cx={cx} />
               </g>
             </g>
           )}
@@ -569,7 +962,7 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
 
               {/* 좌측 광대 핸들 (밀어서 쏙 넣기) */}
               <g
-                transform={`translate(${cx - cheekW}, 180)`}
+                transform={`translate(${cx - cheekW}, 182)`}
                 onPointerDown={(e) => handlePointerDown(e, "cheek_l")}
                 className="cursor-ew-resize group"
               >
@@ -582,7 +975,7 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
 
               {/* 우측 광대 핸들 */}
               <g
-                transform={`translate(${cx + cheekW}, 180)`}
+                transform={`translate(${cx + cheekW}, 182)`}
                 onPointerDown={(e) => handlePointerDown(e, "cheek_r")}
                 className="cursor-ew-resize group"
               >
@@ -619,96 +1012,88 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
                 </text>
               </g>
 
-              {/* 턱 끝 길이 핸들 (위아래 줄이기/늘리기) */}
+              {/* 턱 끝 핸들 (턱 길이 줄이기/늘리기) */}
               <g
                 transform={`translate(${cx}, ${chinY})`}
                 onPointerDown={(e) => handlePointerDown(e, "chin")}
                 className="cursor-ns-resize group"
               >
-                <circle r="12" fill="#F43F5E" opacity="0.2" className="animate-ping" />
-                <circle r="8" fill="#F43F5E" stroke="#ffffff" strokeWidth="2.5" />
-                <text x="0" y="20" fill="#E11D48" fontSize="10" fontWeight="bold" textAnchor="middle">
+                <circle r="13" fill="#EC4899" opacity="0.2" className="animate-ping" />
+                <circle r="8.0" fill="#EC4899" stroke="#ffffff" strokeWidth="2.5" />
+                <text x="0" y="20" fill="#DB2777" fontSize="10" fontWeight="bold" textAnchor="middle">
                   턱끝 줄이기
                 </text>
               </g>
             </g>
           )}
 
-          {/* [모드 2: 안경 직접 조절 핸들] 손으로 직접 끌어다 놓고 코너를 잡아 늘리고 줄이기 */}
+          {/* [모드 2: 안경 직접 조작 바운딩 박스] */}
           {controlMode === "glasses" && !showOriginal && (
-            <g id="glassesTransformBox">
-              <g transform={`translate(${cx + glassesOffsetX}, ${196 + glassesOffsetY}) scale(${glassesScale}) translate(${-cx}, -196)`}>
-                {/* 안경 둘레 바운딩 박스 */}
-                <rect
-                  x={cx - 75}
-                  y={174}
-                  width="150"
-                  height="46"
-                  rx="6"
-                  fill="rgba(49, 130, 246, 0.08)"
-                  stroke="#3182F6"
-                  strokeWidth="1.8"
-                  strokeDasharray="4,3"
-                />
+            <g
+              id="glassesTransformBox"
+              transform={`translate(${cx + glassesOffsetX}, ${196 + glassesOffsetY}) scale(${glassesScale}) translate(${-cx}, -196)`}
+            >
+              {/* 테두리 가이드 박스 */}
+              <rect
+                x={cx - 88}
+                y="166"
+                width="176"
+                height="62"
+                rx="6"
+                fill="none"
+                stroke="#3182F6"
+                strokeWidth="1.8"
+                strokeDasharray="4,3"
+                opacity="0.85"
+              />
 
-                {/* 중앙 이동 핸들 */}
-                <g
-                  transform={`translate(${cx}, 196)`}
-                  onPointerDown={(e) => handlePointerDown(e, "glasses_move")}
-                  className="cursor-move"
-                >
-                  <circle r="10" fill="#3182F6" stroke="#ffffff" strokeWidth="2" />
-                  <path d="M -4 0 L 4 0 M 0 -4 L 0 4" stroke="#ffffff" strokeWidth="1.8" />
-                </g>
+              {/* 가운데 이동 핸들 (Drag to Move) */}
+              <g
+                transform={`translate(${cx}, 166)`}
+                onPointerDown={(e) => handlePointerDown(e, "glasses_move")}
+                className="cursor-move"
+              >
+                <circle r="11" fill="#3182F6" stroke="#ffffff" strokeWidth="2" />
+                <path d="M -4 0 L 4 0 M 0 -4 L 0 4" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" />
+              </g>
 
-                {/* 우하단 크기 조절 코너 핸들 (직접 손으로 줄이고 늘리기) */}
-                <g
-                  transform={`translate(${cx + 75}, 220)`}
-                  onPointerDown={(e) => handlePointerDown(e, "glasses_scale")}
-                  className="cursor-nwse-resize"
-                >
-                  <circle r="8" fill="#3182F6" stroke="#ffffff" strokeWidth="2" />
-                  <path d="M -3 -3 L 3 3 M 3 -3 L -3 3" stroke="#ffffff" strokeWidth="1.2" />
-                </g>
+              {/* 우측 하단 크기 조절 모서리 핸들 (Pinch to Scale) */}
+              <g
+                transform={`translate(${cx + 88}, 228)`}
+                onPointerDown={(e) => handlePointerDown(e, "glasses_scale")}
+                className="cursor-nwse-resize"
+              >
+                <circle r="9" fill="#3182F6" stroke="#ffffff" strokeWidth="2" />
+                <path d="M -3 3 L 3 -3" stroke="#ffffff" strokeWidth="1.5" />
               </g>
             </g>
           )}
 
-          {/* [모드 3: 헤어 직접 조절 핸들] */}
+          {/* [모드 3: 헤어 직접 조작 바운딩 박스] */}
           {controlMode === "hair" && !showOriginal && (
-            <g id="hairTransformBox">
-              <g transform={`translate(${cx}, ${120 + hairOffsetY}) scale(${hairScale}) translate(${-cx}, -120)`}>
-                <rect
-                  x={cx - 110}
-                  y={55}
-                  width="220"
-                  height="165"
-                  rx="10"
-                  fill="rgba(16, 185, 129, 0.06)"
-                  stroke="#10B981"
-                  strokeWidth="1.8"
-                  strokeDasharray="4,3"
-                />
-
-                {/* 상하 위치 조절 핸들 */}
-                <g
-                  transform={`translate(${cx}, 60)`}
-                  onPointerDown={(e) => handlePointerDown(e, "hair_move")}
-                  className="cursor-ns-resize"
-                >
-                  <circle r="9" fill="#10B981" stroke="#ffffff" strokeWidth="2" />
-                  <path d="M 0 -4 L 0 4 M -3 -1 L 0 -4 L 3 -1" stroke="#ffffff" strokeWidth="1.4" fill="none" />
-                </g>
-
-                {/* 헤어 볼륨 코너 핸들 */}
-                <g
-                  transform={`translate(${cx + 110}, 60)`}
-                  onPointerDown={(e) => handlePointerDown(e, "hair_scale")}
-                  className="cursor-nwse-resize"
-                >
-                  <circle r="8" fill="#10B981" stroke="#ffffff" strokeWidth="2" />
-                  <path d="M -3 3 L 3 -3" stroke="#ffffff" strokeWidth="1.5" />
-                </g>
+            <g
+              id="hairTransformBox"
+              transform={`translate(${cx}, ${120 + hairOffsetY}) scale(${hairScale}) translate(${-cx}, -120)`}
+            >
+              <rect
+                x={cx - 110}
+                y="60"
+                width="220"
+                height="130"
+                rx="8"
+                fill="none"
+                stroke="#10B981"
+                strokeWidth="1.8"
+                strokeDasharray="4,3"
+                opacity="0.85"
+              />
+              <g transform={`translate(${cx}, 60)`} onPointerDown={(e) => handlePointerDown(e, "hair_move")} className="cursor-ns-resize">
+                <circle r="11" fill="#10B981" stroke="#ffffff" strokeWidth="2" />
+                <path d="M 0 -4 L 0 4 M -3 -1 L 0 -4 L 3 -1" stroke="#ffffff" strokeWidth="1.4" fill="none" />
+              </g>
+              <g transform={`translate(${cx + 110}, 60)`} onPointerDown={(e) => handlePointerDown(e, "hair_scale")} className="cursor-nwse-resize">
+                <circle r="9" fill="#10B981" stroke="#ffffff" strokeWidth="2" />
+                <path d="M -3 3 L 3 -3" stroke="#ffffff" strokeWidth="1.5" />
               </g>
             </g>
           )}
@@ -763,7 +1148,7 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
               </label>
               <input
                 type="range"
-                min="0.72"
+                min="0.70"
                 max="1.35"
                 step="0.02"
                 value={jawMod}
@@ -777,7 +1162,7 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
               </label>
               <input
                 type="range"
-                min="0.75"
+                min="0.72"
                 max="1.35"
                 step="0.02"
                 value={cheekMod}
@@ -792,7 +1177,7 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
               <input
                 type="range"
                 min="0.75"
-                max="1.3"
+                max="1.30"
                 step="0.02"
                 value={chinMod}
                 onChange={(e) => setChinMod(parseFloat(e.target.value))}
@@ -806,7 +1191,7 @@ export const FaceCanvasViewer: React.FC<FaceCanvasViewerProps> = ({
               <input
                 type="range"
                 min="0.75"
-                max="1.3"
+                max="1.35"
                 step="0.02"
                 value={glassesScale}
                 onChange={(e) => setGlassesScale(parseFloat(e.target.value))}
@@ -891,12 +1276,10 @@ function renderBeardSvg(beardId: string, cx: number, chinY: number) {
     case "beard_goatee":
       return (
         <g id="beardGoatee">
-          {/* 콧수염 */}
           <path
             d={`M ${cx - 16} 242 Q ${cx} 239 ${cx + 16} 242 Q ${cx} 245 ${cx - 16} 242 Z`}
             fill="#27272a"
           />
-          {/* 턱 끝 고티 수염 */}
           <path
             d={`M ${cx - 12} 265 Q ${cx} 263 ${cx + 12} 265 L ${cx + 8} ${chinY - 2} Q ${cx} ${chinY + 4} ${cx - 8} ${chinY - 2} Z`}
             fill="#27272a"
@@ -910,7 +1293,6 @@ function renderBeardSvg(beardId: string, cx: number, chinY: number) {
             d={`M ${cx - 16} 242 Q ${cx} 239 ${cx + 16} 242 Q ${cx} 245 ${cx - 16} 242 Z`}
             fill="#27272a"
           />
-          {/* 턱선 따라 연결된 단정한 수염 */}
           <path
             d={`M ${cx - 50} 240 C ${cx - 40} 265, ${cx - 20} ${chinY - 2}, ${cx} ${chinY} C ${cx + 20} ${chinY - 2}, ${cx + 40} 265, ${cx + 50} 240 L ${cx + 44} 245 C ${cx + 36} 260, ${cx + 16} ${chinY - 5}, ${cx} ${chinY - 4} C ${cx - 16} ${chinY - 5}, ${cx - 36} 260, ${cx - 44} 245 Z`}
             fill="#27272a"
@@ -947,19 +1329,16 @@ function renderAccessorySvg(accId: string, cx: number) {
             d={`M ${cx - 102} 145 Q ${cx} 128 ${cx + 102} 145 Q ${cx + 80} 162 ${cx} 160 Q ${cx - 80} 162 ${cx - 102} 145 Z`}
             fill="#0f172a"
           />
-          {/* 볼캡 스티치 & 버튼 */}
           <circle cx={cx} cy="50" r="3.5" fill="#334155" />
         </g>
       );
     case "acc_beanie":
       return (
         <g id="accBeanie">
-          {/* 니트 비니 돔 */}
           <path
             d={`M ${cx - 92} 150 C ${cx - 98} 38, ${cx + 98} 38, ${cx + 92} 150 Z`}
             fill="#3f3f46"
           />
-          {/* 비니 접힌 밑단 */}
           <rect x={cx - 95} y="132" width="190" height="22" rx="6" fill="#27272a" />
           <line x1={cx - 95} y1="143" x2={cx + 95} y2="143" stroke="#52525b" strokeWidth="1" strokeDasharray="3,3" />
         </g>
@@ -967,7 +1346,6 @@ function renderAccessorySvg(accId: string, cx: number) {
     case "acc_beret":
       return (
         <g id="accBeret">
-          {/* 프렌치 베레모 (사선으로 얹음) */}
           <path
             d={`M ${cx - 110} 130 C ${cx - 100} 35, ${cx + 120} 55, ${cx + 105} 140 C ${cx + 60} 115, ${cx - 60} 115, ${cx - 110} 130 Z`}
             fill="#312e81"
@@ -978,389 +1356,11 @@ function renderAccessorySvg(accId: string, cx: number) {
     case "acc_headband":
       return (
         <g id="accHeadband">
-          {/* 스포티 헤어밴드 */}
           <rect x={cx - 92} y="130" width="184" height="18" rx="5" fill="#ffffff" stroke="#e2e8f0" strokeWidth="1.5" />
           <line x1={cx - 92} y1="139" x2={cx + 92} y2="139" stroke="#ef4444" strokeWidth="3" />
         </g>
       );
     default:
       return null;
-  }
-}
-
-// ==========================================
-// 고품질 헤어스타일 SVG 렌더러
-// ==========================================
-function renderCleanHairSvg(hairId: string, color: HairColorOption, cx: number, foreheadW: number) {
-  const hairFill = "url(#hairGrad)";
-
-  switch (hairId) {
-    case "hair_seethrough_dandy":
-      return (
-        <g id="hairSeethroughDandy">
-          <path
-            d={`M ${cx - 94} 150 C ${cx - 104} 65, ${cx + 104} 65, ${cx + 94} 150 C ${cx + 92} 190, ${cx + 82} 220, ${cx + 76} 225 L ${cx + 70} 185 C ${cx + 65} 160, ${cx + 45} 145, ${cx} 145 C ${cx - 45} 145, ${cx - 65} 160, ${cx - 70} 185 L ${cx - 76} 225 C ${cx - 82} 220, ${cx - 92} 190, ${cx - 94} 150 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx - 78} 140 C ${cx - 60} 165, ${cx - 48} 175, ${cx - 38} 176 Q ${cx - 26} 170, ${cx - 14} 177 Q ${cx} 170, ${cx + 14} 177 Q ${cx + 26} 170, ${cx + 38} 176 C ${cx + 50} 172, ${cx + 65} 160, ${cx + 78} 140 C ${cx + 40} 146, ${cx - 40} 146, ${cx - 78} 140 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx - 45} 95 Q ${cx} 84 ${cx + 45} 95`}
-            stroke={color.highlightHex}
-            strokeWidth="3.2"
-            fill="none"
-            opacity="0.5"
-            strokeLinecap="round"
-          />
-        </g>
-      );
-
-    case "hair_guile":
-      return (
-        <g id="hairGuile">
-          <path
-            d={`M ${cx - 95} 155 C ${cx - 105} 65, ${cx + 105} 65, ${cx + 95} 155 C ${cx + 95} 220, ${cx + 82} 245, ${cx + 78} 248 L ${cx + 72} 205 C ${cx + 70} 175, ${cx + 40} 155, ${cx} 155 C ${cx - 40} 155, ${cx - 70} 175, ${cx - 72} 205 L ${cx - 78} 248 C ${cx - 82} 245, ${cx - 95} 220, ${cx - 95} 155 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx - 80} 150 C ${cx - 60} 140, ${cx - 30} 155, ${cx - 15} 175 C ${cx - 30} 160, ${cx - 60} 158, ${cx - 78} 170 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx - 15} 175 C ${cx + 10} 160, ${cx + 50} 165, ${cx + 62} 185 C ${cx + 45} 175, ${cx + 20} 172, ${cx - 10} 175 Z`}
-            fill={hairFill}
-          />
-        </g>
-      );
-
-    case "hair_as_perm":
-      return (
-        <g id="hairAsPerm">
-          <path
-            d={`M ${cx - 98} 160 C ${cx - 108} 62, ${cx + 108} 62, ${cx + 98} 160 C ${cx + 95} 220, ${cx + 80} 250, ${cx + 74} 248 L ${cx + 70} 205 C ${cx + 65} 170, ${cx + 35} 155, ${cx} 155 C ${cx - 35} 155, ${cx - 65} 170, ${cx - 70} 205 L ${cx - 74} 248 C ${cx - 80} 250, ${cx - 95} 220, ${cx - 98} 160 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx - 8} 152 C ${cx - 20} 175, ${cx - 45} 178, ${cx - 60} 185 C ${cx - 48} 168, ${cx - 28} 160, ${cx - 8} 152 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx + 8} 152 C ${cx + 20} 175, ${cx + 45} 178, ${cx + 60} 185 C ${cx + 48} 168, ${cx + 28} 160, ${cx + 8} 152 Z`}
-            fill={hairFill}
-          />
-        </g>
-      );
-
-    case "hair_leaf":
-      return (
-        <g id="hairLeaf">
-          <path
-            d={`M ${cx - 105} 155 C ${cx - 115} 60, ${cx + 115} 60, ${cx + 105} 155 C ${cx + 108} 225, ${cx + 92} 280, ${cx + 68} 305 C ${cx + 82} 260, ${cx + 88} 210, ${cx + 78} 170 C ${cx - 78} 170, ${cx - 88} 210, ${cx - 82} 260 C ${cx - 68} 305, ${cx - 92} 280, ${cx - 105} 155 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx} 145 C ${cx - 45} 170, ${cx - 75} 185, ${cx - 85} 205 C ${cx - 70} 175, ${cx - 35} 158, ${cx} 145 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx} 145 C ${cx + 45} 170, ${cx + 75} 185, ${cx + 85} 205 C ${cx + 70} 175, ${cx + 35} 158, ${cx} 145 Z`}
-            fill={hairFill}
-          />
-        </g>
-      );
-
-    case "hair_ivy_league":
-      return (
-        <g id="hairIvyLeague">
-          <path
-            d={`M ${cx - 85} 155 C ${cx - 90} 80, ${cx + 90} 80, ${cx + 85} 155 C ${cx + 82} 195, ${cx + 75} 225, ${cx + 70} 225 L ${cx + 66} 190 C ${cx + 60} 160, ${cx + 30} 150, ${cx} 148 C ${cx - 30} 150, ${cx - 60} 160, ${cx - 66} 190 L ${cx - 70} 225 C ${cx - 75} 225, ${cx - 82} 195, ${cx - 85} 155 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx - 35} 155 C ${cx - 20} 135, ${cx + 20} 135, ${cx + 35} 155 L ${cx + 20} 165 L ${cx - 20} 165 Z`}
-            fill={hairFill}
-          />
-        </g>
-      );
-
-    case "hair_layered_c_curl":
-    case "hair_sidebang_wave":
-      return (
-        <g id="hairLongWave">
-          <path
-            d={`M ${cx - 110} 150 C ${cx - 120} 58, ${cx + 120} 58, ${cx + 110} 150 C ${cx + 125} 260, ${cx + 120} 370, ${cx + 90} 430 C ${cx + 105} 340, ${cx + 95} 240, ${cx + 82} 180 C ${cx - 82} 180, ${cx - 95} 240, ${cx - 105} 340 C ${cx - 120} 370, ${cx - 125} 260, ${cx - 110} 150 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx} 145 C ${cx - 45} 170, ${cx - 80} 210, ${cx - 65} 260 C ${cx - 58} 220, ${cx - 38} 180, ${cx} 155 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx} 145 C ${cx + 45} 170, ${cx + 80} 210, ${cx + 65} 260 C ${cx + 58} 220, ${cx + 38} 180, ${cx} 155 Z`}
-            fill={hairFill}
-          />
-        </g>
-      );
-
-    case "hair_tassel_bob":
-      return (
-        <g id="hairTasselBob">
-          <path
-            d={`M ${cx - 102} 150 C ${cx - 110} 65, ${cx + 110} 65, ${cx + 102} 150 L ${cx + 98} 290 L ${cx + 74} 290 L ${cx + 80} 180 C ${cx - 80} 180, ${cx - 74} 290, ${cx - 74} 290 L ${cx - 98} 290 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx - 60} 150 C ${cx - 40} 180, ${cx + 40} 180, ${cx + 60} 150 Z`}
-            fill={hairFill}
-          />
-        </g>
-      );
-
-    default:
-      return (
-        <g id="hairDefault">
-          <path
-            d={`M ${cx - 96} 160 C ${cx - 105} 65, ${cx + 105} 65, ${cx + 96} 160 C ${cx + 95} 220, ${cx + 82} 245, ${cx + 78} 250 L ${cx + 72} 210 C ${cx + 70} 180, ${cx + 50} 160, ${cx} 160 C ${cx - 50} 160, ${cx - 70} 180, ${cx - 72} 210 L ${cx - 78} 250 C ${cx - 82} 245, ${cx - 95} 220, ${cx - 96} 160 Z`}
-            fill={hairFill}
-          />
-          <path
-            d={`M ${cx - 75} 150 C ${cx - 40} 180, ${cx + 40} 180, ${cx + 75} 150 Z`}
-            fill={hairFill}
-          />
-        </g>
-      );
-  }
-}
-
-// ==========================================
-// 고품질 안경 SVG 렌더러 (틴트 렌즈 & 도수렌즈 완벽 반영)
-// ==========================================
-function renderCleanGlassesSvg(
-  glasses: GlassesOption,
-  color: GlassesColorOption,
-  lensTint: LensTintOption,
-  cx: number
-) {
-  const cy = 196;
-  const frameColor = color.frameColor;
-  const templeColor = color.templeColor;
-  const opacity = color.opacity;
-
-  const leftLensX = cx - 38;
-  const rightLensX = cx + 38;
-  const lensFill = "url(#lensTintGrad)";
-
-  switch (glasses.shapeStyle) {
-    case "arnel":
-      return (
-        <g id="glassesArnel" opacity={opacity}>
-          {/* 키홀 브릿지 */}
-          <path
-            d={`M ${leftLensX + 22} ${cy - 7} Q ${cx} ${cy - 10} ${rightLensX - 22} ${cy - 7} L ${rightLensX - 22} ${cy + 5} Q ${cx} ${cy - 1} ${leftLensX + 22} ${cy + 5} Z`}
-            fill={frameColor}
-          />
-          {/* 좌측 렌즈 & 림 */}
-          <rect
-            x={leftLensX - 26}
-            y={cy - 19}
-            width="48"
-            height="38"
-            rx="10"
-            fill={lensFill}
-            stroke={frameColor}
-            strokeWidth="5.5"
-          />
-          <rect
-            x={leftLensX - 24}
-            y={cy - 17}
-            width="44"
-            height="34"
-            rx="8"
-            fill="url(#lensReflect)"
-          />
-
-          {/* 우측 렌즈 & 림 */}
-          <rect
-            x={rightLensX - 22}
-            y={cy - 19}
-            width="48"
-            height="38"
-            rx="10"
-            fill={lensFill}
-            stroke={frameColor}
-            strokeWidth="5.5"
-          />
-          <rect
-            x={rightLensX - 20}
-            y={cy - 17}
-            width="44"
-            height="34"
-            rx="8"
-            fill="url(#lensReflect)"
-          />
-
-          {/* 다이아몬드 리벳 */}
-          <circle cx={leftLensX - 22} cy={cy - 12} r="1.3" fill="#e2e8f0" />
-          <circle cx={rightLensX + 22} cy={cy - 12} r="1.3" fill="#e2e8f0" />
-
-          {/* 템플 */}
-          <line x1={leftLensX - 26} y1={cy - 12} x2={leftLensX - 48} y2={cy - 9} stroke={templeColor} strokeWidth="4" strokeLinecap="round" />
-          <line x1={rightLensX + 26} y1={cy - 12} x2={rightLensX + 48} y2={cy - 9} stroke={templeColor} strokeWidth="4" strokeLinecap="round" />
-        </g>
-      );
-
-    case "crown_panto":
-      return (
-        <g id="glassesCrownPanto" opacity={opacity}>
-          <path d={`M ${cx - 12} ${cy - 5} Q ${cx} ${cy - 8} ${cx + 12} ${cy - 5}`} stroke={frameColor} strokeWidth="4" fill="none" />
-
-          <path
-            d={`M ${leftLensX - 23} ${cy - 8} L ${leftLensX - 11} ${cy - 18} L ${leftLensX + 11} ${cy - 18} L ${leftLensX + 21} ${cy - 8} C ${leftLensX + 21} ${cy + 16}, ${leftLensX - 23} ${cy + 16}, ${leftLensX - 23} ${cy - 8} Z`}
-            fill={lensFill}
-            stroke={frameColor}
-            strokeWidth="4.5"
-            strokeLinejoin="round"
-          />
-          <path
-            d={`M ${rightLensX - 21} ${cy - 8} L ${rightLensX - 11} ${cy - 18} L ${rightLensX + 11} ${cy - 18} L ${rightLensX + 23} ${cy - 8} C ${rightLensX + 23} ${cy + 16}, ${rightLensX - 21} ${cy + 16}, ${rightLensX - 21} ${cy - 8} Z`}
-            fill={lensFill}
-            stroke={frameColor}
-            strokeWidth="4.5"
-            strokeLinejoin="round"
-          />
-
-          <line x1={leftLensX - 23} y1={cy - 8} x2={leftLensX - 46} y2={cy - 5} stroke={templeColor} strokeWidth="3" />
-          <line x1={rightLensX + 23} y1={cy - 8} x2={rightLensX + 46} y2={cy - 5} stroke={templeColor} strokeWidth="3" />
-        </g>
-      );
-
-    case "browline":
-      return (
-        <g id="glassesBrowline" opacity={opacity}>
-          <path d={`M ${cx - 13} ${cy - 2} Q ${cx} ${cy - 7} ${cx + 13} ${cy - 2}`} stroke="#cbd5e1" strokeWidth="2.5" fill="none" />
-
-          <path
-            d={`M ${leftLensX - 28} ${cy - 5} Q ${leftLensX} ${cy - 20} ${leftLensX + 22} ${cy - 7} L ${leftLensX + 19} ${cy - 1} Q ${leftLensX} ${cy - 13} ${leftLensX - 25} ${cy - 1} Z`}
-            fill={frameColor}
-          />
-          <path
-            d={`M ${rightLensX - 22} ${cy - 7} Q ${rightLensX} ${cy - 20} ${rightLensX + 28} ${cy - 5} L ${rightLensX + 25} ${cy - 1} Q ${rightLensX} ${cy - 13} ${rightLensX - 19} ${cy - 1} Z`}
-            fill={frameColor}
-          />
-
-          <path
-            d={`M ${leftLensX - 25} ${cy - 2} C ${leftLensX - 25} ${cy + 18}, ${leftLensX + 19} ${cy + 18}, ${leftLensX + 19} ${cy - 2}`}
-            stroke="#94a3b8"
-            strokeWidth="2.2"
-            fill={lensFill}
-          />
-          <path
-            d={`M ${rightLensX - 19} ${cy - 2} C ${rightLensX - 19} ${cy + 18}, ${rightLensX + 25} ${cy + 18}, ${rightLensX + 25} ${cy - 2}`}
-            stroke="#94a3b8"
-            strokeWidth="2.2"
-            fill={lensFill}
-          />
-
-          <line x1={leftLensX - 28} y1={cy - 5} x2={leftLensX - 48} y2={cy - 3} stroke={templeColor} strokeWidth="3" />
-          <line x1={rightLensX + 28} y1={cy - 5} x2={rightLensX + 48} y2={cy - 3} stroke={templeColor} strokeWidth="3" />
-        </g>
-      );
-
-    case "round_metal":
-      return (
-        <g id="glassesRoundMetal" opacity={opacity}>
-          <path d={`M ${cx - 13} ${cy - 3} Q ${cx} ${cy - 10} ${cx + 13} ${cy - 3}`} stroke={frameColor} strokeWidth="2.0" fill="none" />
-
-          <circle cx={leftLensX} cy={cy} r="21" fill={lensFill} stroke={frameColor} strokeWidth="2.0" />
-          <circle cx={rightLensX} cy={cy} r="21" fill={lensFill} stroke={frameColor} strokeWidth="2.0" />
-
-          <circle cx={leftLensX} cy={cy} r="20" fill="url(#lensReflect)" />
-          <circle cx={rightLensX} cy={cy} r="20" fill="url(#lensReflect)" />
-
-          <line x1={leftLensX - 21} y1={cy} x2={leftLensX - 46} y2={cy + 2} stroke={templeColor} strokeWidth="1.8" />
-          <line x1={rightLensX + 21} y1={cy} x2={rightLensX + 46} y2={cy + 2} stroke={templeColor} strokeWidth="1.8" />
-        </g>
-      );
-
-    case "square_metal":
-      return (
-        <g id="glassesSquareMetal" opacity={opacity}>
-          <line x1={cx - 12} y1={cy - 5} x2={cx + 12} y2={cy - 5} stroke={frameColor} strokeWidth="2.2" />
-
-          <rect
-            x={leftLensX - 24}
-            y={cy - 15}
-            width="45"
-            height="30"
-            rx="4"
-            fill={lensFill}
-            stroke={frameColor}
-            strokeWidth="2.2"
-          />
-          <rect
-            x={rightLensX - 21}
-            y={cy - 15}
-            width="45"
-            height="30"
-            rx="4"
-            fill={lensFill}
-            stroke={frameColor}
-            strokeWidth="2.2"
-          />
-
-          <line x1={leftLensX - 24} y1={cy - 11} x2={leftLensX - 46} y2={cy - 8} stroke={templeColor} strokeWidth="1.8" />
-          <line x1={rightLensX + 24} y1={cy - 11} x2={rightLensX + 46} y2={cy - 8} stroke={templeColor} strokeWidth="1.8" />
-        </g>
-      );
-
-    case "rimless":
-      return (
-        <g id="glassesRimless" opacity={0.88}>
-          <path d={`M ${cx - 12} ${cy - 3} Q ${cx} ${cy - 8} ${cx + 12} ${cy - 3}`} stroke="#94a3b8" strokeWidth="1.8" fill="none" />
-          <circle cx={cx - 12} cy={cy - 3} r="1.3" fill="#475569" />
-          <circle cx={cx + 12} cy={cy - 3} r="1.3" fill="#475569" />
-
-          <rect
-            x={leftLensX - 23}
-            y={cy - 13}
-            width="43"
-            height="27"
-            rx="5"
-            fill={lensFill}
-            stroke="#94a3b8"
-            strokeWidth="0.8"
-            strokeDasharray="2,2"
-          />
-          <rect
-            x={rightLensX - 20}
-            y={cy - 13}
-            width="43"
-            height="27"
-            rx="5"
-            fill={lensFill}
-            stroke="#94a3b8"
-            strokeWidth="0.8"
-            strokeDasharray="2,2"
-          />
-
-          <circle cx={leftLensX - 23} cy={cy - 8} r="1.3" fill="#475569" />
-          <circle cx={rightLensX + 23} cy={cy - 8} r="1.3" fill="#475569" />
-          <line x1={leftLensX - 23} y1={cy - 8} x2={leftLensX - 45} y2={cy - 6} stroke="#94a3b8" strokeWidth="1.6" />
-          <line x1={rightLensX + 23} y1={cy - 8} x2={rightLensX + 45} y2={cy - 6} stroke="#94a3b8" strokeWidth="1.6" />
-        </g>
-      );
-
-    default:
-      return (
-        <g id="glassesDefault" opacity={opacity}>
-          <line x1={cx - 13} y1={cy - 5} x2={cx + 13} y2={cy - 5} stroke={frameColor} strokeWidth="4.5" />
-          <rect x={leftLensX - 24} y={cy - 17} width="46" height="34" rx="8" fill={lensFill} stroke={frameColor} strokeWidth="5" />
-          <rect x={rightLensX - 22} y={cy - 17} width="46" height="34" rx="8" fill={lensFill} stroke={frameColor} strokeWidth="5" />
-          <line x1={leftLensX - 24} y1={cy - 10} x2={leftLensX - 46} y2={cy - 7} stroke={templeColor} strokeWidth="3.5" />
-          <line x1={rightLensX + 24} y1={cy - 10} x2={rightLensX + 46} y2={cy - 7} stroke={templeColor} strokeWidth="3.5" />
-        </g>
-      );
   }
 }
