@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-30T14:47:44.607Z",
+  "updatedAt": "2026-10-30T20:22:29.645Z",
   "version": "1.2.0",
   "source": "toss-inapp-pc-catalog",
   "exchangeRateUsd": 1385,
@@ -20,10 +20,10 @@
           "tdp": 58,
           "price": 113000,
           "socket": "LGA1700",
-          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=9773715464&itemId=29256960997&vendorItemId=94424900804&traceid=V0-153-6f0a4699625e8758&requestid=20261030234429490290685747&token=31850C%7CMIXED&pt=0&slot=6",
+          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=9773715464&itemId=29256960997&vendorItemId=94424900804&traceid=V0-153-6f0a4699625e8758&requestid=20261031051816332067468503&token=31850C%7CGM&pt=0&slot=4",
           "danawaPrice": 110000,
           "danawaUrl": "https://search.danawa.com/?query=Core%20i3-12100F&tab=main",
-          "lastSyncedAt": "2026-10-30T14:44:29.779Z",
+          "lastSyncedAt": "2026-10-30T20:18:16.624Z",
           "coupangPrice": 113000
         },
         {
@@ -34,10 +34,10 @@
           "tdp": 65,
           "price": 149560,
           "socket": "AM4",
-          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=9366255180&itemId=27794212263&vendorItemId=94754402521&traceid=V0-153-6168e9b506232d1d&requestid=20261030234432413039478893&token=31850C%7CGM&pt=0&slot=4",
+          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=9366255180&itemId=27794212263&vendorItemId=94754402521&traceid=V0-153-6168e9b506232d1d&requestid=20261031051819513067469470&token=31850C%7CMIXED&pt=0&slot=6",
           "danawaPrice": 149560,
           "danawaUrl": "https://search.danawa.com/?query=%EB%9D%BC%EC%9D%B4%EC%A0%A0%205%205600&tab=main",
-          "lastSyncedAt": "2026-10-30T14:44:32.586Z",
+          "lastSyncedAt": "2026-10-30T20:18:19.790Z",
           "coupangPrice": 157390
         },
         {
@@ -51,7 +51,7 @@
           "danawaPrice": 145000,
           "danawaUrl": "https://search.danawa.com/?query=%EB%9D%BC%EC%9D%B4%EC%A0%A0%205%205600G&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%9D%BC%EC%9D%B4%EC%A0%A0%205%205600G",
-          "lastSyncedAt": "2026-10-30T14:44:35.255Z"
+          "lastSyncedAt": "2026-10-30T20:18:22.900Z"
         },
         {
           "id": "cpu19",
@@ -63,8 +63,8 @@
           "socket": "LGA1700",
           "danawaPrice": 145000,
           "danawaUrl": "https://search.danawa.com/?query=Core%20i5-12400F&tab=main",
-          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=9778536489&itemId=29273991931&vendorItemId=94424832321&traceid=V0-153-8899f4126b14905a&requestid=20261030234437188019318720&token=31850C%7CMIXED&pt=0&slot=8",
-          "lastSyncedAt": "2026-10-30T14:44:37.434Z",
+          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=9778536489&itemId=29273991931&vendorItemId=94424832321&traceid=V0-153-8899f4126b14905a&requestid=20261031051825995279722168&token=31850C%7CMIXED&pt=0&slot=9",
+          "lastSyncedAt": "2026-10-30T20:18:26.293Z",
           "coupangPrice": 155400
         },
         {
@@ -75,10 +75,10 @@
           "tdp": 65,
           "price": 165990,
           "socket": "AM5",
-          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=9795009001&itemId=29327980753&vendorItemId=96242253903&traceid=V0-153-3f3da7fa1b95975e&requestid=20261030234439554290688934&token=31850C%7CGM&pt=0&slot=3",
+          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=9795009001&itemId=29327980753&vendorItemId=96242253903&traceid=V0-153-3f3da7fa1b95975e&requestid=20261031051829211074442279&token=31850C%7CMIXED&pt=0&slot=4",
           "danawaPrice": 165990,
           "danawaUrl": "https://search.danawa.com/?query=%EB%9D%BC%EC%9D%B4%EC%A0%A0%205%207500F&tab=main",
-          "lastSyncedAt": "2026-10-30T14:44:39.777Z",
+          "lastSyncedAt": "2026-10-30T20:18:29.398Z",
           "coupangPrice": 167000
         },
         {
@@ -91,8 +91,8 @@
           "socket": "AM5",
           "danawaPrice": 213830,
           "danawaUrl": "https://search.danawa.com/?query=%EB%9D%BC%EC%9D%B4%EC%A0%A0%205%207600&tab=main",
-          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=7338075841&itemId=18853825402&vendorItemId=95306423515&traceid=V0-153-2d283a8995f62242&requestid=20261030234441687253584246&token=31850C%7CGM&pt=0&slot=1",
-          "lastSyncedAt": "2026-10-30T14:44:41.834Z",
+          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=7338075841&itemId=18853825402&vendorItemId=95306423515&traceid=V0-153-2d283a8995f62242&requestid=20261031051831988180832772&token=31850C%7CMIXED&pt=0&slot=3",
+          "lastSyncedAt": "2026-10-30T20:18:32.224Z",
           "coupangPrice": 223630
         },
         {
@@ -105,8 +105,8 @@
           "socket": "LGA1700",
           "danawaPrice": 220000,
           "danawaUrl": "https://search.danawa.com/?query=Core%20i5-13400F&tab=main",
-          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=7056788647&itemId=17484724773&vendorItemId=94424650049&traceid=V0-153-284028af2432870b&requestid=20261030234443899245345478&token=31850C%7CMIXED&pt=0&slot=1",
-          "lastSyncedAt": "2026-10-30T14:44:44.166Z",
+          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=7056788647&itemId=17484724773&vendorItemId=94424650049&traceid=V0-153-284028af2432870b&requestid=20261031051835249307132923&token=31850C%7CMIXED&pt=0&slot=2",
+          "lastSyncedAt": "2026-10-30T20:18:35.448Z",
           "coupangPrice": 175000
         },
         {
@@ -119,8 +119,8 @@
           "socket": "LGA1700",
           "danawaPrice": 210869,
           "danawaUrl": "https://search.danawa.com/?query=Core%20i5-14400F&tab=main",
-          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=7837079635&itemId=21325225386&vendorItemId=95085157079&traceid=V0-153-e5da499feaebf99b&requestid=20261030234446485275233803&token=31850C%7CMIXED&pt=0&slot=6",
-          "lastSyncedAt": "2026-10-30T14:44:46.733Z",
+          "buyUrl": "https://link.coupang.com/re/AFFSDP?lptag=AF6914951&pageKey=7837079635&itemId=21325225386&vendorItemId=95085157079&traceid=V0-153-e5da499feaebf99b&requestid=20261031051837996180834150&token=31850C%7CMIXED&pt=0&slot=6",
+          "lastSyncedAt": "2026-10-30T20:18:38.203Z",
           "coupangPrice": 189200
         },
         {
@@ -134,7 +134,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%9D%BC%EC%9D%B4%EC%A0%A0%205%209600X",
           "danawaPrice": 255262,
           "danawaUrl": "https://search.danawa.com/?query=%EB%9D%BC%EC%9D%B4%EC%A0%A0%205%209600X&tab=main",
-          "lastSyncedAt": "2026-10-30T14:44:48.712Z"
+          "lastSyncedAt": "2026-10-30T20:18:40.784Z"
         },
         {
           "id": "cpu2",
@@ -147,7 +147,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Core%20i5-14600K",
           "danawaPrice": 399780,
           "danawaUrl": "https://search.danawa.com/?query=Core%20i5-14600K&tab=main",
-          "lastSyncedAt": "2026-10-30T14:44:50.494Z"
+          "lastSyncedAt": "2026-10-30T20:18:42.951Z"
         },
         {
           "id": "cpu23",
@@ -160,7 +160,7 @@
           "danawaPrice": 349920,
           "danawaUrl": "https://search.danawa.com/?query=%EB%9D%BC%EC%9D%B4%EC%A0%A0%207%207700&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%9D%BC%EC%9D%B4%EC%A0%A0%207%207700",
-          "lastSyncedAt": "2026-10-30T14:44:52.285Z"
+          "lastSyncedAt": "2026-10-30T20:18:45.419Z"
         },
         {
           "id": "cpu24",
@@ -173,7 +173,7 @@
           "danawaPrice": 392950,
           "danawaUrl": "https://search.danawa.com/?query=%EB%9D%BC%EC%9D%B4%EC%A0%A0%207%209700X&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%9D%BC%EC%9D%B4%EC%A0%A0%207%209700X",
-          "lastSyncedAt": "2026-10-30T14:44:54.335Z"
+          "lastSyncedAt": "2026-10-30T20:18:48.336Z"
         },
         {
           "id": "cpu3",
@@ -186,7 +186,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%9D%BC%EC%9D%B4%EC%A0%A0%207%207800X3D",
           "danawaPrice": 386040,
           "danawaUrl": "https://search.danawa.com/?query=%EB%9D%BC%EC%9D%B4%EC%A0%A0%207%207800X3D&tab=main",
-          "lastSyncedAt": "2026-10-30T14:44:56.424Z"
+          "lastSyncedAt": "2026-10-30T20:18:51.066Z"
         },
         {
           "id": "cpu25",
@@ -199,7 +199,7 @@
           "danawaPrice": 562810,
           "danawaUrl": "https://search.danawa.com/?query=Core%20i7-14700K&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Core%20i7-14700K",
-          "lastSyncedAt": "2026-10-30T14:44:58.899Z"
+          "lastSyncedAt": "2026-10-30T20:18:53.930Z"
         },
         {
           "id": "cpu6",
@@ -212,7 +212,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Core%20Ultra%207%20265K",
           "danawaPrice": 505910,
           "danawaUrl": "https://search.danawa.com/?query=Core%20Ultra%207%20265K&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:01.409Z"
+          "lastSyncedAt": "2026-10-30T20:18:57.162Z"
         },
         {
           "id": "cpu7",
@@ -220,12 +220,12 @@
           "sub": "8C16T / 차세대 3D V-Cache / 최고 프레임",
           "score": 95,
           "tdp": 120,
-          "price": 588720,
+          "price": 588699,
           "socket": "AM5",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%9D%BC%EC%9D%B4%EC%A0%A0%207%209800X3D",
-          "danawaPrice": 588720,
+          "danawaPrice": 588699,
           "danawaUrl": "https://search.danawa.com/?query=%EB%9D%BC%EC%9D%B4%EC%A0%A0%207%209800X3D&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:03.347Z"
+          "lastSyncedAt": "2026-10-30T20:19:00.630Z"
         },
         {
           "id": "cpu26",
@@ -238,7 +238,7 @@
           "danawaPrice": 768000,
           "danawaUrl": "https://search.danawa.com/?query=Core%20i9-14900K&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Core%20i9-14900K",
-          "lastSyncedAt": "2026-10-30T14:45:05.494Z"
+          "lastSyncedAt": "2026-10-30T20:19:03.402Z"
         },
         {
           "id": "cpu27",
@@ -251,7 +251,7 @@
           "danawaPrice": 891269,
           "danawaUrl": "https://search.danawa.com/?query=Core%20Ultra%209%20285K&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Core%20Ultra%209%20285K",
-          "lastSyncedAt": "2026-10-30T14:45:07.789Z"
+          "lastSyncedAt": "2026-10-30T20:19:06.409Z"
         },
         {
           "id": "cpu8",
@@ -264,7 +264,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%9D%BC%EC%9D%B4%EC%A0%A0%209%209950X",
           "danawaPrice": 890990,
           "danawaUrl": "https://search.danawa.com/?query=%EB%9D%BC%EC%9D%B4%EC%A0%A0%209%209950X&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:09.723Z"
+          "lastSyncedAt": "2026-10-30T20:19:09.117Z"
         }
       ]
     },
@@ -278,11 +278,11 @@
           "socket": "AM4",
           "mem": "DDR4",
           "form": "mATX",
-          "price": 60020,
-          "danawaPrice": 60020,
+          "price": 58168,
+          "danawaPrice": 58168,
           "danawaUrl": "https://search.danawa.com/?query=ASRock%20A520M-HDV&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=ASRock%20A520M-HDV",
-          "lastSyncedAt": "2026-10-30T14:45:11.142Z"
+          "lastSyncedAt": "2026-10-30T20:19:11.658Z"
         },
         {
           "id": "mb17",
@@ -295,7 +295,7 @@
           "danawaPrice": 79000,
           "danawaUrl": "https://search.danawa.com/?query=MSI%20PRO%20H610M-E%20DDR4&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=MSI%20PRO%20H610M-E%20DDR4",
-          "lastSyncedAt": "2026-10-30T14:45:12.544Z"
+          "lastSyncedAt": "2026-10-30T20:19:14.138Z"
         },
         {
           "id": "mb14",
@@ -308,7 +308,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=MAXSUN%20B760M%20DDR4",
           "danawaPrice": 92000,
           "danawaUrl": "https://search.danawa.com/?query=MAXSUN%20B760M%20DDR4&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:14.024Z"
+          "lastSyncedAt": "2026-10-30T20:19:15.798Z"
         },
         {
           "id": "mb1",
@@ -321,7 +321,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=ASRock%20B550M%20Pro4",
           "danawaPrice": 107790,
           "danawaUrl": "https://search.danawa.com/?query=ASRock%20B550M%20Pro4&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:15.834Z"
+          "lastSyncedAt": "2026-10-30T20:19:18.309Z"
         },
         {
           "id": "mb18",
@@ -334,7 +334,7 @@
           "danawaPrice": 119636,
           "danawaUrl": "https://search.danawa.com/?query=ASUS%20PRIME%20B550M-A&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=ASUS%20PRIME%20B550M-A",
-          "lastSyncedAt": "2026-10-30T14:45:17.672Z"
+          "lastSyncedAt": "2026-10-30T20:19:21.158Z"
         },
         {
           "id": "mb2",
@@ -347,7 +347,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=MSI%20PRO%20B760M-P%20DDR4",
           "danawaPrice": 126000,
           "danawaUrl": "https://search.danawa.com/?query=MSI%20PRO%20B760M-P%20DDR4&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:19.114Z"
+          "lastSyncedAt": "2026-10-30T20:19:23.274Z"
         },
         {
           "id": "mb19",
@@ -360,7 +360,7 @@
           "danawaPrice": 108000,
           "danawaUrl": "https://search.danawa.com/?query=ASRock%20A620M-HDV%2FM.2%2B&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=ASRock%20A620M-HDV%2FM.2%2B",
-          "lastSyncedAt": "2026-10-30T14:45:20.278Z"
+          "lastSyncedAt": "2026-10-30T20:19:24.733Z"
         },
         {
           "id": "mb15",
@@ -373,7 +373,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Colorful%20CVN%20B650M",
           "danawaPrice": 135000,
           "danawaUrl": "https://search.danawa.com/?query=Colorful%20CVN%20B650M&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:22.218Z"
+          "lastSyncedAt": "2026-10-30T20:19:27.661Z"
         },
         {
           "id": "mb20",
@@ -386,7 +386,7 @@
           "danawaPrice": 130487,
           "danawaUrl": "https://search.danawa.com/?query=ASUS%20PRIME%20B760M-K%20DDR5&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=ASUS%20PRIME%20B760M-K%20DDR5",
-          "lastSyncedAt": "2026-10-30T14:45:23.628Z"
+          "lastSyncedAt": "2026-10-30T20:19:29.388Z"
         },
         {
           "id": "mb3",
@@ -399,7 +399,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=GIGABYTE%20B760M%20AORUS%20ELITE",
           "danawaPrice": 172180,
           "danawaUrl": "https://search.danawa.com/?query=GIGABYTE%20B760M%20AORUS%20ELITE&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:25.200Z"
+          "lastSyncedAt": "2026-10-30T20:19:31.544Z"
         },
         {
           "id": "mb21",
@@ -412,7 +412,7 @@
           "danawaPrice": 157000,
           "danawaUrl": "https://search.danawa.com/?query=ASRock%20B650M%20PG%20Riptide&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=ASRock%20B650M%20PG%20Riptide",
-          "lastSyncedAt": "2026-10-30T14:45:26.683Z"
+          "lastSyncedAt": "2026-10-30T20:19:33.893Z"
         },
         {
           "id": "mb4",
@@ -425,7 +425,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=ASUS%20TUF%20Gaming%20B650M-PLUS",
           "danawaPrice": 257990,
           "danawaUrl": "https://search.danawa.com/?query=ASUS%20TUF%20Gaming%20B650M-PLUS&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:28.456Z"
+          "lastSyncedAt": "2026-10-30T20:19:35.475Z"
         },
         {
           "id": "mb22",
@@ -438,7 +438,7 @@
           "danawaPrice": 239040,
           "danawaUrl": "https://search.danawa.com/?query=GIGABYTE%20B650%20AORUS%20ELITE%20AX&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=GIGABYTE%20B650%20AORUS%20ELITE%20AX",
-          "lastSyncedAt": "2026-10-30T14:45:30.066Z"
+          "lastSyncedAt": "2026-10-30T20:19:37.389Z"
         },
         {
           "id": "mb8",
@@ -447,11 +447,11 @@
           "socket": "LGA1851",
           "mem": "DDR5",
           "form": "ATX",
-          "price": 298670,
+          "price": 289256,
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=GIGABYTE%20Z890%20AORUS%20ELITE",
-          "danawaPrice": 298670,
+          "danawaPrice": 289256,
           "danawaUrl": "https://search.danawa.com/?query=GIGABYTE%20Z890%20AORUS%20ELITE&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:32.124Z"
+          "lastSyncedAt": "2026-10-30T20:19:39.326Z"
         },
         {
           "id": "mb5",
@@ -464,7 +464,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=ASUS%20ROG%20STRIX%20X670E-F",
           "danawaPrice": 460000,
           "danawaUrl": "https://search.danawa.com/?query=ASUS%20ROG%20STRIX%20X670E-F&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:33.595Z"
+          "lastSyncedAt": "2026-10-30T20:19:40.997Z"
         }
       ]
     },
@@ -495,7 +495,7 @@
           "danawaPrice": 250000,
           "danawaUrl": "https://search.danawa.com/?query=Radeon%20RX%206600%208GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Radeon%20RX%206600%208GB",
-          "lastSyncedAt": "2026-10-30T14:45:35.572Z"
+          "lastSyncedAt": "2026-10-30T20:19:43.567Z"
         },
         {
           "id": "gpu11",
@@ -508,7 +508,7 @@
           "danawaPrice": 360000,
           "danawaUrl": "https://search.danawa.com/?query=RTX%203060%2012GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=RTX%203060%2012GB",
-          "lastSyncedAt": "2026-10-30T14:45:36.531Z"
+          "lastSyncedAt": "2026-10-30T20:19:46.268Z"
         },
         {
           "id": "gpu2",
@@ -521,7 +521,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=RTX%204060%208GB",
           "danawaPrice": 410000,
           "danawaUrl": "https://search.danawa.com/?query=RTX%204060%208GB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:38.325Z"
+          "lastSyncedAt": "2026-10-30T20:19:49.028Z"
         },
         {
           "id": "gpu12",
@@ -534,7 +534,7 @@
           "danawaPrice": 428740,
           "danawaUrl": "https://search.danawa.com/?query=Radeon%20RX%207600%208GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Radeon%20RX%207600%208GB",
-          "lastSyncedAt": "2026-10-30T14:45:40.334Z"
+          "lastSyncedAt": "2026-10-30T20:19:51.811Z"
         },
         {
           "id": "gpu13",
@@ -547,7 +547,7 @@
           "danawaPrice": 655000,
           "danawaUrl": "https://search.danawa.com/?query=RTX%204060%20Ti%208GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=RTX%204060%20Ti%208GB",
-          "lastSyncedAt": "2026-10-30T14:45:42.604Z"
+          "lastSyncedAt": "2026-10-30T20:19:54.555Z"
         },
         {
           "id": "gpu14",
@@ -560,7 +560,7 @@
           "danawaPrice": 630000,
           "danawaUrl": "https://search.danawa.com/?query=RTX%204060%20Ti%2016GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=RTX%204060%20Ti%2016GB",
-          "lastSyncedAt": "2026-10-30T14:45:44.554Z"
+          "lastSyncedAt": "2026-10-30T20:19:57.112Z"
         },
         {
           "id": "gpu15",
@@ -573,7 +573,7 @@
           "danawaPrice": 726440,
           "danawaUrl": "https://search.danawa.com/?query=Radeon%20RX%207700%20XT%2012GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Radeon%20RX%207700%20XT%2012GB",
-          "lastSyncedAt": "2026-10-30T14:45:46.065Z"
+          "lastSyncedAt": "2026-10-30T20:19:58.828Z"
         },
         {
           "id": "gpu3",
@@ -586,7 +586,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Radeon%20RX%207800%20XT%2016GB",
           "danawaPrice": 690000,
           "danawaUrl": "https://search.danawa.com/?query=Radeon%20RX%207800%20XT%2016GB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:47.614Z"
+          "lastSyncedAt": "2026-10-30T20:20:00.631Z"
         },
         {
           "id": "gpu16",
@@ -599,7 +599,7 @@
           "danawaPrice": 860000,
           "danawaUrl": "https://search.danawa.com/?query=RTX%204070%20SUPER%2012GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=RTX%204070%20SUPER%2012GB",
-          "lastSyncedAt": "2026-10-30T14:45:49.525Z"
+          "lastSyncedAt": "2026-10-30T20:20:03.762Z"
         },
         {
           "id": "gpu6",
@@ -612,7 +612,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=RTX%205070%2012GB",
           "danawaPrice": 950000,
           "danawaUrl": "https://search.danawa.com/?query=RTX%205070%2012GB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:52.185Z"
+          "lastSyncedAt": "2026-10-30T20:20:06.618Z"
         },
         {
           "id": "gpu17",
@@ -625,7 +625,7 @@
           "danawaPrice": 1180000,
           "danawaUrl": "https://search.danawa.com/?query=RTX%204070%20Ti%20SUPER%2016GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=RTX%204070%20Ti%20SUPER%2016GB",
-          "lastSyncedAt": "2026-10-30T14:45:54.184Z"
+          "lastSyncedAt": "2026-10-30T20:20:08.997Z"
         },
         {
           "id": "gpu7",
@@ -638,7 +638,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=RTX%205070%20Ti%2016GB",
           "danawaPrice": 1280000,
           "danawaUrl": "https://search.danawa.com/?query=RTX%205070%20Ti%2016GB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:45:56.138Z"
+          "lastSyncedAt": "2026-10-30T20:20:12.453Z"
         },
         {
           "id": "gpu18",
@@ -651,7 +651,7 @@
           "danawaPrice": 1490000,
           "danawaUrl": "https://search.danawa.com/?query=RTX%204080%20SUPER%2016GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=RTX%204080%20SUPER%2016GB",
-          "lastSyncedAt": "2026-10-30T14:45:57.945Z"
+          "lastSyncedAt": "2026-10-30T20:20:14.636Z"
         },
         {
           "id": "gpu8",
@@ -664,7 +664,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=RTX%205080%2016GB",
           "danawaPrice": 1790000,
           "danawaUrl": "https://search.danawa.com/?query=RTX%205080%2016GB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:00.035Z"
+          "lastSyncedAt": "2026-10-30T20:20:17.126Z"
         },
         {
           "id": "gpu9",
@@ -677,7 +677,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=RTX%205090%2032GB",
           "danawaPrice": 3490000,
           "danawaUrl": "https://search.danawa.com/?query=RTX%205090%2032GB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:02.494Z"
+          "lastSyncedAt": "2026-10-30T20:20:19.909Z"
         }
       ]
     },
@@ -695,7 +695,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=DDR4%203200%208GB",
           "danawaPrice": 24000,
           "danawaUrl": "https://search.danawa.com/?query=DDR4%203200%208GB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:04.528Z"
+          "lastSyncedAt": "2026-10-30T20:20:24.275Z"
         },
         {
           "id": "ram5",
@@ -708,7 +708,7 @@
           "danawaPrice": 44000,
           "danawaUrl": "https://search.danawa.com/?query=DDR4%203200%2016GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=DDR4%203200%2016GB",
-          "lastSyncedAt": "2026-10-30T14:46:06.342Z"
+          "lastSyncedAt": "2026-10-30T20:20:26.702Z"
         },
         {
           "id": "ram2",
@@ -721,7 +721,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=DDR4%203600%2016GB",
           "danawaPrice": 52000,
           "danawaUrl": "https://search.danawa.com/?query=DDR4%203600%2016GB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:08.170Z"
+          "lastSyncedAt": "2026-10-30T20:20:29.430Z"
         },
         {
           "id": "ram6",
@@ -734,7 +734,7 @@
           "danawaPrice": 85000,
           "danawaUrl": "https://search.danawa.com/?query=DDR4%203200%2032GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=DDR4%203200%2032GB",
-          "lastSyncedAt": "2026-10-30T14:46:09.997Z"
+          "lastSyncedAt": "2026-10-30T20:20:31.930Z"
         },
         {
           "id": "ram7",
@@ -747,7 +747,7 @@
           "danawaPrice": 58000,
           "danawaUrl": "https://search.danawa.com/?query=DDR5%205600%2016GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=DDR5%205600%2016GB",
-          "lastSyncedAt": "2026-10-30T14:46:11.833Z"
+          "lastSyncedAt": "2026-10-30T20:20:35.263Z"
         },
         {
           "id": "ram8",
@@ -760,7 +760,7 @@
           "danawaPrice": 115000,
           "danawaUrl": "https://search.danawa.com/?query=DDR5%205600%2032GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=DDR5%205600%2032GB",
-          "lastSyncedAt": "2026-10-30T14:46:13.814Z"
+          "lastSyncedAt": "2026-10-30T20:20:38.093Z"
         },
         {
           "id": "ram3",
@@ -773,7 +773,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=DDR5%206000%2032GB",
           "danawaPrice": 145000,
           "danawaUrl": "https://search.danawa.com/?query=DDR5%206000%2032GB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:15.786Z"
+          "lastSyncedAt": "2026-10-30T20:20:41.014Z"
         },
         {
           "id": "ram9",
@@ -786,7 +786,7 @@
           "danawaPrice": 165000,
           "danawaUrl": "https://search.danawa.com/?query=DDR5%206000%2032GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=DDR5%206000%2032GB",
-          "lastSyncedAt": "2026-10-30T14:46:16.891Z"
+          "lastSyncedAt": "2026-10-30T20:20:42.176Z"
         },
         {
           "id": "ram10",
@@ -799,7 +799,7 @@
           "danawaPrice": 230000,
           "danawaUrl": "https://search.danawa.com/?query=DDR5%205600%2064GB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=DDR5%205600%2064GB",
-          "lastSyncedAt": "2026-10-30T14:46:18.617Z"
+          "lastSyncedAt": "2026-10-30T20:20:45.192Z"
         },
         {
           "id": "ram4",
@@ -812,7 +812,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=DDR5%206000%2064GB",
           "danawaPrice": 285000,
           "danawaUrl": "https://search.danawa.com/?query=DDR5%206000%2064GB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:20.541Z"
+          "lastSyncedAt": "2026-10-30T20:20:47.505Z"
         }
       ]
     },
@@ -829,7 +829,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Samsung%20870%20EVO%20500GB",
           "danawaPrice": 65000,
           "danawaUrl": "https://search.danawa.com/?query=Samsung%20870%20EVO%20500GB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:22.166Z"
+          "lastSyncedAt": "2026-10-30T20:20:49.361Z"
         },
         {
           "id": "st6",
@@ -841,7 +841,7 @@
           "danawaPrice": 92000,
           "danawaUrl": "https://search.danawa.com/?query=Crucial%20MX500%201TB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Crucial%20MX500%201TB",
-          "lastSyncedAt": "2026-10-30T14:46:23.895Z"
+          "lastSyncedAt": "2026-10-30T20:20:52.008Z"
         },
         {
           "id": "st7",
@@ -853,7 +853,7 @@
           "danawaPrice": 78000,
           "danawaUrl": "https://search.danawa.com/?query=KIOXIA%20EXCERIA%20G2%201TB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=KIOXIA%20EXCERIA%20G2%201TB",
-          "lastSyncedAt": "2026-10-30T14:46:25.973Z"
+          "lastSyncedAt": "2026-10-30T20:20:53.702Z"
         },
         {
           "id": "st5",
@@ -865,7 +865,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=WD%20Blue%20SN580%201TB",
           "danawaPrice": 92000,
           "danawaUrl": "https://search.danawa.com/?query=WD%20Blue%20SN580%201TB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:27.425Z"
+          "lastSyncedAt": "2026-10-30T20:20:55.525Z"
         },
         {
           "id": "st8",
@@ -877,7 +877,7 @@
           "danawaPrice": 108000,
           "danawaUrl": "https://search.danawa.com/?query=SK%ED%95%98%EC%9D%B4%EB%8B%89%EC%8A%A4%20Gold%20P31%201TB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=SK%ED%95%98%EC%9D%B4%EB%8B%89%EC%8A%A4%20Gold%20P31%201TB",
-          "lastSyncedAt": "2026-10-30T14:46:28.322Z"
+          "lastSyncedAt": "2026-10-30T20:20:57.217Z"
         },
         {
           "id": "st9",
@@ -889,7 +889,7 @@
           "danawaPrice": 135000,
           "danawaUrl": "https://search.danawa.com/?query=%EC%82%BC%EC%84%B1%20980%20PRO%201TB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%82%BC%EC%84%B1%20980%20PRO%201TB",
-          "lastSyncedAt": "2026-10-30T14:46:29.849Z"
+          "lastSyncedAt": "2026-10-30T20:20:58.957Z"
         },
         {
           "id": "st10",
@@ -901,7 +901,7 @@
           "danawaPrice": 145000,
           "danawaUrl": "https://search.danawa.com/?query=SK%ED%95%98%EC%9D%B4%EB%8B%89%EC%8A%A4%20Platinum%20P41%201TB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=SK%ED%95%98%EC%9D%B4%EB%8B%89%EC%8A%A4%20Platinum%20P41%201TB",
-          "lastSyncedAt": "2026-10-30T14:46:31.391Z"
+          "lastSyncedAt": "2026-10-30T20:21:00.736Z"
         },
         {
           "id": "st3",
@@ -913,7 +913,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Samsung%20990%20PRO%201TB",
           "danawaPrice": 165000,
           "danawaUrl": "https://search.danawa.com/?query=Samsung%20990%20PRO%201TB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:33.252Z"
+          "lastSyncedAt": "2026-10-30T20:21:02.980Z"
         },
         {
           "id": "st11",
@@ -925,7 +925,7 @@
           "danawaPrice": 235000,
           "danawaUrl": "https://search.danawa.com/?query=SK%ED%95%98%EC%9D%B4%EB%8B%89%EC%8A%A4%20Platinum%20P41%202TB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=SK%ED%95%98%EC%9D%B4%EB%8B%89%EC%8A%A4%20Platinum%20P41%202TB",
-          "lastSyncedAt": "2026-10-30T14:46:34.791Z"
+          "lastSyncedAt": "2026-10-30T20:21:04.724Z"
         },
         {
           "id": "st4",
@@ -937,7 +937,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Samsung%20990%20PRO%202TB",
           "danawaPrice": 265000,
           "danawaUrl": "https://search.danawa.com/?query=Samsung%20990%20PRO%202TB&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:36.349Z"
+          "lastSyncedAt": "2026-10-30T20:21:07.491Z"
         },
         {
           "id": "st12",
@@ -949,7 +949,7 @@
           "danawaPrice": 510000,
           "danawaUrl": "https://search.danawa.com/?query=Samsung%20990%20PRO%204TB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Samsung%20990%20PRO%204TB",
-          "lastSyncedAt": "2026-10-30T14:46:38.589Z"
+          "lastSyncedAt": "2026-10-30T20:21:09.800Z"
         }
       ]
     },
@@ -967,7 +967,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%9D%B8%ED%85%94%2FAMD%20%EA%B8%B0%EB%B3%B8%20%EC%BF%A8%EB%9F%AC",
           "danawaPrice": 21000,
           "danawaUrl": "https://search.danawa.com/?query=%EC%9D%B8%ED%85%94%2FAMD%20%EA%B8%B0%EB%B3%B8%20%EC%BF%A8%EB%9F%AC&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:40.092Z"
+          "lastSyncedAt": "2026-10-30T20:21:11.596Z"
         },
         {
           "id": "cl7",
@@ -980,7 +980,7 @@
           "danawaPrice": 18410,
           "danawaUrl": "https://search.danawa.com/?query=3RSYS%20Socoool%20RC310&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=3RSYS%20Socoool%20RC310",
-          "lastSyncedAt": "2026-10-30T14:46:42.354Z"
+          "lastSyncedAt": "2026-10-30T20:21:15.028Z"
         },
         {
           "id": "cl8",
@@ -993,7 +993,7 @@
           "danawaPrice": 22458,
           "danawaUrl": "https://search.danawa.com/?query=PCCOOLER%20PALADIN%20400&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=PCCOOLER%20PALADIN%20400",
-          "lastSyncedAt": "2026-10-30T14:46:43.972Z"
+          "lastSyncedAt": "2026-10-30T20:21:16.710Z"
         },
         {
           "id": "cl2",
@@ -1006,7 +1006,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=DeepCool%20AK400",
           "danawaPrice": 39000,
           "danawaUrl": "https://search.danawa.com/?query=DeepCool%20AK400&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:45.538Z"
+          "lastSyncedAt": "2026-10-30T20:21:18.420Z"
         },
         {
           "id": "cl6",
@@ -1019,7 +1019,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%8D%A8%EB%A9%80%EB%9D%BC%EC%9D%B4%ED%8A%B8%20PA120%20SE",
           "danawaPrice": 37900,
           "danawaUrl": "https://search.danawa.com/?query=%EC%8D%A8%EB%A9%80%EB%9D%BC%EC%9D%B4%ED%8A%B8%20PA120%20SE&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:47.008Z"
+          "lastSyncedAt": "2026-10-30T20:21:20.180Z"
         },
         {
           "id": "cl9",
@@ -1032,7 +1032,7 @@
           "danawaPrice": 58000,
           "danawaUrl": "https://search.danawa.com/?query=%EC%8D%A8%EB%A9%80%EB%9D%BC%EC%9D%B4%ED%8A%B8%20Phantom%20Spirit%20120%20EVO&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%8D%A8%EB%A9%80%EB%9D%BC%EC%9D%B4%ED%8A%B8%20Phantom%20Spirit%20120%20EVO",
-          "lastSyncedAt": "2026-10-30T14:46:48.598Z"
+          "lastSyncedAt": "2026-10-30T20:21:22.441Z"
         },
         {
           "id": "cl10",
@@ -1045,7 +1045,7 @@
           "danawaPrice": 67310,
           "danawaUrl": "https://search.danawa.com/?query=DeepCool%20AK620%20DIGITAL&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=DeepCool%20AK620%20DIGITAL",
-          "lastSyncedAt": "2026-10-30T14:46:50.088Z"
+          "lastSyncedAt": "2026-10-30T20:21:24.359Z"
         },
         {
           "id": "cl11",
@@ -1058,7 +1058,7 @@
           "danawaPrice": 87000,
           "danawaUrl": "https://search.danawa.com/?query=darkFlash%20Twister%20DX-240&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=darkFlash%20Twister%20DX-240",
-          "lastSyncedAt": "2026-10-30T14:46:51.864Z"
+          "lastSyncedAt": "2026-10-30T20:21:26.393Z"
         },
         {
           "id": "cl3",
@@ -1071,7 +1071,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=NZXT%20Kraken%20240",
           "danawaPrice": 167630,
           "danawaUrl": "https://search.danawa.com/?query=NZXT%20Kraken%20240&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:53.787Z"
+          "lastSyncedAt": "2026-10-30T20:21:28.749Z"
         },
         {
           "id": "cl12",
@@ -1084,7 +1084,7 @@
           "danawaPrice": 72200,
           "danawaUrl": "https://search.danawa.com/?query=Thermalright%20Aqua%20Elite%20360&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Thermalright%20Aqua%20Elite%20360",
-          "lastSyncedAt": "2026-10-30T14:46:55.518Z"
+          "lastSyncedAt": "2026-10-30T20:21:30.470Z"
         },
         {
           "id": "cl4",
@@ -1097,7 +1097,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=ARCTIC%20Liquid%20Freezer%20III%20360",
           "danawaPrice": 153900,
           "danawaUrl": "https://search.danawa.com/?query=ARCTIC%20Liquid%20Freezer%20III%20360&tab=main",
-          "lastSyncedAt": "2026-10-30T14:46:57.129Z"
+          "lastSyncedAt": "2026-10-30T20:21:32.292Z"
         },
         {
           "id": "cl13",
@@ -1110,7 +1110,7 @@
           "danawaPrice": 155268,
           "danawaUrl": "https://search.danawa.com/?query=%EB%B0%9C%ED%82%A4%EB%A6%AC%20GL360%20ARGB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%B0%9C%ED%82%A4%EB%A6%AC%20GL360%20ARGB",
-          "lastSyncedAt": "2026-10-30T14:46:58.462Z"
+          "lastSyncedAt": "2026-10-30T20:21:33.947Z"
         },
         {
           "id": "cl14",
@@ -1123,7 +1123,7 @@
           "danawaPrice": 383040,
           "danawaUrl": "https://search.danawa.com/?query=NZXT%20Kraken%20Elite%20360%20RGB&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=NZXT%20Kraken%20Elite%20360%20RGB",
-          "lastSyncedAt": "2026-10-30T14:46:59.998Z"
+          "lastSyncedAt": "2026-10-30T20:21:35.604Z"
         }
       ]
     },
@@ -1139,7 +1139,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EB%8B%89%EC%8A%A4%20Classic%20II%20500W",
           "danawaPrice": 54500,
           "danawaUrl": "https://search.danawa.com/?query=%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EB%8B%89%EC%8A%A4%20Classic%20II%20500W&tab=main",
-          "lastSyncedAt": "2026-10-30T14:47:01.773Z"
+          "lastSyncedAt": "2026-10-30T20:21:37.781Z"
         },
         {
           "id": "psu6",
@@ -1150,7 +1150,7 @@
           "danawaPrice": 41200,
           "danawaUrl": "https://search.danawa.com/?query=%EC%9E%98%EB%A7%8C%20EcoMax%20600W&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%9E%98%EB%A7%8C%20EcoMax%20600W",
-          "lastSyncedAt": "2026-10-30T14:47:03.157Z"
+          "lastSyncedAt": "2026-10-30T20:21:39.515Z"
         },
         {
           "id": "psu7",
@@ -1161,7 +1161,7 @@
           "danawaPrice": 63830,
           "danawaUrl": "https://search.danawa.com/?query=%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EB%8B%89%EC%8A%A4%20Classic%20II%20%ED%92%80%EC%B2%B4%EC%9D%B8%EC%A7%80%20600W&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EB%8B%89%EC%8A%A4%20Classic%20II%20%ED%92%80%EC%B2%B4%EC%9D%B8%EC%A7%80%20600W",
-          "lastSyncedAt": "2026-10-30T14:47:04.791Z"
+          "lastSyncedAt": "2026-10-30T20:21:41.266Z"
         },
         {
           "id": "psu8",
@@ -1172,7 +1172,7 @@
           "danawaPrice": 55000,
           "danawaUrl": "https://search.danawa.com/?query=FSP%20HYPER%20K%20PRO%20650W&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=FSP%20HYPER%20K%20PRO%20650W",
-          "lastSyncedAt": "2026-10-30T14:47:06.581Z"
+          "lastSyncedAt": "2026-10-30T20:21:43.344Z"
         },
         {
           "id": "psu2",
@@ -1183,7 +1183,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%8B%9C%EC%86%8C%EB%8B%89%20FOCUS%20GX-650W",
           "danawaPrice": 140000,
           "danawaUrl": "https://search.danawa.com/?query=%EC%8B%9C%EC%86%8C%EB%8B%89%20GX-650W&tab=main",
-          "lastSyncedAt": "2026-10-30T14:47:08.942Z"
+          "lastSyncedAt": "2026-10-30T20:21:46.251Z"
         },
         {
           "id": "psu9",
@@ -1194,7 +1194,7 @@
           "danawaPrice": 110000,
           "danawaUrl": "https://search.danawa.com/?query=%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EB%8B%89%EC%8A%A4%20Classic%20II%20750W%20%EA%B3%A8%EB%93%9C&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EB%8B%89%EC%8A%A4%20Classic%20II%20750W%20%EA%B3%A8%EB%93%9C",
-          "lastSyncedAt": "2026-10-30T14:47:10.614Z"
+          "lastSyncedAt": "2026-10-30T20:21:48.067Z"
         },
         {
           "id": "psu10",
@@ -1205,7 +1205,7 @@
           "danawaPrice": 151554,
           "danawaUrl": "https://search.danawa.com/?query=%EC%8B%9C%EC%86%8C%EB%8B%89%20GX-750%20%EA%B3%A8%EB%93%9C&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%8B%9C%EC%86%8C%EB%8B%89%20FOCUS%20GX-750%20%EA%B3%A8%EB%93%9C",
-          "lastSyncedAt": "2026-10-30T14:47:12.995Z"
+          "lastSyncedAt": "2026-10-30T20:21:50.964Z"
         },
         {
           "id": "psu3",
@@ -1216,7 +1216,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%BB%A4%EC%84%B8%EC%96%B4%20RM850e%20850W%20ATX%203.0",
           "danawaPrice": 155000,
           "danawaUrl": "https://search.danawa.com/?query=%EC%BB%A4%EC%84%B8%EC%96%B4%20RM850e%20850W%20ATX%203.0&tab=main",
-          "lastSyncedAt": "2026-10-30T14:47:14.327Z"
+          "lastSyncedAt": "2026-10-30T20:21:52.453Z"
         },
         {
           "id": "psu11",
@@ -1227,7 +1227,7 @@
           "danawaPrice": 175000,
           "danawaUrl": "https://search.danawa.com/?query=%EC%8B%9C%EC%86%8C%EB%8B%89%20GX-850%20ATX%203.0&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%8B%9C%EC%86%8C%EB%8B%89%20FOCUS%20GX-850%20ATX%203.0",
-          "lastSyncedAt": "2026-10-30T14:47:16.180Z"
+          "lastSyncedAt": "2026-10-30T20:21:54.863Z"
         },
         {
           "id": "psu12",
@@ -1238,7 +1238,7 @@
           "danawaPrice": 227000,
           "danawaUrl": "https://search.danawa.com/?query=FSP%20Hydro%20G%20PRO%201000W%20ATX%203.0&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=FSP%20Hydro%20G%20PRO%201000W%20ATX%203.0",
-          "lastSyncedAt": "2026-10-30T14:47:17.558Z"
+          "lastSyncedAt": "2026-10-30T20:21:56.457Z"
         },
         {
           "id": "psu4",
@@ -1249,7 +1249,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%8B%9C%EC%86%8C%EB%8B%89%20VERTEX%20GX-1000%20ATX%203.0",
           "danawaPrice": 275000,
           "danawaUrl": "https://search.danawa.com/?query=%EC%8B%9C%EC%86%8C%EB%8B%89%20VERTEX%20GX-1000%20ATX%203.0&tab=main",
-          "lastSyncedAt": "2026-10-30T14:47:19.143Z"
+          "lastSyncedAt": "2026-10-30T20:21:58.426Z"
         },
         {
           "id": "psu5",
@@ -1260,7 +1260,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=SuperFlower%20SF-1300F14XG%20%ED%94%8C%EB%9E%98%ED%8B%B0%EB%84%98",
           "danawaPrice": 340000,
           "danawaUrl": "https://search.danawa.com/?query=SuperFlower%20SF-1300F14XG%20%ED%94%8C%EB%9E%98%ED%8B%B0%EB%84%98&tab=main",
-          "lastSyncedAt": "2026-10-30T14:47:20.501Z"
+          "lastSyncedAt": "2026-10-30T20:22:00.414Z"
         }
       ]
     },
@@ -1281,7 +1281,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%95%B1%EC%BD%94%20NCORE%20%EB%AF%B8%EB%8B%88%ED%83%80%EC%9B%8C%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
           "danawaPrice": 32000,
           "danawaUrl": "https://search.danawa.com/?query=%EC%95%B1%EC%BD%94%20NCORE%20%EB%AF%B8%EB%8B%88%ED%83%80%EC%9B%8C%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
-          "lastSyncedAt": "2026-10-30T14:47:22.659Z"
+          "lastSyncedAt": "2026-10-30T20:22:02.851Z"
         },
         {
           "id": "case5",
@@ -1298,7 +1298,7 @@
           "danawaPrice": 42000,
           "danawaUrl": "https://search.danawa.com/?query=%EC%9E%98%EB%A7%8C%20i3%20NEO%20%EB%AF%B8%EB%93%A4%ED%83%80%EC%9B%8C%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%9E%98%EB%A7%8C%20i3%20NEO%20%EB%AF%B8%EB%93%A4%ED%83%80%EC%9B%8C%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
-          "lastSyncedAt": "2026-10-30T14:47:24.164Z"
+          "lastSyncedAt": "2026-10-30T20:22:04.465Z"
         },
         {
           "id": "case6",
@@ -1315,7 +1315,7 @@
           "danawaPrice": 42599,
           "danawaUrl": "https://search.danawa.com/?query=%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EB%8B%89%EC%8A%A4%20Master%20M60%20%EB%A9%94%EC%89%AC%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EB%8B%89%EC%8A%A4%20Master%20M60%20%EB%A9%94%EC%89%AC%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
-          "lastSyncedAt": "2026-10-30T14:47:25.552Z"
+          "lastSyncedAt": "2026-10-30T20:22:06.054Z"
         },
         {
           "id": "case2",
@@ -1332,7 +1332,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=darkFlash%20DK352%20%EB%AF%B8%EB%93%A4%ED%83%80%EC%9B%8C%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
           "danawaPrice": 55000,
           "danawaUrl": "https://search.danawa.com/?query=darkFlash%20DK352%20%EB%AF%B8%EB%93%A4%ED%83%80%EC%9B%8C%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
-          "lastSyncedAt": "2026-10-30T14:47:26.916Z"
+          "lastSyncedAt": "2026-10-30T20:22:07.467Z"
         },
         {
           "id": "case7",
@@ -1349,7 +1349,7 @@
           "danawaPrice": 59000,
           "danawaUrl": "https://search.danawa.com/?query=%EC%95%B1%EC%BD%94%20G40%20%EC%8B%9C%EA%B7%B8%EB%8B%88%EC%B2%98%20%ED%99%94%EC%9D%B4%ED%8A%B8%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%95%B1%EC%BD%94%20G40%20%EC%8B%9C%EA%B7%B8%EB%8B%88%EC%B2%98%20%ED%99%94%EC%9D%B4%ED%8A%B8%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
-          "lastSyncedAt": "2026-10-30T14:47:30.311Z"
+          "lastSyncedAt": "2026-10-30T20:22:11.181Z"
         },
         {
           "id": "case8",
@@ -1365,7 +1365,7 @@
           "danawaPrice": 68000,
           "danawaUrl": "https://search.danawa.com/?query=3RSYS%20S401%20Quiet%20%EC%96%B4%ED%95%AD%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=3RSYS%20S401%20Quiet%20%EC%96%B4%ED%95%AD%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
-          "lastSyncedAt": "2026-10-30T14:47:32.349Z"
+          "lastSyncedAt": "2026-10-30T20:22:13.608Z"
         },
         {
           "id": "case4",
@@ -1381,7 +1381,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%A1%B4%EC%8A%A4%EB%B3%B4%20D31%20%ED%8C%8C%EB%85%B8%EB%9D%BC%EB%A7%88%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
           "danawaPrice": 85000,
           "danawaUrl": "https://search.danawa.com/?query=%EC%A1%B4%EC%8A%A4%EB%B3%B4%20D31%20%ED%8C%8C%EB%85%B8%EB%9D%BC%EB%A7%88%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
-          "lastSyncedAt": "2026-10-30T14:47:34.370Z"
+          "lastSyncedAt": "2026-10-30T20:22:16.110Z"
         },
         {
           "id": "case9",
@@ -1398,7 +1398,7 @@
           "danawaPrice": 98300,
           "danawaUrl": "https://search.danawa.com/?query=darkFlash%20DLX21%20MESH%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=darkFlash%20DLX21%20MESH%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
-          "lastSyncedAt": "2026-10-30T14:47:35.873Z"
+          "lastSyncedAt": "2026-10-30T20:22:17.928Z"
         },
         {
           "id": "case10",
@@ -1415,7 +1415,7 @@
           "danawaPrice": 117000,
           "danawaUrl": "https://search.danawa.com/?query=%EC%95%88%ED%85%8D%20C8%20MESH%20%EC%BB%A4%EB%B8%8C%EB%93%9C%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EC%95%88%ED%85%8D%20C8%20MESH%20%EC%BB%A4%EB%B8%8C%EB%93%9C%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
-          "lastSyncedAt": "2026-10-30T14:47:38.027Z"
+          "lastSyncedAt": "2026-10-30T20:22:20.490Z"
         },
         {
           "id": "case11",
@@ -1432,7 +1432,7 @@
           "danawaPrice": 155000,
           "danawaUrl": "https://search.danawa.com/?query=%EB%AA%AC%ED%85%8D%20KING%2095%20PRO%20%EC%96%B4%ED%95%AD%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%AA%AC%ED%85%8D%20KING%2095%20PRO%20%EC%96%B4%ED%95%AD%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
-          "lastSyncedAt": "2026-10-30T14:47:39.863Z"
+          "lastSyncedAt": "2026-10-30T20:22:22.833Z"
         },
         {
           "id": "case3",
@@ -1449,7 +1449,7 @@
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%A6%AC%EC%95%88%EB%A6%AC%20O11D%20EVO%20RGB%20%EB%B9%85%ED%83%80%EC%9B%8C%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
           "danawaPrice": 245000,
           "danawaUrl": "https://search.danawa.com/?query=%EB%A6%AC%EC%95%88%EB%A6%AC%20O11D%20EVO%20RGB%20%EB%B9%85%ED%83%80%EC%9B%8C%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
-          "lastSyncedAt": "2026-10-30T14:47:41.612Z"
+          "lastSyncedAt": "2026-10-30T20:22:25.490Z"
         },
         {
           "id": "case12",
@@ -1466,7 +1466,7 @@
           "danawaPrice": 210000,
           "danawaUrl": "https://search.danawa.com/?query=Fractal%20Design%20North%20%EC%9A%B0%EB%93%9C%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=Fractal%20Design%20North%20%EC%9A%B0%EB%93%9C%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
-          "lastSyncedAt": "2026-10-30T14:47:42.830Z"
+          "lastSyncedAt": "2026-10-30T20:22:27.300Z"
         },
         {
           "id": "case13",
@@ -1483,7 +1483,7 @@
           "danawaPrice": 215000,
           "danawaUrl": "https://search.danawa.com/?query=%EB%A6%AC%EC%95%88%EB%A6%AC%20O11%20Vision%203%EB%A9%B4%20%EC%9C%A0%EB%A6%AC%20%EC%BC%80%EC%9D%B4%EC%8A%A4&tab=main",
           "buyUrl": "https://link.coupang.com/re/AFFSRP?lptag=AF6914951&pageKey=%EB%A6%AC%EC%95%88%EB%A6%AC%20O11%20Vision%203%EB%A9%B4%20%EC%9C%A0%EB%A6%AC%20%EC%BC%80%EC%9D%B4%EC%8A%A4",
-          "lastSyncedAt": "2026-10-30T14:47:44.107Z"
+          "lastSyncedAt": "2026-10-30T20:22:29.145Z"
         }
       ]
     }
