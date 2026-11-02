@@ -1,27 +1,36 @@
 /**
- * 싸이감성 미니홈피 - 메인 인앱 컴포넌트
+ * 싸이감성 미니홈피 - 메인 인앱 컴포넌트 (v1.1 인터랙티브 에디션)
  * - 토스 디자인 시스템(TDS) & 2000년대 싸이월드 Y2K 레트로 감성 결합
- * - 4개 탭: [미니룸/홈] / [방명록] / [미니룸 꾸미기] / [BGM 주크박스]
- * - 오리알 충전 보상형 광고 & 990원 프리미엄 스킨 소장 결제 연동
+ * - 5개 탭: [미니룸] / [방명록] / [룸꾸미기] / [다이어리] / [BGM]
+ * - 드래그 자유 배치, 오리알 상점 해금, Y2K 싸이체 변환기, 백문백답, 캔버스 포토카드 저장 연동
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   CY_BGMS,
   MINIROOM_THEMES,
   MINIMI_CHARS,
   MINIROOM_PROPS,
+  ROOM_PRESETS,
   MOOD_PRESETS,
   RETRO_CY_QUOTES,
   DEFAULT_ILCHON_COMMENTS,
   DEFAULT_GUESTBOOK_ENTRIES,
+  DEFAULT_DIARY_ENTRIES,
+  DEFAULT_QNA_ITEMS,
+  DEFAULT_PROP_POSITIONS,
   FRIEND_MINIROOMS,
+  convertToCyStyle,
   FriendMiniroom,
   BpmTrack,
   MiniroomTheme,
   MinimiChar,
   IlchonComment,
   GuestbookEntry,
+  DiaryEntry,
+  QnaItem,
+  PropPosition,
+  RoomPreset,
 } from "./data";
 import { MiniroomViewer } from "./MiniroomViewer";
 import { retroAudioSynth } from "./audioSynth";
@@ -40,29 +49,31 @@ import {
   Home,
   Palette,
   BookOpen,
-  MessageCircle,
   MessageSquare,
   Share2,
   ChevronLeft,
-  Flame,
   Award,
-  RefreshCw,
-  Plus,
   Send,
   Lock,
-  Unlock,
   CornerDownRight,
-  CheckCircle2,
   Waves,
-  Compass,
   Shuffle,
   X,
   ArrowRight,
+  Edit3,
+  Download,
+  Camera,
+  Wand2,
+  RotateCcw,
 } from "lucide-react";
 
 interface CyMiniAppProps {
   onBack?: () => void;
 }
+
+type TabType = "home" | "guestbook" | "room" | "diary" | "jukebox";
+
+const STORAGE_KEY = "cy_mini_user_state_v2";
 
 export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
   // 1. 미니홈피 기본 상태
@@ -71,25 +82,44 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
   const [moodText, setMoodText] = useState("ㄴr는 ㄱr끔 눈물을 흘린ㄷr...💧");
   const [todayCount, setTodayCount] = useState(482);
   const [totalCount, setTotalCount] = useState(13850);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   // 오리알 개수 (기본 42개)
   const [eggCount, setEggCount] = useState<number>(42);
 
-  // 2. 미니룸 커스텀 상태
+  // 2. 미니룸 커스텀 & 배치 좌표 상태
   const [selectedTheme, setSelectedTheme] = useState<MiniroomTheme>(MINIROOM_THEMES[0]);
   const [selectedMinimi, setSelectedMinimi] = useState<MinimiChar>(MINIMI_CHARS[0]);
   const [selectedBgm, setSelectedBgm] = useState<BpmTrack>(CY_BGMS[0]);
-  const [placedProps, setPlacedProps] = useState<string[]>(["crt_pc", "turntable", "retro_bed", "teddy_bear"]);
+  const [placedProps, setPlacedProps] = useState<string[]>([
+    "crt_pc",
+    "turntable",
+    "retro_bed",
+    "teddy_bear",
+  ]);
+  const [propPositions, setPropPositions] = useState<Record<string, PropPosition>>(
+    DEFAULT_PROP_POSITIONS
+  );
+  const [minimiPosition, setMinimiPosition] = useState<PropPosition>({
+    x: 50,
+    y: 82,
+    flip: false,
+  });
 
-  // 3. 탭 메뉴 (home | guestbook | room | jukebox | diary)
-  const [activeTab, setActiveTab] = useState<"home" | "guestbook" | "room" | "jukebox" | "diary">("home");
+  // 오리알로 해금한 테마/미니미/소품 ID 목록
+  const [unlockedItemIds, setUnlockedItemIds] = useState<string[]>([]);
 
-  // 4. 방명록 상태 (★ 키포인트 기능)
-  const [guestbookEntries, setGuestbookEntries] = useState<GuestbookEntry[]>(DEFAULT_GUESTBOOK_ENTRIES);
+  // 3. 탭 메뉴 (home | guestbook | room | diary | jukebox)
+  const [activeTab, setActiveTab] = useState<TabType>("home");
+
+  // 4. 방명록 상태
+  const [guestbookEntries, setGuestbookEntries] = useState<GuestbookEntry[]>(
+    DEFAULT_GUESTBOOK_ENTRIES
+  );
   const [gbAuthor, setGbAuthor] = useState("");
   const [gbRelation, setGbRelation] = useState("영혼의 단짝");
   const [gbContent, setGbContent] = useState("");
-  const [gbAvatar, setGbAvatar] = useState<"boy" | "girl" | "rocker" | "cat" | "hiphop">("boy");
+  const [gbAvatar, setGbAvatar] = useState<GuestbookEntry["avatarType"]>("boy");
   const [gbSticker, setGbSticker] = useState<"scrap" | "pado" | "bgm" | "love" | "hi">("scrap");
   const [gbSendEgg, setGbSendEgg] = useState(true);
   const [gbIsSecret, setGbIsSecret] = useState(false);
@@ -98,22 +128,32 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
   const [replyInputText, setReplyInputText] = useState("");
 
   // 일촌평 리스트 & 입력
-  const [ilchonComments, setIlchonComments] = useState<IlchonComment[]>(DEFAULT_ILCHON_COMMENTS);
+  const [ilchonComments, setIlchonComments] = useState<IlchonComment[]>(
+    DEFAULT_ILCHON_COMMENTS
+  );
   const [inputAuthor, setInputAuthor] = useState("");
   const [inputContent, setInputContent] = useState("");
 
-  // 5. 다이어리 감성 문구
-  const [diaryText, setDiaryText] = useState(RETRO_CY_QUOTES[0]);
+  // 5. 다이어리 & 백문백답 상태
+  const [diaryEntries, setDiaryEntries] = useState<DiaryEntry[]>(DEFAULT_DIARY_ENTRIES);
+  const [newDiaryText, setNewDiaryText] = useState(RETRO_CY_QUOTES[0]);
+  const [newDiaryWeather, setNewDiaryWeather] = useState<DiaryEntry["weather"]>("🌙 새벽");
+  const [newDiaryMood, setNewDiaryMood] = useState("💧 센치함");
+  const [qnaItems, setQnaItems] = useState<QnaItem[]>(DEFAULT_QNA_ITEMS);
+  const [editingQnaId, setEditingQnaId] = useState<string | null>(null);
+  const [editingQnaText, setEditingQnaText] = useState("");
 
   // 6. 나만의 BGM 직접 입력 상태
   const [customBgmTitle, setCustomBgmTitle] = useState("");
   const [customBgmArtist, setCustomBgmArtist] = useState("");
 
-  // 7. 수익화 모달 상태
+  // 7. 수익화 & 포토카드 모달 상태
   const [isAdOpen, setIsAdOpen] = useState(false);
   const [unlockedGoldSkin, setUnlockedGoldSkin] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [unlockedVipFont, setUnlockedVipFont] = useState(false);
+  const [showPhotoCardModal, setShowPhotoCardModal] = useState(false);
+  const photoCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // 8. 일촌 파도타기(Surfing) 탐험 상태
   const [visitingFriend, setVisitingFriend] = useState<FriendMiniroom | null>(() => {
@@ -139,6 +179,88 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
     return FRIEND_MINIROOMS;
   });
 
+  // 초기 로컬스토리지 복원
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (saved.homeTitle) setHomeTitle(saved.homeTitle);
+      if (saved.nickname) setNickname(saved.nickname);
+      if (saved.moodText) setMoodText(saved.moodText);
+      if (typeof saved.eggCount === "number") setEggCount(saved.eggCount);
+      if (saved.themeId) {
+        const t = MINIROOM_THEMES.find((x) => x.id === saved.themeId);
+        if (t) setSelectedTheme(t);
+      }
+      if (saved.minimiId) {
+        const m = MINIMI_CHARS.find((x) => x.id === saved.minimiId);
+        if (m) setSelectedMinimi(m);
+      }
+      if (saved.selectedBgm) setSelectedBgm(saved.selectedBgm);
+      if (Array.isArray(saved.placedProps)) setPlacedProps(saved.placedProps);
+      if (saved.propPositions) {
+        setPropPositions({ ...DEFAULT_PROP_POSITIONS, ...saved.propPositions });
+      }
+      if (saved.minimiPosition) setMinimiPosition(saved.minimiPosition);
+      if (Array.isArray(saved.unlockedItemIds)) setUnlockedItemIds(saved.unlockedItemIds);
+      if (Array.isArray(saved.guestbookEntries)) setGuestbookEntries(saved.guestbookEntries);
+      if (Array.isArray(saved.ilchonComments)) setIlchonComments(saved.ilchonComments);
+      if (Array.isArray(saved.diaryEntries)) setDiaryEntries(saved.diaryEntries);
+      if (Array.isArray(saved.qnaItems)) setQnaItems(saved.qnaItems);
+      if (saved.unlockedGoldSkin) setUnlockedGoldSkin(true);
+      if (saved.unlockedVipFont) setUnlockedVipFont(true);
+    } catch {}
+  }, []);
+
+  // 상태 변경 시 로컬스토리지 자동 저장
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          homeTitle,
+          nickname,
+          moodText,
+          eggCount,
+          themeId: selectedTheme.id,
+          minimiId: selectedMinimi.id,
+          selectedBgm,
+          placedProps,
+          propPositions,
+          minimiPosition,
+          unlockedItemIds,
+          guestbookEntries,
+          ilchonComments,
+          diaryEntries,
+          qnaItems,
+          unlockedGoldSkin,
+          unlockedVipFont,
+        })
+      );
+    } catch {}
+  }, [
+    homeTitle,
+    nickname,
+    moodText,
+    eggCount,
+    selectedTheme,
+    selectedMinimi,
+    selectedBgm,
+    placedProps,
+    propPositions,
+    minimiPosition,
+    unlockedItemIds,
+    guestbookEntries,
+    ilchonComments,
+    diaryEntries,
+    qnaItems,
+    unlockedGoldSkin,
+    unlockedVipFont,
+  ]);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
@@ -155,7 +277,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
 
     const handlePopState = (e: PopStateEvent) => {
       if (e.state && typeof e.state.tab === "string") {
-        setActiveTab(e.state.tab as any);
+        setActiveTab(e.state.tab as TabType);
       } else {
         setActiveTab("home");
       }
@@ -165,13 +287,50 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  const switchTab = (tab: "home" | "guestbook" | "room" | "jukebox") => {
+  const switchTab = (tab: TabType) => {
     if (tab !== activeTab) {
       try {
         window.history.pushState({ tab }, "");
       } catch {}
       setActiveTab(tab);
+      retroAudioSynth.playSfx("pop");
     }
+  };
+
+  // 아이템 해금 여부 확인
+  const isItemUnlocked = (id: string, cost?: number) => {
+    if (!cost || cost <= 0) return true;
+    if (unlockedVipFont) return true;
+    if (id === "gold_duck" && unlockedGoldSkin) return true;
+    return unlockedItemIds.includes(id);
+  };
+
+  // 오리알로 테마/미니미/소품 해금
+  const handleUnlockWithEggs = (id: string, name: string, cost: number, onSuccessSelect: () => void) => {
+    if (eggCount < cost) {
+      alert(`오리알이 부족해요! (필요: 🥚 ${cost}개 / 보유: 🥚 ${eggCount}개)\n하단 오리알 무료 충전소에서 10개를 즉시 충전할 수 있어요!`);
+      return;
+    }
+    setEggCount((prev) => prev - cost);
+    setUnlockedItemIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    retroAudioSynth.playSfx("coin");
+    confetti({ particleCount: 55, spread: 60, origin: { y: 0.6 } });
+    onSuccessSelect();
+  };
+
+  // 원클릭 인테리어 프리셋 적용
+  const handleApplyPreset = (preset: RoomPreset) => {
+    const t = MINIROOM_THEMES.find((x) => x.id === preset.themeId);
+    const m = MINIMI_CHARS.find((x) => x.id === preset.minimiId);
+    const b = CY_BGMS.find((x) => x.id === preset.bgmId);
+    if (t) setSelectedTheme(t);
+    if (m) setSelectedMinimi(m);
+    if (b) setSelectedBgm(b);
+    setPlacedProps(preset.placedProps);
+    setPropPositions(DEFAULT_PROP_POSITIONS);
+    setMinimiPosition({ x: 50, y: 82, flip: false });
+    retroAudioSynth.playSfx("coin");
+    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
   };
 
   // 일촌 파도타기 이동
@@ -179,6 +338,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
     setVisitingFriend(friend);
     setActiveTab("home");
     setShowPadoModal(false);
+    retroAudioSynth.playSfx("pop");
   };
 
   // 랜덤 일촌 파도타기
@@ -203,16 +363,41 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
   const handleBackToMyHome = () => {
     setVisitingFriend(null);
     setActiveTab("home");
+    retroAudioSynth.playSfx("pop");
   };
 
-  // 소품 토글
+  // 소품 배치/해제 (잠금 소품은 오리알 해금)
   const handleToggleProp = (propId: string) => {
+    const meta = MINIROOM_PROPS.find((p) => p.id === propId);
+    if (!meta) return;
+
+    if (!isItemUnlocked(meta.id, meta.eggCost)) {
+      handleUnlockWithEggs(meta.id, meta.name, meta.eggCost || 2, () => {
+        setPlacedProps((prev) => (prev.includes(propId) ? prev : [...prev, propId]));
+      });
+      return;
+    }
+
+    retroAudioSynth.playSfx("pop");
     setPlacedProps((prev) =>
       prev.includes(propId) ? prev.filter((id) => id !== propId) : [...prev, propId]
     );
   };
 
-  // 방명록 등록 (내 미니홈피 or 방문한 친구 미니홈피)
+  // 소품 위치 업데이트
+  const handleUpdatePropPosition = (propId: string, pos: PropPosition) => {
+    setPropPositions((prev) => ({
+      ...prev,
+      [propId]: pos,
+    }));
+  };
+
+  const handleResetPositions = () => {
+    setPropPositions(DEFAULT_PROP_POSITIONS);
+    setMinimiPosition({ x: 50, y: 82, flip: false });
+  };
+
+  // 방명록 등록
   const handleAddGuestbook = (e: React.FormEvent) => {
     e.preventDefault();
     if (!gbContent.trim()) {
@@ -244,7 +429,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
     };
 
     if (visitingFriend) {
-      // 방문한 친구의 방명록에 등록
       const updatedFriend: FriendMiniroom = {
         ...visitingFriend,
         todayCount: visitingFriend.todayCount + 1,
@@ -258,17 +442,18 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
         setEggCount((prev) => Math.max(0, prev - 1));
       }
       setGbContent("");
+      retroAudioSynth.playSfx("coin");
       confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
-      alert(`🎉 ${visitingFriend.ownerName} 님의 방명록에 등록되었습니다! ${gbSendEgg ? "(오리알 1개 선물 🥚)" : ""}`);
     } else {
-      // 내 방명록에 등록
       setGuestbookEntries((prev) => [newEntry, ...prev]);
       if (gbSendEgg) {
         setEggCount((prev) => prev + 1);
       }
+      setTodayCount((prev) => prev + 1);
+      setTotalCount((prev) => prev + 1);
       setGbContent("");
+      retroAudioSynth.playSfx("coin");
       confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
-      alert("🎉 방명록이 등록되었습니다!");
     }
   };
 
@@ -304,7 +489,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
             ? {
                 ...item,
                 reply: {
-                  author: "주인장",
+                  author: nickname || "주인장",
                   content: replyInputText.trim(),
                   createdAt: "방금 전",
                 },
@@ -315,14 +500,48 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
     }
     setReplyTargetId(null);
     setReplyInputText("");
+    retroAudioSynth.playSfx("pop");
     confetti({ particleCount: 30, spread: 40, origin: { y: 0.6 } });
   };
 
   // 비밀글 열람 토글
   const handleToggleUnlockSecret = (id: string) => {
+    retroAudioSynth.playSfx("pop");
     setUnlockedSecretIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
+  };
+
+  // 다이어리 새 일기 등록
+  const handleAddDiaryEntry = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDiaryText.trim()) return;
+    const now = new Date();
+    const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const dateStr = `2005.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")} ${days[now.getDay()]}`;
+
+    const entry: DiaryEntry = {
+      id: `diary_${Date.now()}`,
+      date: dateStr,
+      weather: newDiaryWeather,
+      mood: newDiaryMood,
+      content: newDiaryText.trim(),
+      likes: 1,
+    };
+    setDiaryEntries((prev) => [entry, ...prev]);
+    retroAudioSynth.playSfx("coin");
+    confetti({ particleCount: 45, spread: 55, origin: { y: 0.6 } });
+  };
+
+  // 백문백답 저장
+  const handleSaveQna = (id: string) => {
+    if (!editingQnaText.trim()) return;
+    setQnaItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, a: editingQnaText.trim() } : item))
+    );
+    setEditingQnaId(null);
+    setEditingQnaText("");
+    retroAudioSynth.playSfx("pop");
   };
 
   // 나만의 BGM 직접 입력 등록
@@ -341,7 +560,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
     confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
     setCustomBgmTitle("");
     setCustomBgmArtist("");
-    alert(`🎵 "${newTrack.title}" 곡이 대표 BGM으로 등록되었습니다!`);
   };
 
   // 일촌평 등록
@@ -360,22 +578,189 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
     setIlchonComments((prev) => [newComment, ...prev]);
     setInputContent("");
     setInputAuthor("");
+    retroAudioSynth.playSfx("pop");
     confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 } });
   };
 
-  // 공유하기
-  const handleShare = () => {
+  // 캔버스 미니룸 포토카드 렌더링
+  useEffect(() => {
+    if (!showPhotoCardModal || !photoCanvasRef.current) return;
+    const canvas = photoCanvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const W = 720;
+    const H = 900;
+    canvas.width = W;
+    canvas.height = H;
+
+    // 1. 카드 외곽 배경 (싸이월드 도트 프레임)
+    ctx.fillStyle = "#e2e8f0";
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 6;
+    ctx.strokeRect(16, 16, W - 32, H - 32);
+
+    // 내부 흰색 보드
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(28, 28, W - 56, H - 56);
+
+    // 2. 상단 TODAY / TOTAL & BGM 바
+    ctx.fillStyle = "#f8fafc";
+    ctx.fillRect(48, 48, W - 96, 54);
+    ctx.strokeStyle = "#cbd5e1";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(48, 48, W - 96, 54);
+
+    ctx.font = "bold 20px monospace, sans-serif";
+    ctx.fillStyle = "#ea580c";
+    ctx.fillText(`TODAY ${todayCount}`, 68, 82);
+    ctx.fillStyle = "#64748b";
+    ctx.fillText(`|  TOTAL ${totalCount.toLocaleString()}`, 200, 82);
+
+    ctx.font = "bold 18px sans-serif";
+    ctx.fillStyle = "#334155";
+    ctx.textAlign = "right";
+    ctx.fillText(`♬ ${selectedBgm.title.slice(0, 18)}`, W - 68, 82);
+    ctx.textAlign = "left";
+
+    // 3. 대문 타이틀
+    ctx.font = "900 28px sans-serif";
+    ctx.fillStyle = "#0f172a";
+    ctx.fillText(homeTitle, 52, 148);
+
+    // 4. 미니룸 캔버스 박스
+    const roomX = 48;
+    const roomY = 172;
+    const roomW = W - 96;
+    const roomH = 440;
+
+    // 벽지
+    ctx.fillStyle = selectedTheme.wallColor;
+    ctx.fillRect(roomX, roomY, roomW, roomH * 0.54);
+
+    // 바닥
+    ctx.fillStyle = selectedTheme.floorColor;
+    ctx.fillRect(roomX, roomY + roomH * 0.54, roomW, roomH * 0.46);
+
+    // 몰딩 선
+    ctx.fillStyle = "rgba(0,0,0,0.2)";
+    ctx.fillRect(roomX, roomY + roomH * 0.54 - 4, roomW, 6);
+
+    // 미니룸 테두리
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(roomX, roomY, roomW, roomH);
+
+    // 배치된 소품 아이콘 & 이름 렌더링
+    placedProps.forEach((pid) => {
+      const meta = MINIROOM_PROPS.find((p) => p.id === pid);
+      const pos = propPositions[pid] || DEFAULT_PROP_POSITIONS[pid] || { x: 50, y: 70 };
+      if (!meta) return;
+      const px = roomX + (pos.x / 100) * roomW;
+      const py = roomY + (pos.y / 100) * roomH;
+      ctx.font = "44px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(meta.icon, px, py);
+    });
+
+    // 중앙 미니미 & 말풍선
+    const mx = roomX + (minimiPosition.x / 100) * roomW;
+    const my = roomY + (minimiPosition.y / 100) * roomH;
+
+    // 말풍선 박스
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 2.5;
+    const bubbleW = Math.min(460, Math.max(240, moodText.length * 22 + 40));
+    const bubbleX = Math.max(roomX + 16, Math.min(roomX + roomW - bubbleW - 16, mx - bubbleW / 2));
+    const bubbleY = my - 130;
+    ctx.fillRect(bubbleX, bubbleY, bubbleW, 44);
+    ctx.strokeRect(bubbleX, bubbleY, bubbleW, 44);
+
+    ctx.font = "bold 19px sans-serif";
+    ctx.fillStyle = "#0f172a";
+    ctx.textAlign = "center";
+    ctx.fillText(moodText.slice(0, 22), bubbleX + bubbleW / 2, bubbleY + 29);
+
+    // 미니미 캐릭터 심볼
+    ctx.fillStyle = "#fde047";
+    ctx.beginPath();
+    ctx.arc(mx, my - 46, 24, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#3b82f6";
+    ctx.fillRect(mx - 18, my - 22, 36, 28);
+    ctx.strokeRect(mx - 18, my - 22, 36, 28);
+
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(selectedMinimi.name, mx, my + 26);
+
+    // 5. 하단 프로필 & 일촌 초대장 문구
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#fff7ed";
+    ctx.fillRect(48, 636, W - 96, 150);
+    ctx.strokeStyle = "#fdba74";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(48, 636, W - 96, 150);
+
+    ctx.font = "900 22px sans-serif";
+    ctx.fillStyle = "#9a3412";
+    ctx.fillText(`🏡 주인장: ${nickname} (🥚 오리알 ${eggCount}개)`, 72, 676);
+
+    ctx.font = "bold 18px sans-serif";
+    ctx.fillStyle = "#475569";
+    ctx.fillText(`🎨 테마: ${selectedTheme.name} · 아바타: ${selectedMinimi.name}`, 72, 714);
+    ctx.fillText(`💌 "일촌 맺고 내 미니룸에 파도타러 놀러오세요! 퍼가요~♡"`, 72, 752);
+
+    // 하단 푸터
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillStyle = "#94a3b8";
+    ctx.textAlign = "center";
+    ctx.fillText("토스 미니앱 [미니룸] · Y2K Retro Miniroom Studio", W / 2, 835);
+    ctx.textAlign = "left";
+  }, [
+    showPhotoCardModal,
+    homeTitle,
+    nickname,
+    moodText,
+    todayCount,
+    totalCount,
+    eggCount,
+    selectedTheme,
+    selectedMinimi,
+    selectedBgm,
+    placedProps,
+    propPositions,
+    minimiPosition,
+  ]);
+
+  const handleDownloadPhotoCard = () => {
+    if (!photoCanvasRef.current) return;
+    const link = document.createElement("a");
+    link.download = `miniroom-${nickname || "card"}.png`;
+    link.href = photoCanvasRef.current.toDataURL("image/png");
+    link.click();
+    retroAudioSynth.playSfx("coin");
+    confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
+  };
+
+  // 초대장 텍스트 복사
+  const handleCopyInviteText = () => {
     const text = [
       `★..${homeTitle}..★`,
       `일촌 맺고 파도타기 하실 분~? 🌊`,
-      `- 주인장: ${nickname}`,
+      `- 주인장: ${nickname} (🥚 오리알 ${eggCount}개)`,
       `- 오늘의 기분: ${moodText}`,
       `- 대표 BGM: ♬ ${selectedBgm.title} - ${selectedBgm.artist}`,
       `- TODAY: ${todayCount} | TOTAL: ${totalCount}`,
-      `👉 토스에서 미니룸 구경오세요!`,
+      `👉 토스 [미니룸]에서 내 방 구경오세요!`,
     ].join("\n");
 
     navigator.clipboard.writeText(text);
+    retroAudioSynth.playSfx("coin");
     confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
     alert("🎉 미니룸 초대장이 클립보드에 복사되었습니다!");
   };
@@ -449,23 +834,32 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 font-medium">
-                  추억의 감성 도트 미니홈피 & 레트로 BGM
+                  {nickname}님의 도트 미니홈피 & 레트로 BGM
                 </p>
               </div>
             </div>
 
-            {/* 파도타기 버튼 */}
-            <button
-              onClick={() => setShowPadoModal(true)}
-              className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white font-black text-xs rounded-xl shadow-xs transition cursor-pointer active:scale-95 flex items-center gap-1"
-            >
-              <Waves className="w-3.5 h-3.5" />
-              <span>파도타기</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setShowPhotoCardModal(true)}
+                className="px-2.5 py-1.5 bg-white hover:bg-gray-50 text-gray-800 border border-gray-300 font-black text-xs rounded-xl shadow-2xs transition cursor-pointer active:scale-95 flex items-center gap-1"
+                title="미니룸 포토카드 저장"
+              >
+                <Camera className="w-3.5 h-3.5 text-orange-600" />
+                <span>포토카드</span>
+              </button>
+              <button
+                onClick={() => setShowPadoModal(true)}
+                className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white font-black text-xs rounded-xl shadow-xs transition cursor-pointer active:scale-95 flex items-center gap-1"
+              >
+                <Waves className="w-3.5 h-3.5" />
+                <span>파도타기</span>
+              </button>
+            </div>
           </div>
         )}
 
-        {/* 미니룸 상시 렌더링 뷰어 (친구 방문 시 고유 스킨/소품/미니미/사인 반영) */}
+        {/* 미니룸 상시 렌더링 뷰어 (드래그 배치 & 터치 반응 지원) */}
         <MiniroomViewer
           theme={
             visitingFriend
@@ -484,15 +878,22 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
           }
           moodText={visitingFriend ? visitingFriend.moodText : moodText}
           placedProps={visitingFriend ? visitingFriend.placedProps : placedProps}
+          propPositions={visitingFriend ? DEFAULT_PROP_POSITIONS : propPositions}
+          minimiPosition={visitingFriend ? { x: 50, y: 82, flip: false } : minimiPosition}
+          onUpdatePropPosition={visitingFriend ? undefined : handleUpdatePropPosition}
+          onUpdateMinimiPosition={visitingFriend ? undefined : setMinimiPosition}
+          onResetPositions={visitingFriend ? undefined : handleResetPositions}
           todayCount={visitingFriend ? visitingFriend.todayCount : todayCount}
           totalCount={visitingFriend ? visitingFriend.totalCount : totalCount}
           homeTitle={visitingFriend ? visitingFriend.homeTitle : homeTitle}
           eggCount={eggCount}
           roomFrameBg={visitingFriend?.skin.roomFrameBg}
           wallTag={visitingFriend?.skin.roomWallTag}
+          editable={!visitingFriend}
+          vipFont={unlockedVipFont}
         />
 
-        {/* 탭 메뉴: 방문객 모드(2개 탭) vs 내 홈피 모드(4개 탭) */}
+        {/* 탭 메뉴: 방문객 모드(2개 탭) vs 내 홈피 모드(5개 탭) */}
         {visitingFriend ? (
           <div className="grid grid-cols-2 gap-1 bg-black/5 p-1 rounded-2xl border border-black/10">
             {[
@@ -509,7 +910,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => switchTab(tab.id as any)}
+                  onClick={() => switchTab(tab.id as TabType)}
                   className={`py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer relative ${
                     isActive
                       ? `${visitingFriend.skin.accentBg} ${visitingFriend.skin.accentText} shadow-xs`
@@ -528,7 +929,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
             })}
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200">
+          <div className="grid grid-cols-5 gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200">
             {[
               { id: "home", label: "미니룸", icon: Home },
               {
@@ -538,6 +939,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                 badge: guestbookEntries.length,
               },
               { id: "room", label: "룸꾸미기", icon: Palette },
+              { id: "diary", label: "다이어리", icon: BookOpen },
               { id: "jukebox", label: "BGM", icon: Music },
             ].map((tab) => {
               const Icon = tab.icon;
@@ -545,8 +947,8 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => switchTab(tab.id as any)}
-                  className={`py-2 rounded-xl text-xs font-bold transition flex flex-col items-center gap-0.5 cursor-pointer relative ${
+                  onClick={() => switchTab(tab.id as TabType)}
+                  className={`py-2 rounded-xl text-[11px] font-bold transition flex flex-col items-center gap-0.5 cursor-pointer relative ${
                     isActive
                       ? "bg-orange-600 text-white shadow-xs"
                       : "text-gray-600 hover:text-gray-900"
@@ -555,7 +957,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                   <div className="relative flex items-center justify-center">
                     <Icon className="w-4 h-4" />
                     {tab.badge !== undefined && (
-                      <span className="absolute -top-1.5 -right-2 px-1 py-0.2 bg-rose-500 text-white rounded-full text-[9px] font-black leading-none shadow-2xs">
+                      <span className="absolute -top-1.5 -right-2.5 px-1 py-0.2 bg-rose-500 text-white rounded-full text-[9px] font-black leading-none shadow-2xs">
                         {tab.badge}
                       </span>
                     )}
@@ -695,34 +1097,124 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                 </TossCard>
               </>
             ) : (
-              /* 내 홈피일 때: 기분 변경 & 파도타기 탐험 카드 & 방명록/일촌평/다이어리 */
+              /* 내 홈피일 때 */
               <>
+                {/* 1. Today Is... 기분 & 대문/프로필 커스텀 카드 */}
                 <TossCard
-                  title="💬 오늘의 기분 & 말풍선 바꾸기"
-                  subtitle="미니룸 속 미니미 머리 위에 띄울 한마디를 골라보세요"
+                  title="💬 Today is... 기분 & 대문 꾸미기"
+                  subtitle="미니미 말풍선과 미니홈피 대문 제목을 Y2K 감성으로 바꿔보세요"
+                  badge={
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingProfile((p) => !p)}
+                      className="px-2 py-0.5 bg-orange-100 hover:bg-orange-200 text-orange-800 rounded-lg text-[10px] font-black transition cursor-pointer flex items-center gap-1"
+                    >
+                      <Edit3 className="w-2.5 h-2.5" />
+                      <span>{isEditingProfile ? "접기" : "대문·닉네임 변경"}</span>
+                    </button>
+                  }
                 >
-                  <div className="grid grid-cols-3 gap-1.5 pt-1">
-                    {MOOD_PRESETS.map((m) => (
+                  <div className="space-y-3 pt-1">
+                    {/* 대문 제목 & 닉네임 편집 폼 (열렸을 때) */}
+                    {isEditingProfile && (
+                      <div className="p-3 bg-orange-50/70 border border-orange-200 rounded-2xl space-y-2.5 animate-fade-in">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="col-span-2">
+                            <label className="text-[10px] font-bold text-orange-900 block mb-1">
+                              미니홈피 대문 제목
+                            </label>
+                            <input
+                              type="text"
+                              value={homeTitle}
+                              onChange={(e) => setHomeTitle(e.target.value)}
+                              maxLength={26}
+                              className="w-full px-2.5 py-1.5 text-xs bg-white border border-orange-300 rounded-xl focus:outline-hidden focus:border-orange-600"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-orange-900 block mb-1">
+                              내 닉네임
+                            </label>
+                            <input
+                              type="text"
+                              value={nickname}
+                              onChange={(e) => setNickname(e.target.value)}
+                              maxLength={10}
+                              className="w-full px-2.5 py-1.5 text-xs bg-white border border-orange-300 rounded-xl focus:outline-hidden focus:border-orange-600"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-1">
+                          {[
+                            "★..oOl쁜ol의 작은공간..★",
+                            "†..눈물의 왕국..†",
+                            "🌸 봄날의 비밀일기 🌸",
+                            "🎧 음악이 흐르는 다락방",
+                          ].map((titlePreset) => (
+                            <button
+                              key={titlePreset}
+                              type="button"
+                              onClick={() => setHomeTitle(titlePreset)}
+                              className="px-2 py-0.5 bg-white hover:bg-orange-100 border border-orange-200 rounded-lg text-[10px] font-bold text-orange-900 cursor-pointer"
+                            >
+                              {titlePreset}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 말풍선 직접 입력 + Y2K 싸이체 원클릭 변환 */}
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        value={moodText}
+                        onChange={(e) => setMoodText(e.target.value)}
+                        maxLength={32}
+                        placeholder="미니미 말풍선 한마디 입력..."
+                        className="flex-1 px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-hidden focus:border-[#FF7710] focus:bg-white"
+                      />
                       <button
-                        key={m.id}
+                        type="button"
                         onClick={() => {
-                          setMoodText(m.status);
-                          confetti({ particleCount: 30, spread: 50, origin: { y: 0.6 } });
+                          setMoodText((prev) => convertToCyStyle(prev));
+                          retroAudioSynth.playSfx("coin");
+                          confetti({ particleCount: 25, spread: 45, origin: { y: 0.6 } });
                         }}
-                        className={`p-2 rounded-xl text-left border transition cursor-pointer flex flex-col justify-between ${
-                          moodText === m.status
-                            ? "bg-orange-50 border-orange-400 text-orange-950 shadow-2xs"
-                            : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
-                        }`}
+                        className="px-2.5 py-2 bg-slate-800 hover:bg-slate-900 text-amber-300 rounded-xl text-[11px] font-black shrink-0 cursor-pointer flex items-center gap-1 active:scale-95"
+                        title="2005년 싸이월드 감성체로 자동 변환"
                       >
-                        <span className="text-lg">{m.emoji}</span>
-                        <span className="text-xs font-extrabold mt-1">{m.label}</span>
+                        <Wand2 className="w-3.5 h-3.5" />
+                        <span>싸이체 변환</span>
                       </button>
-                    ))}
+                    </div>
+
+                    {/* 기분 프리셋 6종 */}
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {MOOD_PRESETS.map((m) => (
+                        <button
+                          key={m.id}
+                          onClick={() => {
+                            setMoodText(m.status);
+                            retroAudioSynth.playSfx("pop");
+                            confetti({ particleCount: 25, spread: 50, origin: { y: 0.6 } });
+                          }}
+                          className={`p-2 rounded-xl text-left border transition cursor-pointer flex items-center gap-2 ${
+                            moodText === m.status
+                              ? "bg-orange-50 border-orange-400 text-orange-950 shadow-2xs"
+                              : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          <span className="text-base">{m.emoji}</span>
+                          <span className="text-xs font-extrabold">{m.label}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </TossCard>
 
-                {/* ★ 1번: 일촌 파도타기 탐험 카드 */}
+                {/* 2. 일촌 파도타기 탐험 카드 */}
                 <TossCard
                   title="🌊 일촌 파도타기 탐험 (4명의 단짝 일촌)"
                   subtitle="추억의 일촌들 미니홈피로 파도타기를 떠나 방명록과 오리알을 남겨보세요!"
@@ -768,7 +1260,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                   </div>
                 </TossCard>
 
-                {/* 방명록 최근 소식 하이라이트 카드 (★ 키포인트 기능 바로가기) */}
+                {/* 3. 방명록 최근 소식 하이라이트 카드 */}
                 <TossCard
                   title={`📜 최근 방명록 (${guestbookEntries.length})`}
                   subtitle="일촌들이 남긴 따뜻한 글과 오리알 선물이에요"
@@ -819,12 +1311,11 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                   </div>
                 </TossCard>
 
-                {/* 한 줄 일촌평 섹션 */}
+                {/* 4. 한 줄 일촌평 섹션 */}
                 <TossCard
-                  title={`💌 한 줄 일촌평 (${ilchonComments.length})`}
-                  subtitle="방명록 대신 한 줄로 마음을 전하던 그 시절 일촌평"
+                  title={`💌 What Friends Say (${ilchonComments.length})`}
+                  subtitle="한 줄로 마음을 전하던 그 시절 일촌평"
                 >
-                  {/* 일촌평 입력 폼 */}
                   <form onSubmit={handleAddIlchonComment} className="flex gap-2 mb-3">
                     <input
                       type="text"
@@ -848,7 +1339,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                     </button>
                   </form>
 
-                  {/* 일촌평 리스트 */}
                   <div className="space-y-2">
                     {ilchonComments.map((c) => (
                       <div
@@ -869,49 +1359,14 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                     ))}
                   </div>
                 </TossCard>
-
-                {/* 흑백 감성 다이어리 템플릿 카드 */}
-                <TossCard
-                  title="📖 흑백 감성 다이어리"
-                  subtitle="추억의 Y2K 감성 명문장 템플릿"
-                >
-                  <div className="p-4 bg-[#1e293b] text-white rounded-2xl shadow-inner font-serif space-y-2 border border-slate-700">
-                    <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-700 pb-2">
-                      <span>2005.10.12 WED</span>
-                      <span>비공개 스크랩 금지</span>
-                    </div>
-                    <p className="text-sm leading-relaxed text-slate-100 italic py-2 whitespace-pre-line">
-                      "{diaryText}"
-                    </p>
-                    <div className="text-right text-[11px] text-slate-400">
-                      - {nickname}의 일기장에서 -
-                    </div>
-                  </div>
-
-                  <div className="pt-3 space-y-1.5">
-                    <h5 className="text-xs font-bold text-gray-700">명문장 랜덤 불러오기</h5>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {RETRO_CY_QUOTES.slice(0, 4).map((q, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setDiaryText(q)}
-                          className="p-2 bg-gray-50 hover:bg-orange-50 text-[11px] text-gray-700 rounded-xl border border-gray-200 text-left line-clamp-1 transition cursor-pointer"
-                        >
-                          {q.slice(0, 18)}...
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </TossCard>
               </>
             )}
           </div>
         )}
 
-        {/* --- 탭 2: 방명록 (★ 키포인트 전용 탭!) --- */}
+        {/* --- 탭 2: 방명록 --- */}
         {activeTab === "guestbook" && (
           <div className="space-y-3.5 animate-fade-in">
-            {/* 상단 방명록 현황 헤더 바 */}
             {visitingFriend ? (
               <div
                 className={`p-3.5 rounded-2xl border ${visitingFriend.skin.headerBg} flex items-center justify-between shadow-2xs`}
@@ -970,7 +1425,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
               }
             >
               <form onSubmit={handleAddGuestbook} className="space-y-3 pt-1">
-                {/* 닉네임 & 일촌 호칭 */}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[11px] font-bold text-gray-700 block mb-1">
@@ -1018,7 +1472,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                       <button
                         key={av.id}
                         type="button"
-                        onClick={() => setGbAvatar(av.id as any)}
+                        onClick={() => setGbAvatar(av.id as GuestbookEntry["avatarType"])}
                         className={`p-1.5 rounded-xl border text-center transition cursor-pointer flex flex-col items-center gap-0.5 ${
                           gbAvatar === av.id
                             ? "bg-orange-50 border-orange-500 shadow-2xs font-black text-orange-900"
@@ -1061,11 +1515,17 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                   </div>
                 </div>
 
-                {/* 빠른 추천 문구 버튼 (원클릭 자동 채우기) */}
+                {/* 빠른 추천 문구 버튼 */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-bold text-gray-700">추억의 추천 문구 탭하기</span>
-                    <span className="text-[10px] text-gray-400">클릭 시 자동 입력</span>
+                    <button
+                      type="button"
+                      onClick={() => setGbContent((p) => convertToCyStyle(p))}
+                      className="text-[10px] font-bold text-orange-600 hover:underline cursor-pointer"
+                    >
+                      ✨ 싸이체 자동변환
+                    </button>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {[
@@ -1126,7 +1586,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                   </label>
                 </div>
 
-                {/* 등록 버튼 */}
                 <TossButton variant="primary" size="md" className="w-full">
                   <Send className="w-4 h-4 mr-1.5 inline" />
                   <span>
@@ -1166,7 +1625,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                     key={entry.id}
                     className="bg-white rounded-2xl border-2 border-[#cbd5e1] shadow-2xs overflow-hidden transition"
                   >
-                    {/* 카드 상단 레트로 헤더 바 */}
                     <div className="bg-[#f1f5f9] px-3.5 py-2 border-b border-[#cbd5e1] flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-[10px] font-mono font-extrabold text-gray-400 shrink-0">
@@ -1197,9 +1655,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                       </div>
                     </div>
 
-                    {/* 카드 본문 */}
                     <div className="p-3.5 space-y-2.5">
-                      {/* 스티커 및 오리알 선물 뱃지 바 */}
                       <div className="flex flex-wrap items-center gap-1.5">
                         {entry.duckEggGift ? (
                           <span className="px-2 py-0.5 bg-amber-50 border border-amber-300 rounded-full text-[10px] font-black text-amber-900 flex items-center gap-1 shadow-2xs">
@@ -1235,7 +1691,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                         )}
                       </div>
 
-                      {/* 메시지 내용 */}
                       {entry.isSecret && !isUnlocked ? (
                         <div className="p-3 bg-gray-50 border border-dashed border-gray-300 rounded-xl text-center space-y-1.5">
                           <p className="text-xs text-gray-500 font-medium">
@@ -1255,7 +1710,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                         </p>
                       )}
 
-                      {/* 주인장 답글 영역 */}
                       {entry.reply ? (
                         <div className="p-2.5 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs space-y-1">
                           <div className="flex items-center justify-between text-[11px]">
@@ -1326,79 +1780,165 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
           </div>
         )}
 
-        {/* --- 탭 2: 미니룸 꾸미기 --- */}
+        {/* --- 탭 3: 미니룸 꾸미기 & 오리알 상점 --- */}
         {activeTab === "room" && (
           <div className="space-y-3.5 animate-fade-in">
-            {/* 벽지/바닥 테마 선택 */}
+            {/* 1. 원클릭 인테리어 방 프리셋 4종 */}
             <TossCard
-              title="🎨 미니룸 테마 벽지"
-              subtitle="원하는 인테리어 무드를 선택해 보세요"
+              title="✨ 원클릭 인테리어 프리셋"
+              subtitle="고민 없이 1초 만에 완성하는 감성 미니룸 세트"
+              badge={<TossBadge variant="orange">추천 코디</TossBadge>}
             >
               <div className="grid grid-cols-2 gap-2 pt-1">
-                {MINIROOM_THEMES.map((t) => (
+                {ROOM_PRESETS.map((preset) => (
                   <button
-                    key={t.id}
-                    onClick={() => setSelectedTheme(t)}
-                    className={`p-3 rounded-2xl border text-left transition cursor-pointer flex items-center justify-between ${
-                      selectedTheme.id === t.id
-                        ? "border-[#FF7710] bg-orange-50 shadow-xs"
-                        : "border-gray-200 bg-white hover:bg-gray-50"
-                    }`}
+                    key={preset.id}
+                    type="button"
+                    onClick={() => handleApplyPreset(preset)}
+                    className="p-2.5 rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-orange-50/40 hover:border-orange-400 text-left transition cursor-pointer flex flex-col justify-between gap-1.5 active:scale-95"
                   >
                     <div>
-                      <span className="text-xs font-extrabold text-gray-900 block">
-                        {t.name}
-                      </span>
-                      <span className="text-[10px] text-gray-500 font-medium">
-                        {t.tag}
-                      </span>
+                      <div className="flex items-center justify-between gap-1 mb-0.5">
+                        <span className="text-xs font-black text-gray-900 truncate">
+                          {preset.name}
+                        </span>
+                        <span className="px-1.5 py-0.2 bg-orange-100 text-orange-700 rounded text-[9px] font-black shrink-0">
+                          {preset.badge}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-gray-500 leading-snug line-clamp-2">
+                        {preset.desc}
+                      </p>
                     </div>
-                    <div
-                      className="w-6 h-6 rounded-full border border-gray-300 shadow-2xs"
-                      style={{ backgroundColor: t.wallColor }}
-                    />
+                    <span className="text-[10px] font-extrabold text-orange-600">
+                      세트 바로 적용 →
+                    </span>
                   </button>
                 ))}
               </div>
             </TossCard>
 
-            {/* 미니미 아바타 선택 */}
+            {/* 2. 벽지/바닥 테마 선택 (6종) */}
             <TossCard
-              title="👤 미니미 아바타 고르기"
-              subtitle="나를 표현하는 도트 캐릭터를 설정하세요"
+              title="🎨 미니룸 테마 벽지 (6종)"
+              subtitle="벚꽃 낙하·빗소리 무드 등 스페셜 벽지를 오리알로 해금해보세요"
+              badge={
+                <span className="text-[11px] font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
+                  🥚 보유: {eggCount}개
+                </span>
+              }
             >
-              <div className="space-y-2 pt-1">
-                {MINIMI_CHARS.map((char) => (
-                  <div
-                    key={char.id}
-                    onClick={() => setSelectedMinimi(char)}
-                    className={`p-3 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer transition ${
-                      selectedMinimi.id === char.id
-                        ? "border-[#FF7710] bg-orange-50/60 shadow-xs"
-                        : "border-gray-200 bg-white hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-xs font-bold text-gray-900">{char.name}</h4>
-                      <p className="text-[11px] text-gray-500 mt-0.5">{char.desc}</p>
-                    </div>
-                    {selectedMinimi.id === char.id && (
-                      <TossBadge variant="orange" size="sm">
-                        선택됨
-                      </TossBadge>
-                    )}
-                  </div>
-                ))}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                {MINIROOM_THEMES.map((t) => {
+                  const unlocked = isItemUnlocked(t.id, t.eggCost);
+                  const isSelected = selectedTheme.id === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                        if (!unlocked) {
+                          handleUnlockWithEggs(t.id, t.name, t.eggCost || 3, () =>
+                            setSelectedTheme(t)
+                          );
+                        } else {
+                          setSelectedTheme(t);
+                          retroAudioSynth.playSfx("pop");
+                        }
+                      }}
+                      className={`p-3 rounded-2xl border text-left transition cursor-pointer flex items-center justify-between ${
+                        isSelected
+                          ? "border-[#FF7710] bg-orange-50 shadow-xs"
+                          : "border-gray-200 bg-white hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="min-w-0 pr-1">
+                        <span className="text-xs font-extrabold text-gray-900 block truncate">
+                          {t.name}
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-medium">
+                          {unlocked ? t.tag : `🔒 오리알 ${t.eggCost}개 해금`}
+                        </span>
+                      </div>
+                      <div
+                        className="w-6 h-6 rounded-full border border-gray-300 shadow-2xs shrink-0"
+                        style={{ backgroundColor: t.wallColor }}
+                      />
+                    </button>
+                  );
+                })}
               </div>
             </TossCard>
 
-            {/* 도트 가구 & 소품 배치 토글 */}
+            {/* 3. 미니미 아바타 선택 (7종) */}
             <TossCard
-              title="🛋️ 미니룸 가구 & 소품 배치"
-              subtitle="클릭하여 방에 소품을 배치하거나 뺄 수 있습니다"
+              title="👤 미니미 아바타 고르기 (7종)"
+              subtitle="나를 표현하는 도트 캐릭터를 설정하세요"
+            >
+              <div className="space-y-2 pt-1">
+                {MINIMI_CHARS.map((char) => {
+                  const unlocked = isItemUnlocked(char.id, char.eggCost);
+                  const isSelected = selectedMinimi.id === char.id;
+                  return (
+                    <div
+                      key={char.id}
+                      onClick={() => {
+                        if (!unlocked) {
+                          handleUnlockWithEggs(char.id, char.name, char.eggCost || 3, () =>
+                            setSelectedMinimi(char)
+                          );
+                        } else {
+                          setSelectedMinimi(char);
+                          retroAudioSynth.playSfx("pop");
+                        }
+                      }}
+                      className={`p-3 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer transition ${
+                        isSelected
+                          ? "border-[#FF7710] bg-orange-50/60 shadow-xs"
+                          : "border-gray-200 bg-white hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs font-bold text-gray-900">{char.name}</h4>
+                        <p className="text-[11px] text-gray-500 mt-0.5">{char.desc}</p>
+                      </div>
+                      {isSelected ? (
+                        <TossBadge variant="orange" size="sm">
+                          장착중
+                        </TossBadge>
+                      ) : unlocked ? (
+                        <span className="text-[11px] font-bold text-gray-400">선택</span>
+                      ) : (
+                        <span className="px-2 py-0.5 bg-amber-100 text-amber-900 rounded-lg text-[10px] font-black">
+                          🔒 🥚 {char.eggCost}개
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </TossCard>
+
+            {/* 4. 도트 가구 & 소품 12종 배치 */}
+            <TossCard
+              title={`🛋️ 미니룸 가구 & 소품 배치 (${placedProps.length}/12)`}
+              subtitle="소품을 배치한 뒤 위 미니룸의 [배치 이동] 버튼으로 자유롭게 드래그하세요"
+              badge={
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleResetPositions();
+                    retroAudioSynth.playSfx("pop");
+                  }}
+                  className="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-[10px] font-bold flex items-center gap-0.5 cursor-pointer"
+                >
+                  <RotateCcw className="w-2.5 h-2.5" />
+                  <span>위치 정렬</span>
+                </button>
+              }
             >
               <div className="grid grid-cols-2 gap-2 pt-1">
                 {MINIROOM_PROPS.map((prop) => {
+                  const unlocked = isItemUnlocked(prop.id, prop.eggCost);
                   const isPlaced = placedProps.includes(prop.id);
                   return (
                     <button
@@ -1407,17 +1947,23 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                       className={`p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
                         isPlaced
                           ? "border-emerald-500 bg-emerald-50/50 shadow-2xs"
-                          : "border-gray-200 bg-white hover:bg-gray-50 opacity-60"
+                          : unlocked
+                          ? "border-gray-200 bg-white hover:bg-gray-50 opacity-75"
+                          : "border-amber-200 bg-amber-50/30 hover:bg-amber-50"
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{prop.icon}</span>
-                        <div>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-xl shrink-0">{prop.icon}</span>
+                        <div className="min-w-0">
                           <span className="text-xs font-bold text-gray-900 block truncate">
                             {prop.name}
                           </span>
-                          <span className="text-[10px] text-gray-500">
-                            {isPlaced ? "배치중" : "보관함"}
+                          <span className="text-[10px] text-gray-500 font-semibold">
+                            {isPlaced
+                              ? "✅ 배치중"
+                              : unlocked
+                              ? "보관함 (터치해 배치)"
+                              : `🔒 오리알 ${prop.eggCost}개 해금`}
                           </span>
                         </div>
                       </div>
@@ -1429,10 +1975,181 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
           </div>
         )}
 
-        {/* --- 탭 3: BGM 주크박스 --- */}
+        {/* --- 탭 4: 감성 다이어리 & 백문백답 --- */}
+        {activeTab === "diary" && (
+          <div className="space-y-3.5 animate-fade-in">
+            {/* 1. 다이어리 작성 & Y2K 싸이체 변환 */}
+            <TossCard
+              title="📖 그 시절 감성 다이어리"
+              subtitle="비공개 스크랩 금지! 새벽 감성 일기를 기록하고 싸이체로 변환해보세요"
+              badge={<TossBadge variant="purple">일기 {diaryEntries.length}편</TossBadge>}
+            >
+              <form onSubmit={handleAddDiaryEntry} className="space-y-2.5 pt-1">
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={newDiaryWeather}
+                    onChange={(e) => setNewDiaryWeather(e.target.value as DiaryEntry["weather"])}
+                    className="px-2.5 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                  >
+                    <option value="🌙 새벽">🌙 새벽</option>
+                    <option value="☀️ 맑음">☀️ 맑음</option>
+                    <option value="🌧️ 비">🌧️ 비</option>
+                    <option value="☃️ 눈">☃️ 눈</option>
+                  </select>
+                  <select
+                    value={newDiaryMood}
+                    onChange={(e) => setNewDiaryMood(e.target.value)}
+                    className="px-2.5 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl"
+                  >
+                    <option value="💧 센치함">💧 센치함</option>
+                    <option value="☀️ 행복">☀️ 행복</option>
+                    <option value="💓 설렘">💓 설렘</option>
+                    <option value="🔥 열공">🔥 열공</option>
+                  </select>
+                </div>
+
+                <textarea
+                  rows={3}
+                  value={newDiaryText}
+                  onChange={(e) => setNewDiaryText(e.target.value)}
+                  placeholder="오늘의 감성 일기를 적어보세요..."
+                  className="w-full px-3 py-2 text-xs bg-slate-900 text-slate-100 border border-slate-700 rounded-xl focus:outline-hidden resize-none leading-relaxed"
+                />
+
+                {/* 명문장 추천 & 싸이체 변환 */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap gap-1">
+                    {RETRO_CY_QUOTES.slice(0, 3).map((q, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setNewDiaryText(q)}
+                        className="px-2 py-1 bg-gray-100 hover:bg-orange-50 text-[10px] font-bold text-gray-700 rounded-lg border border-gray-200 cursor-pointer"
+                      >
+                        명대사 {idx + 1}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewDiaryText((prev) => convertToCyStyle(prev));
+                      retroAudioSynth.playSfx("coin");
+                    }}
+                    className="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-[10px] font-black shrink-0 cursor-pointer flex items-center gap-1"
+                  >
+                    <Wand2 className="w-3 h-3" />
+                    <span>싸이체 변환</span>
+                  </button>
+                </div>
+
+                <TossButton variant="primary" size="sm" className="w-full">
+                  <span>다이어리에 일기 남기기 ✍️</span>
+                </TossButton>
+              </form>
+
+              {/* 저장된 일기장 피드 */}
+              <div className="space-y-2.5 pt-3 mt-3 border-t border-gray-100">
+                {diaryEntries.map((d) => (
+                  <div
+                    key={d.id}
+                    className="p-3.5 bg-[#1e293b] text-white rounded-2xl shadow-inner space-y-2 border border-slate-700"
+                  >
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-700 pb-1.5">
+                      <span className="font-mono font-bold text-orange-300">{d.date}</span>
+                      <span>
+                        {d.weather} · {d.mood}
+                      </span>
+                    </div>
+                    <p
+                      className={`text-xs leading-relaxed text-slate-100 whitespace-pre-line py-1 ${
+                        unlockedVipFont ? "font-mono tracking-wide" : "italic"
+                      }`}
+                    >
+                      "{d.content}"
+                    </p>
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                      <span>- {nickname}의 비밀 일기장 -</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDiaryEntries((prev) =>
+                            prev.map((item) =>
+                              item.id === d.id ? { ...item, likes: item.likes + 1 } : item
+                            )
+                          );
+                          retroAudioSynth.playSfx("pop");
+                        }}
+                        className="px-2 py-0.5 bg-white/10 hover:bg-rose-500/30 text-rose-300 rounded-full font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <Heart className="w-3 h-3 fill-current" />
+                        <span>공감 {d.likes}</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </TossCard>
+
+            {/* 2. 추억의 백문백답 (미니 5문항) */}
+            <TossCard
+              title="📝 2005 추억의 백문백답"
+              subtitle="질문을 눌러 나만의 답변으로 수정해 보세요"
+              badge={<TossBadge variant="orange">인기 코너</TossBadge>}
+            >
+              <div className="space-y-2 pt-1">
+                {qnaItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-3 bg-amber-50/50 border border-amber-200/80 rounded-xl text-xs space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-orange-950">{item.q}</span>
+                      {editingQnaId !== item.id && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingQnaId(item.id);
+                            setEditingQnaText(item.a);
+                          }}
+                          className="text-[10px] font-bold text-orange-600 hover:underline cursor-pointer"
+                        >
+                          답변 수정 ✏️
+                        </button>
+                      )}
+                    </div>
+
+                    {editingQnaId === item.id ? (
+                      <div className="flex gap-1.5 pt-1">
+                        <input
+                          type="text"
+                          value={editingQnaText}
+                          onChange={(e) => setEditingQnaText(e.target.value)}
+                          className="flex-1 px-2.5 py-1.5 text-xs bg-white border border-orange-300 rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSaveQna(item.id)}
+                          className="px-2.5 py-1 bg-orange-600 text-white rounded-lg text-[11px] font-bold cursor-pointer"
+                        >
+                          저장
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-gray-700 font-medium pl-2 border-l-2 border-orange-300">
+                        👉 {item.a}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </TossCard>
+          </div>
+        )}
+
+        {/* --- 탭 5: BGM 주크박스 --- */}
         {activeTab === "jukebox" && (
           <div className="space-y-3.5 animate-fade-in">
-            {/* 1. 나만의 BGM 직접 입력하기 (사용자 생성 BGM) */}
             <TossCard
               title="🎵 내 BGM 직접 입력하기"
               subtitle="좋아하는 노래 제목과 아티스트를 직접 적어 대표곡으로 등록해 보세요"
@@ -1472,7 +2189,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
               </form>
             </TossCard>
 
-            {/* 2. 감성 레트로 Lo-Fi & 8-bit 오리지널 BGM (8선) */}
             <TossCard
               title="📻 감성 Lo-Fi & 8-bit BGM (8선)"
               subtitle="클릭 시 브라우저 내장 신디사이저로 레트로 멜로디가 실제 연주됩니다"
@@ -1531,88 +2247,43 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
           </div>
         )}
 
-        {/* --- 탭 4: 감성 다이어리 --- */}
-        {activeTab === "diary" && (
-          <div className="space-y-3.5 animate-fade-in">
-            <TossCard
-              title="📖 흑백 감성 다이어리"
-              subtitle="추억의 Y2K 감성 명문장 템플릿"
-            >
-              <div className="p-4 bg-[#1e293b] text-white rounded-2xl shadow-inner font-serif space-y-2 border border-slate-700">
-                <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-700 pb-2">
-                  <span>2005.10.12 WED</span>
-                  <span>비공개 스크랩 금지</span>
-                </div>
-                <p className="text-sm leading-relaxed text-slate-100 italic py-2 whitespace-pre-line">
-                  "{diaryText}"
-                </p>
-                <div className="text-right text-[11px] text-slate-400">
-                  - {nickname}의 일기장에서 -
-                </div>
-              </div>
-
-              {/* 명어록 추천 버튼들 */}
-              <div className="pt-3 space-y-1.5">
-                <h5 className="text-xs font-bold text-gray-700">명문장 랜덤 불러오기</h5>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {RETRO_CY_QUOTES.slice(0, 4).map((q, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setDiaryText(q)}
-                      className="p-2 bg-gray-50 hover:bg-orange-50 text-[11px] text-gray-700 rounded-xl border border-gray-200 text-left line-clamp-1 transition cursor-pointer"
-                    >
-                      {q.slice(0, 18)}...
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </TossCard>
-          </div>
-        )}
-
-        {/* 오너 전용 기능: 보상형 광고 & 토스페이 결제 & 공유하기 (내 홈피에서만 노출) */}
+        {/* 오너 전용 기능: 보상형 광고 & 토스페이 결제 & 포토카드 공유 (내 홈피에서만 노출) */}
         {!visitingFriend && (
           <>
-            {/* 보상형 광고: 오리알 10개 무료 충전 (골드 스킨) */}
+            {/* 보상형 광고: 오리알 10개 무료 충전 */}
             <TossCard
               title="🥚 오리알 10개 무료 충전소"
-              subtitle="광고를 시청하면 한정판 황금 미니미와 오리알 10개가 즉시 충전됩니다"
+              subtitle="광고를 시청하면 전설의 황금 오리왕 미니미와 오리알 10개가 즉시 지급됩니다"
               badge={
                 <TossBadge variant="purple">
-                  {unlockedGoldSkin ? "충전 완료" : "무료 충전"}
+                  {unlockedGoldSkin ? "보너스 충전" : "무료 충전"}
                 </TossBadge>
               }
             >
-              {unlockedGoldSkin ? (
-                <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 text-xs text-purple-950 animate-fade-in">
-                  🎉 오리알 10개가 충전되어 <b>황금 미니미 & 프리미엄 BGM</b>이 활성화되었습니다!
+              <div className="pt-1 text-center space-y-2">
+                <div className="bg-purple-50/80 border border-purple-200/90 rounded-xl p-2.5 text-[11px] text-purple-950 flex items-center gap-2 text-left">
+                  <span className="px-1.5 py-0.5 bg-purple-600 text-white rounded text-[9px] font-black shrink-0">
+                    사전 고지
+                  </span>
+                  <span className="leading-tight">
+                    5초 분량의 광고를 시청하면 오리알 10개와 황금 오리왕 아바타가 즉시 무료로 지급됩니다.
+                  </span>
                 </div>
-              ) : (
-                <div className="pt-2 text-center space-y-2">
-                  <div className="bg-purple-50/80 border border-purple-200/90 rounded-xl p-2.5 text-[11px] text-purple-950 flex items-center gap-2 text-left">
-                    <span className="px-1.5 py-0.5 bg-purple-600 text-white rounded text-[9px] font-black shrink-0">
-                      사전 고지
-                    </span>
-                    <span className="leading-tight">
-                      5초 분량의 광고를 시청하면 오리알 10개가 즉시 무료로 지급됩니다.
-                    </span>
-                  </div>
-                  <TossButton
-                    variant="secondary"
-                    size="md"
-                    onClick={() => setIsAdOpen(true)}
-                  >
-                    <Sparkles className="w-4 h-4 mr-1 text-purple-600 inline" />
-                    <span>[광고] 5초 시청 후 오리알 10개 받기</span>
-                  </TossButton>
-                </div>
-              )}
+                <TossButton
+                  variant="secondary"
+                  size="md"
+                  onClick={() => setIsAdOpen(true)}
+                >
+                  <Sparkles className="w-4 h-4 mr-1 text-purple-600 inline" />
+                  <span>[광고] 5초 시청 후 오리알 10개 받기</span>
+                </TossButton>
+              </div>
             </TossCard>
 
-            {/* 토스페이 소액 결제 (990원): Y2K 감성 폰트 & 가구 세트 */}
+            {/* 토스페이 소액 결제 (990원): Y2K 감성 폰트 & 가구 풀세트 */}
             <TossCard
               title="✨ Y2K 레트로 폰트 & 프리미엄 도트 가구 풀세트"
-              subtitle="그 시절 픽셀 폰트와 레트로 가구 8종 영구 소장"
+              subtitle="그 시절 픽셀 폰트와 12종 전체 가구·테마·아바타 영구 잠금 해제"
               badge={
                 <TossBadge variant="orange">
                   {unlockedVipFont ? "소장 완료" : "990원"}
@@ -1621,7 +2292,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
             >
               {unlockedVipFont ? (
                 <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-950 animate-fade-in">
-                  🎉 <b>Y2K 감성 폰트팩 & 도트 가구 풀패키지</b>가 영구 소장되었습니다!
+                  🎉 <b>Y2K 감성 폰트팩 & 12종 전체 도트 가구·테마 풀패키지</b>가 영구 소장되었습니다!
                 </div>
               ) : (
                 <div className="pt-2 text-center">
@@ -1631,22 +2302,85 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                     onClick={() => setIsPaymentOpen(true)}
                   >
                     <Award className="w-4 h-4 mr-1 text-amber-500 inline" />
-                    <span>영구 소장하기 (990원)</span>
+                    <span>풀세트 영구 소장하기 (990원)</span>
                   </TossButton>
                 </div>
               )}
             </TossCard>
 
-            {/* 공유하기 버튼 */}
-            <div className="pt-2">
-              <TossButton variant="primary" size="lg" onClick={handleShare}>
+            {/* 포토카드 이미지 저장 & 초대장 공유 버튼 */}
+            <div className="pt-2 grid grid-cols-2 gap-2">
+              <TossButton
+                variant="secondary"
+                size="lg"
+                onClick={() => setShowPhotoCardModal(true)}
+              >
+                <Camera className="w-4 h-4 mr-1.5 inline text-orange-600" />
+                <span>포토카드 이미지 저장</span>
+              </TossButton>
+              <TossButton variant="primary" size="lg" onClick={handleCopyInviteText}>
                 <Share2 className="w-4 h-4 mr-1.5 inline" />
-                <span>내 미니룸 초대장 복사 & 친구에게 공유</span>
+                <span>초대장 텍스트 복사</span>
               </TossButton>
             </div>
           </>
         )}
       </main>
+
+      {/* 📸 내 미니룸 포토카드 저장 모달 */}
+      {showPhotoCardModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setShowPhotoCardModal(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-3.5 bg-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Camera className="w-4 h-4 text-orange-400" />
+                <h3 className="text-sm font-black">📸 내 미니룸 포토카드</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPhotoCardModal(false)}
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-3 bg-slate-50">
+              <div className="rounded-2xl overflow-hidden border border-slate-300 shadow-sm bg-white">
+                <canvas
+                  ref={photoCanvasRef}
+                  className="w-full h-auto block"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleDownloadPhotoCard}
+                  className="py-3 bg-orange-600 hover:bg-orange-700 text-white font-black text-xs rounded-2xl shadow-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>이미지 저장 (PNG)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyInviteText}
+                  className="py-3 bg-slate-800 hover:bg-slate-900 text-white font-black text-xs rounded-2xl shadow-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>초대 문구 복사</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 일촌 파도타기 (Surfing) 탐험 바텀시트 모달 */}
       {showPadoModal && (
@@ -1658,7 +2392,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
             className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[85vh] animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 모달 헤더 (차분하고 정갈한 다크 헤더) */}
             <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-1.5">
@@ -1678,9 +2411,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
               </button>
             </div>
 
-            {/* 모달 컨텐츠 */}
             <div className="p-4 overflow-y-auto space-y-3.5 flex-1">
-              {/* 빠른 액션 버튼: 랜덤 파도타기 & 내 홈피 복귀 */}
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -1718,7 +2449,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                 )}
               </div>
 
-              {/* 일촌 리스트 목록 */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs font-extrabold text-gray-700 px-1">
                   <span>추억의 단짝 일촌들 ({friendsList.length}명)</span>
@@ -1791,7 +2521,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
                 </div>
               </div>
 
-              {/* 하단 꿀팁 */}
               <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed flex items-start gap-1.5">
                 <span className="text-base shrink-0">💡</span>
                 <span>
@@ -1800,7 +2529,6 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
               </div>
             </div>
 
-            {/* 모달 닫기 버튼 */}
             <div className="p-3 bg-gray-50 border-t border-gray-100">
               <button
                 type="button"
@@ -1821,6 +2549,7 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
         onRewarded={() => {
           setUnlockedGoldSkin(true);
           setEggCount((prev) => prev + 10);
+          retroAudioSynth.playSfx("coin");
           confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
         }}
         rewardTitle="오리알 10개 무료 충전"
@@ -1834,10 +2563,11 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
         onSuccess={() => {
           setIsPaymentOpen(false);
           setUnlockedVipFont(true);
+          retroAudioSynth.playSfx("coin");
           confetti({ particleCount: 90, spread: 70, origin: { y: 0.5 } });
-          alert("🎉 Y2K 레트로 폰트 & 가구 풀세트가 영구 소장되었습니다!");
+          alert("🎉 Y2K 레트로 폰트 & 12종 도트 가구 풀세트가 영구 소장되었습니다!");
         }}
-        productName="Y2K 레트로 폰트 & 프리미엄 도트 가구 풀세트"
+        productTitle="Y2K 레트로 폰트 & 프리미엄 도트 가구 풀세트"
         price={990}
       />
     </div>
