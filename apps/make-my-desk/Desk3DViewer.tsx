@@ -137,7 +137,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
       if (obj.geometry) obj.geometry.dispose();
       if (obj.material) {
         if (Array.isArray(obj.material)) {
-          obj.material.forEach((m) => m.dispose());
+          obj.material.forEach((m: any) => m.dispose());
         } else {
           obj.material.dispose();
         }
@@ -239,7 +239,7 @@ export const Desk3DViewer: React.FC<Desk3DViewerProps> = ({
     };
 
     // Animation Loop
-    let animId: number;
+    let animId = 0;
     const animate = () => {
       animId = requestAnimationFrame(animate);
       const state = sceneStateRef.current;

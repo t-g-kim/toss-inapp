@@ -5,6 +5,6 @@ import "../../../src/index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <FeedPreviewApp />
+    <App />
   </React.StrictMode>
 );

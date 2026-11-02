@@ -81,8 +81,8 @@ export const CyMiniApp: React.FC<CyMiniAppProps> = ({ onBack }) => {
   const [selectedBgm, setSelectedBgm] = useState<BpmTrack>(CY_BGMS[0]);
   const [placedProps, setPlacedProps] = useState<string[]>(["crt_pc", "turntable", "retro_bed", "teddy_bear"]);
 
-  // 3. 탭 메뉴 (home | guestbook | room | jukebox)
-  const [activeTab, setActiveTab] = useState<"home" | "guestbook" | "room" | "jukebox">("home");
+  // 3. 탭 메뉴 (home | guestbook | room | jukebox | diary)
+  const [activeTab, setActiveTab] = useState<"home" | "guestbook" | "room" | "jukebox" | "diary">("home");
 
   // 4. 방명록 상태 (★ 키포인트 기능)
   const [guestbookEntries, setGuestbookEntries] = useState<GuestbookEntry[]>(DEFAULT_GUESTBOOK_ENTRIES);

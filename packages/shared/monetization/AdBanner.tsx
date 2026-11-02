@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import { ExternalLink, Info, X } from "lucide-react";
+import { ExternalLink, X } from "lucide-react";
 
 interface AdBannerProps {
-  placement?: "bottom" | "inline";
+  placement?: "bottom" | "inline" | (string & {});
   title?: string;
   subtitle?: string;
   actionText?: string;
   url?: string;
+  className?: string;
   onClick?: () => void;
 }
 
@@ -16,6 +17,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({
   subtitle = "연 최고 3.5% 금리 혜택 지금 바로 확인하세요",
   actionText = "[광고] 바로가기",
   url,
+  className = "",
   onClick,
 }) => {
   const [closed, setClosed] = useState(false);
@@ -26,7 +28,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({
     <div
       className={`relative overflow-hidden bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-blue-50/90 border border-blue-200/60 rounded-2xl p-3.5 transition shadow-sm ${
         placement === "bottom" ? "sticky bottom-4 mx-4 z-30" : "my-4"
-      }`}
+      } ${className}`}
     >
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-medium">

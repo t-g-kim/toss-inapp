@@ -4,8 +4,11 @@ import confetti from "canvas-confetti";
 
 interface TossPayModalProps {
   isOpen: boolean;
-  productTitle: string;
-  price: number;
+  productTitle?: string;
+  productName?: string;
+  itemTitle?: string;
+  price?: number;
+  amount?: number;
   description?: string;
   onClose: () => void;
   onSuccess: () => void;
@@ -14,11 +17,16 @@ interface TossPayModalProps {
 export const TossPayModal: React.FC<TossPayModalProps> = ({
   isOpen,
   productTitle,
+  productName,
+  itemTitle,
   price,
+  amount,
   description = "토스페이로 1초 만에 안전하게 결제됩니다.",
   onClose,
   onSuccess,
 }) => {
+  const resolvedTitle = productTitle || productName || itemTitle || "프리미엄 이용권";
+  const resolvedPrice = price ?? amount ?? 990;
   const [processing, setProcessing] = useState(false);
   const [paid, setPaid] = useState(false);
 
@@ -66,9 +74,9 @@ export const TossPayModal: React.FC<TossPayModalProps> = ({
             <span className="inline-block bg-blue-50 text-toss-blue text-xs font-semibold px-2.5 py-1 rounded-full mb-2">
               원클릭 간편결제
             </span>
-            <h3 className="text-lg font-bold text-toss-text">{productTitle}</h3>
+            <h3 className="text-lg font-bold text-toss-text">{resolvedTitle}</h3>
             <div className="text-3xl font-extrabold text-toss-blue mt-2">
-              {price.toLocaleString()}
+              {resolvedPrice.toLocaleString()}
               <span className="text-lg font-medium text-toss-text ml-0.5">원</span>
             </div>
             <p className="text-xs text-toss-muted mt-2">{description}</p>
@@ -113,7 +121,7 @@ export const TossPayModal: React.FC<TossPayModalProps> = ({
                 <Check className="w-5 h-5" /> 결제 완료!
               </span>
             ) : (
-              <span>{price.toLocaleString()}원 결제하기</span>
+              <span>{resolvedPrice.toLocaleString()}원 결제하기</span>
             )}
           </button>
         </div>

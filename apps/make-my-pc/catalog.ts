@@ -6,6 +6,7 @@ export interface PartOption {
   id: string;
   name: string;
   sub?: string;
+  specs?: Record<string, string | number>;
   price: number;
   score?: number;
   tdp?: number;

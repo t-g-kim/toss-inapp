@@ -50,7 +50,7 @@ interface MiniAppMeta {
   id: AppId;
   title: string;
   category: string;
-  badge: { text: string; variant: "blue" | "green" | "purple" | "orange" | "red" };
+  badge: { text: string; variant: "blue" | "green" | "purple" | "orange" | "red" | "gray" };
   desc: string;
   iconBg: string;
   icon: React.ReactNode;
@@ -223,15 +223,39 @@ const APPS: MiniAppMeta[] = [
 export const PortalHub: React.FC<PortalHubProps> = ({ onSelectApp }) => {
   const [filterCat, setFilterCat] = useState<string>("ALL");
 
-  const categories = ["ALL", "레트로/SNS", "행운/복권", "직장인/재테크", "투자/금융 퀀트", "바이럴/심리"];
+  const categories = [
+    "ALL",
+    "스타일/라이프",
+    "직장인/재테크",
+    "레트로/SNS",
+    "행운/운세",
+    "바이럴/심리",
+  ];
 
   const filteredApps = APPS.filter((app) => {
     if (filterCat === "ALL") return true;
-    if (filterCat === "레트로/SNS") return app.category === "레트로/SNS" || app.category === "소셜/크리에이터";
-    if (filterCat === "행운/복권") return app.category === "행운/복권" || app.category === "운세/타로";
-    if (filterCat === "직장인/재테크") return app.category === "직장인/재테크" || app.category === "공공복지/환급" || app.category === "짠테크/가계부";
-    if (filterCat === "투자/금융 퀀트") return app.category === "투자/금융 퀀트" || app.category === "배당/패시브인컴" || app.category === "기술적 분석";
-    if (filterCat === "바이럴/심리") return app.category === "바이럴/심리" || app.category === "운세/타로";
+    if (filterCat === "스타일/라이프")
+      return (
+        app.category === "스타일/뷰티" ||
+        app.category === "생활/인테리어" ||
+        app.category === "IT/유틸리티"
+      );
+    if (filterCat === "레트로/SNS")
+      return app.category === "레트로/SNS" || app.category === "소셜/크리에이터";
+    if (filterCat === "행운/운세")
+      return app.category === "행운/복권" || app.category === "운세/타로";
+    if (filterCat === "직장인/재테크")
+      return (
+        app.category === "직장인/재테크" ||
+        app.category === "공공복지/모의계산" ||
+        app.category === "짠테크/가계부"
+      );
+    if (filterCat === "바이럴/심리")
+      return (
+        app.category === "바이럴/심리" ||
+        app.category === "운세/타로" ||
+        app.category === "스타일/뷰티"
+      );
     return true;
   });
 
@@ -260,7 +284,7 @@ export const PortalHub: React.FC<PortalHubProps> = ({ onSelectApp }) => {
 
           <h3 className="text-2xl font-black mt-2">토스 인앱 수익화 올인원</h3>
           <p className="text-xs text-blue-100 mt-1 leading-relaxed">
-            원클릭 웹뷰 환경에서 고단가 금융 광고와 토스페이 소액결제를 발생시키는 9개의 고수익 미니앱 모음입니다.
+            원클릭 웹뷰 환경에서 고단가 금융 광고와 토스페이 소액결제를 발생시키는 {APPS.length}개의 고수익 미니앱 모음입니다.
           </p>
 
           <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-blue-200">

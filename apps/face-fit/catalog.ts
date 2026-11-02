@@ -448,7 +448,7 @@ export interface GlassesOption {
   emoji: string;
   badge: string;
   desc: string;
-  shapeStyle: "arnel" | "crown_panto" | "browline" | "round_metal" | "clear_horn" | "square_metal" | "boston_combi" | "rimless";
+  shapeStyle: "arnel" | "crown_panto" | "browline" | "round_metal" | "clear_horn" | "square_metal" | "boston_combi" | "rimless" | "octa_metal";
   frameThickness: "thin" | "medium" | "thick";
   lensHeightRatio: number; // 0.7 ~ 1.1
   lensWidthRatio: number;

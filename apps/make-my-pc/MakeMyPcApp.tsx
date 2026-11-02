@@ -1074,9 +1074,9 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
                                 {opt?.name || "미선택"}
                               </span>
                             </div>
-                            {opt?.specs && (
+                            {(opt?.sub || opt?.specs) && (
                               <p className="text-[10px] text-slate-400 mt-0.5 truncate">
-                                {Object.entries(opt.specs).slice(0, 2).map(([sk, sv]) => `${sk}: ${sv}`).join(" · ")}
+                                {opt.sub || (opt.specs ? Object.entries(opt.specs).slice(0, 2).map(([sk, sv]) => `${sk}: ${sv}`).join(" · ") : "")}
                               </p>
                             )}
                           </div>

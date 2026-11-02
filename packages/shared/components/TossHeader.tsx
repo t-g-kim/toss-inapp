@@ -6,6 +6,7 @@ interface TossHeaderProps {
   subtitle?: string;
   onBack?: () => void;
   rightAction?: React.ReactNode;
+  rightElement?: React.ReactNode;
   transparent?: boolean;
 }
 
@@ -14,8 +15,11 @@ export const TossHeader: React.FC<TossHeaderProps> = ({
   subtitle,
   onBack,
   rightAction,
+  rightElement,
   transparent = false,
 }) => {
+  const resolvedRight = rightAction || rightElement;
+
   return (
     <header
       className={`sticky top-0 z-40 flex items-center justify-between px-4 h-14 ${
@@ -37,7 +41,7 @@ export const TossHeader: React.FC<TossHeaderProps> = ({
           {subtitle && <p className="text-[11px] text-toss-muted truncate mt-0.5">{subtitle}</p>}
         </div>
       </div>
-      {rightAction && <div className="flex items-center shrink-0">{rightAction}</div>}
+      {resolvedRight && <div className="flex items-center shrink-0">{resolvedRight}</div>}
     </header>
   );
 };

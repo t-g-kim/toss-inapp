@@ -86,7 +86,7 @@ export const Pc3DViewer: React.FC<Pc3DViewerProps> = ({
       if (o.geometry) o.geometry.dispose();
       if (o.material) {
         if (Array.isArray(o.material)) {
-          o.material.forEach((m) => m.dispose());
+          o.material.forEach((m: any) => m.dispose());
         } else {
           o.material.dispose();
         }

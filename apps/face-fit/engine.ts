@@ -102,6 +102,7 @@ export function calculateDiagnosisResult(answers: number[]): FaceShapeKey {
     square: 0,
     heart: 0,
     oblong: 0,
+    diamond: 0,
   };
 
   answers.forEach((choiceIndex, qIdx) => {

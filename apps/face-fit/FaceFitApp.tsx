@@ -658,7 +658,7 @@ export const FaceFitApp: React.FC<FaceFitAppProps> = ({ onBack }) => {
                           <span
                             className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0"
                             style={{
-                              backgroundColor: lt.tintColor === "transparent" ? "#F1F5F9" : lt.tintColor,
+                              backgroundColor: lt.color === "transparent" ? "#F1F5F9" : lt.color,
                               opacity: lt.opacity > 0 ? Math.max(lt.opacity, 0.4) : 1,
                             }}
                           />

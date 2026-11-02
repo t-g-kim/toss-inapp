@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Play, Sparkles, X, CheckCircle2, Film, AlertCircle } from "lucide-react";
+import { Play, Sparkles, X, CheckCircle2, Film } from "lucide-react";
 import confetti from "canvas-confetti";
 
 interface RewardedAdModalProps {
   isOpen: boolean;
   rewardTitle?: string;
+  title?: string;
+  description?: string;
   adDurationSeconds?: number;
   onClose: () => void;
   onRewarded?: () => void;
@@ -13,12 +15,15 @@ interface RewardedAdModalProps {
 
 export const RewardedAdModal: React.FC<RewardedAdModalProps> = ({
   isOpen,
-  rewardTitle = "프리미엄 분석 리포트 열람",
+  rewardTitle,
+  title,
   adDurationSeconds = 5,
   onClose,
   onRewarded,
   onReward,
 }) => {
+  const resolvedRewardTitle = rewardTitle || title || "프리미엄 분석 리포트 열람";
+
   // 3-phase flow: "notice" (pre-ad awareness) -> "playing" (ad countdown) -> "completed" (reward claim)
   const [phase, setPhase] = useState<"notice" | "playing" | "completed">("notice");
   const [secondsLeft, setSecondsLeft] = useState(adDurationSeconds);
@@ -86,7 +91,7 @@ export const RewardedAdModal: React.FC<RewardedAdModalProps> = ({
 
             <p className="text-xs text-toss-subtext mt-2 leading-relaxed px-2">
               유저 동의 후 짧은 스폰서 광고를 시청하시면{" "}
-              <strong className="text-toss-text font-bold">‘{rewardTitle}’</strong>을(를){" "}
+              <strong className="text-toss-text font-bold">‘{resolvedRewardTitle}’</strong>을(를){" "}
               <span className="text-blue-600 font-bold">무료</span>로 이용하실 수 있어요.
             </p>
 
@@ -149,7 +154,7 @@ export const RewardedAdModal: React.FC<RewardedAdModalProps> = ({
             </div>
 
             <div className="p-4 text-center">
-              <span className="text-xs text-toss-muted">받을 혜택: {rewardTitle}</span>
+              <span className="text-xs text-toss-muted">받을 혜택: {resolvedRewardTitle}</span>
               <button
                 onClick={() => {
                   setPhase("completed");
@@ -180,7 +185,7 @@ export const RewardedAdModal: React.FC<RewardedAdModalProps> = ({
 
             <p className="text-xs text-toss-subtext mt-1.5 leading-relaxed">
               광고 시청이 확인되었습니다.<br />
-              <strong className="text-toss-text">‘{rewardTitle}’</strong>을(를) 지금 바로 확인하세요.
+              <strong className="text-toss-text">‘{resolvedRewardTitle}’</strong>을(를) 지금 바로 확인하세요.
             </p>
 
             <button

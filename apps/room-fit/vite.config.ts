@@ -6,11 +6,11 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@shared": path.resolve(__dirname, "../../packages/shared"),
-      "@apps": path.resolve(__dirname, "../../apps"),
+      "@shared": path.resolve(import.meta.dirname, "../../packages/shared"),
+      "@apps": path.resolve(import.meta.dirname, "../../apps"),
     },
   },
   server: {
-    port: 3010,
+    port: 3013,
   },
 });
