@@ -15,6 +15,7 @@ import {
   getPurchaseLinks,
   getCleanSearchQuery,
   DEFAULT_CATALOG_DATE,
+  syncRemoteCatalog,
   USER_COUPANG_PARTNERS_URL,
   USER_COUPANG_SUBID,
 } from "./catalog";
@@ -208,16 +209,33 @@ export const MakeMyPcApp: React.FC<MakeMyPcAppProps> = ({ onBack }) => {
   } | null>(null);
   const [catalogSyncDate, setCatalogSyncDate] = useState<string>(DEFAULT_CATALOG_DATE);
   const [isSyncingCatalog, setIsSyncingCatalog] = useState<boolean>(false);
+  const [, setCatalogTick] = useState<number>(0);
 
-  const handleSyncCatalog = () => {
+  // 앱 진입 시 원격 최신 카탈로그(GitHub Actions 배치 결과물) 자동 실시간 동기화
+  useEffect(() => {
+    let mounted = true;
+    syncRemoteCatalog().then(({ updatedDate, synced }) => {
+      if (!mounted) return;
+      if (synced) {
+        setCatalogSyncDate(updatedDate);
+        setCatalogTick((t) => t + 1);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleSyncCatalog = async () => {
     setIsSyncingCatalog(true);
+    const { updatedDate } = await syncRemoteCatalog();
     setTimeout(() => {
       setIsSyncingCatalog(false);
-      const today = new Date().toISOString().slice(0, 10).replace(/-/g, ".");
-      setCatalogSyncDate(today + " (다나와·쿠팡 실시간)");
+      setCatalogSyncDate(`${updatedDate} (다나와·쿠팡 실시간)`);
+      setCatalogTick((t) => t + 1);
       confetti({ particleCount: 40, spread: 50, origin: { y: 0.2 } });
       alert("⚡ 다나와 최저가 및 쿠팡 파트너스 최신 시세가 정상 동기화되었습니다!");
-    }, 600);
+    }, 400);
   };
 
   const handleSelectCategory = (k: keyof BuildState) => {

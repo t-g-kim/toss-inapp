@@ -209,23 +209,37 @@ export const SUB_CATEGORIES: Record<string, SubCategoryDef[]> = {
 };
 
 export const CATALOG_SYNC_KEY = "toss_make_my_pc_catalog_v2";
-export const DEFAULT_CATALOG_DATE = latestCatalogData?.updatedAt
-  ? new Date(latestCatalogData.updatedAt).toISOString().slice(0, 10).replace(/-/g, ".")
-  : "2026.10";
+export const REMOTE_CATALOG_URL =
+  "https://raw.githubusercontent.com/t-g-kim/toss-inapp/main/apps/make-my-pc/catalog-latest.json";
 
-export const loadStoredCatalog = (): Record<string, PartCategory> | null => {
+export function formatKstDate(isoStr?: string): string {
+  try {
+    const d = isoStr ? new Date(isoStr) : new Date();
+    if (isNaN(d.getTime())) return new Date().toISOString().slice(0, 10).replace(/-/g, ".");
+    const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+    return kst.toISOString().slice(0, 10).replace(/-/g, ".");
+  } catch {
+    return new Date().toISOString().slice(0, 10).replace(/-/g, ".");
+  }
+}
+
+export const loadStoredCatalogData = (): any | null => {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(CATALOG_SYNC_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (parsed && parsed.categories) {
-      return parsed.categories;
+      return parsed;
     }
   } catch (e) {
     console.error("Failed to load cached catalog:", e);
   }
   return null;
+};
+
+export const loadStoredCatalog = (): Record<string, PartCategory> | null => {
+  return loadStoredCatalogData()?.categories || null;
 };
 
 export const saveStoredCatalog = (data: { updatedAt: string; categories: Record<string, PartCategory> }) => {
@@ -236,6 +250,18 @@ export const saveStoredCatalog = (data: { updatedAt: string; categories: Record<
     console.error("Failed to cache catalog:", e);
   }
 };
+
+const initialCatalogSource = (() => {
+  const stored = loadStoredCatalogData();
+  if (stored?.updatedAt && latestCatalogData?.updatedAt) {
+    if (new Date(stored.updatedAt).getTime() > new Date(latestCatalogData.updatedAt).getTime()) {
+      return stored;
+    }
+  }
+  return latestCatalogData;
+})();
+
+export const DEFAULT_CATALOG_DATE = formatKstDate(initialCatalogSource?.updatedAt);
 
 export const RAW_PARTS: Record<string, PartCategory> = {
   cpu: {
@@ -389,8 +415,11 @@ export const RAW_PARTS: Record<string, PartCategory> = {
   },
 };
 
-function mergeWithLatestCatalog(base: Record<string, PartCategory>): Record<string, PartCategory> {
-  const latestCats = (latestCatalogData as any)?.categories as Record<string, PartCategory> | undefined;
+function mergeWithLatestCatalog(
+  base: Record<string, PartCategory>,
+  catalogSource: any = initialCatalogSource
+): Record<string, PartCategory> {
+  const latestCats = catalogSource?.categories as Record<string, PartCategory> | undefined;
   if (!latestCats) return base;
 
   const result: Record<string, PartCategory> = {};
@@ -441,7 +470,32 @@ function mergeWithLatestCatalog(base: Record<string, PartCategory>): Record<stri
   return result;
 }
 
-export const PARTS: Record<string, PartCategory> = mergeWithLatestCatalog(RAW_PARTS);
+export const PARTS: Record<string, PartCategory> = mergeWithLatestCatalog(RAW_PARTS, initialCatalogSource);
+
+export async function syncRemoteCatalog(): Promise<{ updatedDate: string; synced: boolean }> {
+  try {
+    const res = await fetch(`${REMOTE_CATALOG_URL}?t=${Date.now()}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const remoteData = await res.json();
+    if (remoteData && remoteData.categories) {
+      saveStoredCatalog(remoteData);
+      const merged = mergeWithLatestCatalog(RAW_PARTS, remoteData);
+      Object.assign(PARTS, merged);
+      return {
+        updatedDate: formatKstDate(remoteData.updatedAt),
+        synced: true,
+      };
+    }
+  } catch (e) {
+    console.warn("[Catalog] Remote sync fallback to local bundle:", e);
+  }
+  return {
+    updatedDate: DEFAULT_CATALOG_DATE,
+    synced: false,
+  };
+}
 
 export const PRESET_BUILDS = [
   {

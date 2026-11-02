@@ -33,6 +33,13 @@ jobs:
           COUPANG_SECRET_KEY: ${{ secrets.COUPANG_SECRET_KEY }}
         run: npx tsx apps/make-my-pc/scripts/update-catalog.ts
 
+      - name: Build standalone bundle & root dist
+        run: |
+          npm run build
+          cd apps/make-my-pc
+          npm run build
+          npx @apps-in-toss/cli build
+
       - name: Commit and push if updated
         run: |
           git config --local user.name "github-actions[bot]"
@@ -42,15 +49,15 @@ jobs:
           git fetch origin main
           git rebase origin/main || true
 
-          # 2. 업데이트된 카탈로그 스테이징
-          git add apps/make-my-pc/catalog-latest.json
+          # 2. 업데이트된 카탈로그 및 번들 스테이징
+          git add apps/make-my-pc/catalog-latest.json apps/make-my-pc/make-my-pc.ait
 
           # 3. 변경사항이 있는 경우에만 커밋 & 안전 푸시
           if git diff --staged --quiet; then
             echo "✅ No price updates or changes detected in catalog-latest.json."
           else
             echo "📦 Changes detected. Committing latest catalog..."
-            git commit -m "chore(make-my-pc): auto-sync latest PC parts & market prices [skip ci]"
+            git commit -m "chore(make-my-pc): auto-sync latest PC parts & market prices"
             
             echo "🚀 Pushing catalog update to origin main with auto-rebase protection..."
             for attempt in 1 2 3; do

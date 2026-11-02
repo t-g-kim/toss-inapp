@@ -53,7 +53,7 @@ jobs:
             echo "✅ No updates or changes detected in gohyang gifts."
           else
             echo "📦 Changes detected. Committing latest gifts..."
-            git commit -m "chore(gohyang-gift): auto-sync latest municipal gifts & tax rates [skip ci]"
+            git commit -m "chore(gohyang-gift): auto-sync latest municipal gifts & tax rates"
 
             echo "🚀 Pushing update to origin main with auto-rebase protection..."
             for attempt in 1 2 3; do

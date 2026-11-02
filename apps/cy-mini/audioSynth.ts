@@ -2,6 +2,7 @@
  * Web Audio API 기반 레트로 8-bit / Lo-Fi 감성 사운드 신디사이저
  * - 외부 MP3 음원 파일 0바이트 (저작권 이슈 0% 완전 해결)
  * - 브라우저 네이티브 AudioContext를 통한 부드럽고 따뜻한 8비트/오르골 멜로디 실시간 합성 연주
+ * - 미니미 점프, 가구 터치, 오리알 획득 등 인터랙티브 효과음(SFX) 지원
  */
 
 class RetroAudioSynth {
@@ -112,6 +113,62 @@ class RetroAudioSynth {
     }, pattern.tempo);
   }
 
+  public playSfx(type: "jump" | "coin" | "pop" | "bark") {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      if (type === "jump") {
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(640, now + 0.14);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.16);
+      } else if (type === "coin") {
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(587.33, now); // D5
+        osc.frequency.setValueAtTime(880, now + 0.07); // A5
+        gain.gain.setValueAtTime(0.07, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      } else if (type === "bark") {
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(420, now);
+        osc.frequency.exponentialRampToValueAtTime(260, now + 0.09);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.11);
+      } else {
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(480, now);
+        osc.frequency.exponentialRampToValueAtTime(560, now + 0.06);
+        gain.gain.setValueAtTime(0.04, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      }
+    } catch {
+      // ignore audio context errors
+    }
+  }
+
   private playNextNote(pattern: { type: OscillatorType; tempo: number; notes: string[] }) {
     if (!this.ctx || this.isMuted) return;
 
@@ -129,7 +186,7 @@ class RetroAudioSynth {
       osc.type = pattern.type;
       osc.frequency.setValueAtTime(freq, now);
 
-      // 자극적이지 않게 매우 부드러운 볼륨 (0.05 ~ 0.08)
+      // 자극적이지 않게 매우 부드러운 볼륨 (0.03 ~ 0.07)
       const baseVol = pattern.type === "square" || pattern.type === "sawtooth" ? 0.03 : 0.07;
       gain.gain.setValueAtTime(baseVol, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + (pattern.tempo / 1000) * 0.9);

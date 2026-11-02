@@ -16,22 +16,47 @@ export interface MiniroomTheme {
   floorColor: string;
   gridColor: string;
   tag: string;
+  eggCost?: number;
+  weatherEffect?: "none" | "sakura" | "rain" | "stars";
 }
 
 export interface MinimiChar {
   id: string;
   name: string;
   desc: string;
-  dotArt: string; // SVG 도트 비주얼 타입
+  dotArt: "boy" | "girl" | "rocker" | "cat" | "hiphop" | "boarder" | "gold_duck";
+  eggCost?: number;
 }
 
 export interface MiniroomProp {
   id: string;
   name: string;
-  category: "furniture" | "electronics" | "deco";
+  category: "furniture" | "electronics" | "deco" | "pet";
   width: number;
   height: number;
   icon: string;
+  defaultX: number; // 0 ~ 100 (%)
+  defaultY: number; // 0 ~ 100 (%)
+  eggCost?: number;
+  interactMsg: string;
+}
+
+export interface PropPosition {
+  x: number;
+  y: number;
+  flip?: boolean;
+}
+
+export interface RoomPreset {
+  id: string;
+  name: string;
+  desc: string;
+  badge: string;
+  themeId: string;
+  minimiId: string;
+  bgmId: string;
+  placedProps: string[];
+  positions?: Record<string, PropPosition>;
 }
 
 export interface IlchonComment {
@@ -47,7 +72,7 @@ export interface GuestbookEntry {
   no: number;
   author: string;
   ilchonRelation: string;
-  avatarType: "boy" | "girl" | "rocker" | "cat" | "hiphop";
+  avatarType: "boy" | "girl" | "rocker" | "cat" | "hiphop" | "boarder" | "gold_duck";
   content: string;
   createdAt: string;
   isSecret?: boolean;
@@ -58,6 +83,21 @@ export interface GuestbookEntry {
     content: string;
     createdAt: string;
   };
+}
+
+export interface DiaryEntry {
+  id: string;
+  date: string;
+  weather: "☀️ 맑음" | "🌧️ 비" | "☃️ 눈" | "🌙 새벽";
+  mood: string;
+  content: string;
+  likes: number;
+}
+
+export interface QnaItem {
+  id: string;
+  q: string;
+  a: string;
 }
 
 // 1. 감성 레트로 Lo-Fi & 8-bit BGM 8곡 (저작권 프리 자체 오리지널)
@@ -72,43 +112,67 @@ export const CY_BGMS: BpmTrack[] = [
   { id: "bgm_8", title: "너와 나의 비밀 일기 (Piano)", artist: "미니미 멜로디", year: "2005" },
 ];
 
-// 2. 미니룸 벽지/바닥 테마 4종
+// 2. 미니룸 벽지/바닥 테마 6종
 export const MINIROOM_THEMES: MiniroomTheme[] = [
   {
     id: "orange_classic",
     name: "시그니처 오렌지",
-    wallColor: "#fed7aa", // 오렌지 벽지
-    floorColor: "#d97706", // 우드 장판
+    wallColor: "#fed7aa",
+    floorColor: "#d97706",
     gridColor: "#fb923c",
     tag: "인기 1위",
+    weatherEffect: "none",
   },
   {
     id: "sky_blue",
     name: "하늘색 꿈",
-    wallColor: "#bae6fd", // 파스텔 하늘
-    floorColor: "#0284c7", // 타일 바닥
+    wallColor: "#bae6fd",
+    floorColor: "#0284c7",
     gridColor: "#38bdf8",
     tag: "Y2K 감성",
+    weatherEffect: "none",
   },
   {
     id: "strawberry_pink",
     name: "딸기우유 핑크",
-    wallColor: "#fbcfe8", // 핑크 벽지
-    floorColor: "#db2777", // 핑크 체크
+    wallColor: "#fbcfe8",
+    floorColor: "#db2777",
     gridColor: "#f472b6",
     tag: "러블리",
+    weatherEffect: "none",
   },
   {
     id: "night_cyber",
     name: "미드나잇 사이버",
-    wallColor: "#1e1b4b", // 다크 네이비
-    floorColor: "#4338ca", // 네온 퍼플
+    wallColor: "#1e1b4b",
+    floorColor: "#4338ca",
     gridColor: "#818cf8",
     tag: "새벽 감성",
+    weatherEffect: "stars",
+  },
+  {
+    id: "cherry_blossom",
+    name: "봄날의 벚꽃 다락방",
+    wallColor: "#ffe4e6",
+    floorColor: "#be185d",
+    gridColor: "#fda4af",
+    tag: "벚꽃 낙하 🌸",
+    eggCost: 3,
+    weatherEffect: "sakura",
+  },
+  {
+    id: "rainy_attic",
+    name: "비 오는 날의 창가",
+    wallColor: "#334155",
+    floorColor: "#475569",
+    gridColor: "#94a3b8",
+    tag: "빗소리 무드 🌧️",
+    eggCost: 3,
+    weatherEffect: "rain",
   },
 ];
 
-// 3. 미니미 아바타 5종
+// 3. 미니미 아바타 7종
 export const MINIMI_CHARS: MinimiChar[] = [
   {
     id: "headphone_boy",
@@ -140,21 +204,215 @@ export const MINIMI_CHARS: MinimiChar[] = [
     desc: "비트 위에 몸을 맡긴 힙합 전사",
     dotArt: "hiphop",
   },
+  {
+    id: "boarder_boy",
+    name: "Y2K 스노우보더",
+    desc: "고글 장착! 겨울 스키장 간지 종결자",
+    dotArt: "boarder",
+    eggCost: 3,
+  },
+  {
+    id: "gold_duck",
+    name: "전설의 황금 오리왕",
+    desc: "행운과 오리알을 부르는 레전드 아바타",
+    dotArt: "gold_duck",
+    eggCost: 5,
+  },
 ];
 
-// 4. 미니룸 도트 가구 & 소품 8종
+// 4. 미니룸 도트 가구 & 소품 12종 (전체 픽셀 도트 SVG 렌더링 & 좌표/터치 반응 지원)
 export const MINIROOM_PROPS: MiniroomProp[] = [
-  { id: "crt_pc", name: "CRT 배불뚝이 모니터", category: "electronics", width: 44, height: 40, icon: "🖥️" },
-  { id: "turntable", name: "LP 오디오 턴테이블", category: "electronics", width: 40, height: 35, icon: "📻" },
-  { id: "teddy_bear", name: "특대형 테디베어 인형", category: "deco", width: 36, height: 42, icon: "🧸" },
-  { id: "guitar", name: "통기타 & 스탠드", category: "deco", width: 28, height: 50, icon: "🎸" },
-  { id: "retro_bed", name: "체크무늬 싱글 침대", category: "furniture", width: 65, height: 45, icon: "🛏️" },
-  { id: "diary_desk", name: "원목 공부 책상", category: "furniture", width: 55, height: 40, icon: "🪑" },
-  { id: "stand_mirror", name: "전신 거울", category: "furniture", width: 26, height: 55, icon: "🪞" },
-  { id: "room_plant", name: "몬스테라 화분", category: "deco", width: 28, height: 38, icon: "🪴" },
+  {
+    id: "crt_pc",
+    name: "CRT 배불뚝이 모니터",
+    category: "electronics",
+    width: 48,
+    height: 44,
+    icon: "🖥️",
+    defaultX: 14,
+    defaultY: 66,
+    interactMsg: "💬 [네이트온] 일촌 짱구님이 쪽지를 보냈습니다!",
+  },
+  {
+    id: "turntable",
+    name: "LP 오디오 턴테이블",
+    category: "electronics",
+    width: 44,
+    height: 38,
+    icon: "📻",
+    defaultX: 29,
+    defaultY: 75,
+    interactMsg: "🎵 LP 턴테이블 바늘을 올려 레트로 BGM을 재생합니다!",
+  },
+  {
+    id: "teddy_bear",
+    name: "특대형 테디베어 인형",
+    category: "deco",
+    width: 40,
+    height: 44,
+    icon: "🧸",
+    defaultX: 70,
+    defaultY: 76,
+    interactMsg: "🧸 폭신폭신 곰인형을 꾹 안아주었어요! (포근함 +10)",
+  },
+  {
+    id: "guitar",
+    name: "통기타 & 스탠드",
+    category: "deco",
+    width: 34,
+    height: 50,
+    icon: "🎸",
+    defaultX: 88,
+    defaultY: 68,
+    interactMsg: "🎸 버즈 '가시' 인트로 기타 리프를 연주합니다~ 딩가딩♪",
+  },
+  {
+    id: "retro_bed",
+    name: "체크무늬 싱글 침대",
+    category: "furniture",
+    width: 68,
+    height: 46,
+    icon: "🛏️",
+    defaultX: 82,
+    defaultY: 63,
+    interactMsg: "🛏️ 이불 밖은 위험해... 따끈한 체크무늬 침대!",
+  },
+  {
+    id: "diary_desk",
+    name: "원목 공부 책상",
+    category: "furniture",
+    width: 54,
+    height: 44,
+    icon: "🪑",
+    defaultX: 33,
+    defaultY: 61,
+    interactMsg: "✍️ 책상 위 비밀 일기장에 오늘의 다짐을 적어봅니다.",
+  },
+  {
+    id: "stand_mirror",
+    name: "원목 전신 거울",
+    category: "furniture",
+    width: 32,
+    height: 52,
+    icon: "🪞",
+    defaultX: 12,
+    defaultY: 54,
+    interactMsg: "🪞 거울 속 내 미니미의 오늘 코디 점수: 100점 만점!",
+  },
+  {
+    id: "room_plant",
+    name: "몬스테라 화분",
+    category: "deco",
+    width: 34,
+    height: 42,
+    icon: "🪴",
+    defaultX: 22,
+    defaultY: 58,
+    interactMsg: "🪴 초록 화분에 물을 주었어요! 싱그러운 기분 UP!",
+  },
+  {
+    id: "rain_window",
+    name: "감성 아치 창문",
+    category: "deco",
+    width: 52,
+    height: 48,
+    icon: "🪟",
+    defaultX: 50,
+    defaultY: 32,
+    eggCost: 2,
+    interactMsg: "🪟 창밖 풍경을 바라보며 센치한 그 시절 추억에 잠깁니다...",
+  },
+  {
+    id: "arcade_machine",
+    name: "8비트 오락실 게임기",
+    category: "electronics",
+    width: 44,
+    height: 54,
+    icon: "🕹️",
+    defaultX: 16,
+    defaultY: 56,
+    eggCost: 3,
+    interactMsg: "🕹️ [보글보글 100판 돌파!] 오락실 최고 기록 경신!",
+  },
+  {
+    id: "retro_puppy",
+    name: "도트 강아지 뽀삐",
+    category: "pet",
+    width: 38,
+    height: 36,
+    icon: "🐶",
+    defaultX: 62,
+    defaultY: 81,
+    eggCost: 3,
+    interactMsg: "🐶 멍멍! 강아지 뽀삐가 꼬리를 흔들며 애교를 부려요 ♥",
+  },
+  {
+    id: "lava_lamp",
+    name: "네온 라바 무드등",
+    category: "deco",
+    width: 30,
+    height: 44,
+    icon: "💡",
+    defaultX: 86,
+    defaultY: 79,
+    eggCost: 2,
+    interactMsg: "💡 은은한 오렌지빛 네온 무드등이 방 안을 따뜻하게 비춥니다.",
+  },
 ];
 
-// 5. 오늘의 기분 프리셋 6종
+export const DEFAULT_PROP_POSITIONS: Record<string, PropPosition> = MINIROOM_PROPS.reduce(
+  (acc, prop) => {
+    acc[prop.id] = { x: prop.defaultX, y: prop.defaultY, flip: false };
+    return acc;
+  },
+  {} as Record<string, PropPosition>
+);
+
+// 4-2. 원클릭 인테리어 방 프리셋 4종
+export const ROOM_PRESETS: RoomPreset[] = [
+  {
+    id: "preset_orange",
+    name: "2005 오렌지 공부방",
+    desc: "CRT 모니터, LP 턴테이블과 체크 침대가 있는 정석 미니룸",
+    badge: "시그니처",
+    themeId: "orange_classic",
+    minimiId: "headphone_boy",
+    bgmId: "bgm_1",
+    placedProps: ["crt_pc", "turntable", "retro_bed", "teddy_bear"],
+  },
+  {
+    id: "preset_band",
+    name: "홍대 인디밴드 합주실",
+    desc: "통기타, LP 오디오, 전신 거울이 어우러진 락스타의 방",
+    badge: "락 스피릿",
+    themeId: "night_cyber",
+    minimiId: "rocker_chic",
+    bgmId: "bgm_5",
+    placedProps: ["guitar", "turntable", "stand_mirror", "crt_pc"],
+  },
+  {
+    id: "preset_pink",
+    name: "러블리 핑크 다이어리룸",
+    desc: "곰인형, 원목 공부 책상, 화분이 놓인 아기자기한 소녀의 방",
+    badge: "인기 추천",
+    themeId: "strawberry_pink",
+    minimiId: "uniform_girl",
+    bgmId: "bgm_3",
+    placedProps: ["retro_bed", "teddy_bear", "diary_desk", "room_plant"],
+  },
+  {
+    id: "preset_cozy",
+    name: "하늘빛 냥집사 휴식방",
+    desc: "화분과 곰인형, 배불뚝이 PC가 있는 포근한 집순이 하우스",
+    badge: "힐링 감성",
+    themeId: "sky_blue",
+    minimiId: "cat_pajama",
+    bgmId: "bgm_4",
+    placedProps: ["teddy_bear", "crt_pc", "room_plant", "stand_mirror"],
+  },
+];
+
+// 5. 오늘의 기분 프리셋 6종 (투데이 이즈...)
 export const MOOD_PRESETS = [
   { id: "cry", emoji: "💧", label: "눈물", status: "ㄴr는 ㄱr끔 눈물을 흘린ㄷr..." },
   { id: "happy", emoji: "☀️", label: "행복", status: "햇살 좋은 날.. 감기조심해..★" },
@@ -172,6 +430,66 @@ export const RETRO_CY_QUOTES = [
   "퍼가요~♡ (비공개 스크랩 금지! 오리알 1개 선물되었습니다)",
   "바람이 분다. 서늘하다. 하지만 내 가슴은 아직 뜨겁다.",
   "오늘 밤도 너의 미니홈피를 몰래 파도타기 하다가 잠이 든다...",
+];
+
+// 6-2. Y2K 싸이월드 외계어/감성체 자동 변환기
+export function convertToCyStyle(input: string): string {
+  if (!input.trim()) return "ㄴr는 ㄱr끔 눈물을 흘린ㄷr...★";
+  let res = input
+    .replace(/나는/g, "ㄴr는")
+    .replace(/내가/g, "ㄴHㄱr")
+    .replace(/가끔/g, "ㄱr끔")
+    .replace(/사랑/g, "ㅅr랑")
+    .replace(/사람/g, "ㅅr람")
+    .replace(/마음/g, "ㅁr음")
+    .replace(/바보/g, "ㅂr보")
+    .replace(/안녕/g, "ㅇr녕")
+    .replace(/진짜/g, "진ㅉr")
+    .replace(/너무/g, "너뮤")
+    .replace(/한다/g, "한ㄷr")
+    .replace(/간다/g, "간ㄷr")
+    .replace(/온다/g, "온ㄷr")
+    .replace(/린다/g, "린ㄷr")
+    .replace(/웃는다/g, "웃는ㄷr")
+    .replace(/운다/g, "운ㄷr")
+    .replace(/이다/g, "이ㄷr")
+    .replace(/있다/g, "있ㄷr")
+    .replace(/없다/g, "없ㄷr")
+    .replace(/좋아/g, "좋ㅇr")
+    .replace(/아파/g, "ㅇrㅍr");
+
+  if (!res.includes("★") && !res.includes("♡") && !res.includes("...")) {
+    res = `★..${res}..★`;
+  }
+  return res;
+}
+
+// 6-3. 기본 다이어리 기록 & 백문백답
+export const DEFAULT_DIARY_ENTRIES: DiaryEntry[] = [
+  {
+    id: "diary_1",
+    date: "2005.10.12 WED",
+    weather: "🌙 새벽",
+    mood: "💧 센치함",
+    content: "ㄴr는 ㄱr끔 눈물을 흘린ㄷr... 소리 없이 흐르는 눈물이 내 맘을 전해줄까...\n오늘도 이어폰을 꽂고 버즈 노래를 듣다가 잠이 든다.",
+    likes: 24,
+  },
+  {
+    id: "diary_2",
+    date: "2005.10.10 MON",
+    weather: "☀️ 맑음",
+    mood: "☀️ 행복",
+    content: "방과 후에 애들이랑 분식집에서 컵떡볶이랑 피카츄 돈까스 먹었다 ㅎㅎ\n코노 가서 1시간 동안 목 쉬도록 노래 부른 날! 우리 우정 영원하자 ★",
+    likes: 41,
+  },
+];
+
+export const DEFAULT_QNA_ITEMS: QnaItem[] = [
+  { id: "q1", q: "01. 나의 보물 1호는?", a: "아이리버 MP3 & 단짝 일촌들과 찍은 스티커 사진 ♥" },
+  { id: "q2", q: "02. 노래방 18번 애창곡은?", a: "버즈 - 가시 / 프리스타일 - Y (Please Tell Me Why)" },
+  { id: "q3", q: "03. 지금 좋아하는 사람 이니셜은?", a: "비밀 (ㅎㅈ... 눈치채면 바보 >_<)" },
+  { id: "q4", q: "04. 지금 지갑 속에 있는 현금은?", a: "꼬깃꼬깃 천원짜리 3장 + 버스카드" },
+  { id: "q5", q: "05. 20년 뒤 미래의 나에게 한마디!", a: "그때도 지금처럼 순수하고 따뜻한 음악을 사랑하길..★" },
 ];
 
 // 7. 기본 일촌평 샘플
@@ -289,7 +607,7 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
     themeId: "night_cyber",
     minimiId: "hiphop_dandy",
     bgmId: "bgm_5",
-    placedProps: ["crt_pc", "turntable", "guitar"],
+    placedProps: ["crt_pc", "turntable", "guitar", "arcade_machine"],
     todayCount: 1204,
     totalCount: 42910,
     intro: "신발은 팀버랜드, 바지는 힙합 통바지. 일촌평 달면 100% 맞일촌 간다.",
@@ -345,7 +663,7 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
     themeId: "strawberry_pink",
     minimiId: "uniform_girl",
     bgmId: "bgm_3",
-    placedProps: ["retro_bed", "teddy_bear", "diary_desk"],
+    placedProps: ["retro_bed", "teddy_bear", "diary_desk", "rain_window"],
     todayCount: 890,
     totalCount: 31540,
     intro: "도서관 자리 맡아줄 사람 구함 ㅎㅎ 들렀다 갈 때 오리알 하나씩 두고 가기!",
@@ -390,7 +708,7 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
     themeId: "orange_classic",
     minimiId: "rocker_chic",
     bgmId: "bgm_2",
-    placedProps: ["guitar", "turntable", "stand_mirror"],
+    placedProps: ["guitar", "turntable", "stand_mirror", "lava_lamp"],
     todayCount: 560,
     totalCount: 19800,
     intro: "홍대 인디 클럽 오디션 D-3. 기타 줄 갈았다. 파도타기 환영!",
@@ -434,7 +752,7 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
     themeId: "sky_blue",
     minimiId: "cat_pajama",
     bgmId: "bgm_1",
-    placedProps: ["teddy_bear", "crt_pc", "room_plant"],
+    placedProps: ["teddy_bear", "crt_pc", "room_plant", "retro_puppy"],
     todayCount: 712,
     totalCount: 24300,
     intro: "우리 집 고양이 츄르 대신 오리알 받아요 🥚 오리알 쏘고 소원 빌기!",
@@ -452,20 +770,19 @@ export const FRIEND_MINIROOMS: FriendMiniroom[] = [
       badgeBg: "bg-amber-100",
       badgeText: "text-amber-800",
       roomFrameBg: "bg-[#fffbeb] border-amber-200",
-      roomWallTag: "🐾 세 마리 냥이 다락방",
+      roomWallTag: "🐾 소희의 냥냥 다락방",
     },
     guestbook: [
       {
         id: "fb_4_1",
-        no: 88,
-        author: "익명",
-        ilchonRelation: "랜선 집사",
-        avatarType: "boy",
-        content: "고양이 사진 갤러리에 더 올려주세요 ㅠㅠ 너무 귀여워요",
-        createdAt: "2005.10.12 09:30",
-        sticker: "scrap",
-        duckEggGift: 3,
-        reply: { author: "소희", content: "내일 냥이 낮잠자는 사진 대방출할게요!", createdAt: "2시간 전" },
+        no: 82,
+        author: "유진",
+        ilchonRelation: "절친",
+        avatarType: "girl",
+        content: "소희야 고양이 사진 더 올려줘!! 너무 귀여워서 심장 아파 ㅠㅠ",
+        createdAt: "2005.10.12 12:30",
+        sticker: "love",
+        duckEggGift: 1,
       },
     ],
   },
