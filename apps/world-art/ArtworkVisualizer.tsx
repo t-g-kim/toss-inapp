@@ -13,14 +13,15 @@ interface ArtworkVisualizerProps {
 
 /**
  * 실제 고해상도 명화 원화 이미지 + 인터랙티브 3.5x 돋보기 렌더러
- * - 평소(카드 목록 및 모달 첫 진입 시)에는 그림 위에 번호 핀 없이 100% 깨끗한 원화를 보여줍니다.
- * - 사용자가 하단의 비밀 포인트 버튼(1, 2, 3)을 누르면 해당 위치에 번호 마커와 포커스 링이 나타나며 클로즈업됩니다.
+ * - 이미지 실제 렌더링 영역(inline-block 래퍼) 내부에 비밀 포인트 마커를 배치하여,
+ *   세로형(모나리자·미인도 등)/가로형 비율과 무관하게 100% 정확한 명화 좌표에 번호 핀이 표시됩니다.
+ * - 상단 배지가 명화를 가리지 않도록 컨트롤 바와 메타데이터 바를 액자 외부에 깔끔하게 배치했습니다.
  */
 export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
   artwork,
   interactive = false,
   activeHotspotId = null,
-  height = 310,
+  height = 320,
   framed = true,
 }) => {
   const [zoom, setZoom] = useState<number>(1);
@@ -38,7 +39,7 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
     setFitMode(interactive ? "contain" : "cover");
   }, [artwork.id, interactive]);
 
-  // 사용자가 하단 비밀 포인트 버튼을 클릭해 activeHotspotId가 변경되면 해당 위치로 번호 핀 표시 & 줌인
+  // 하단 비밀 포인트 버튼 클릭 시 해당 좌표로 번호 핀 표시 & 부드러운 클로즈업
   useEffect(() => {
     if (!interactive) return;
     if (!activeHotspotId) {
@@ -48,13 +49,14 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
     }
     const spot = artwork.secretPoints.find((s) => s.id === activeHotspotId);
     if (!spot) return;
-    const targetZoom = Math.max(zoom, 2.1);
+    const targetZoom = 2.0;
     setZoom(targetZoom);
-    const offsetX = (50 - spot.x) * 2.1;
-    const offsetY = (50 - spot.y) * 2.1;
+    // 선택된 포인트가 화면 중앙 부근에 오도록 패닝 오프셋 계산
+    const offsetX = (50 - spot.x) * 1.65;
+    const offsetY = (50 - spot.y) * 1.65;
     setPan({
-      x: Math.max(-135, Math.min(135, offsetX)),
-      y: Math.max(-135, Math.min(135, offsetY)),
+      x: Math.max(-120, Math.min(120, offsetX)),
+      y: Math.max(-120, Math.min(120, offsetY)),
     });
   }, [activeHotspotId, interactive, artwork.secretPoints]);
 
@@ -81,7 +83,7 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
     if (!isDragging || !dragStartRef.current) return;
     const dx = e.clientX - dragStartRef.current.x;
     const dy = e.clientY - dragStartRef.current.y;
-    const maxOffset = (zoom - 1) * 105;
+    const maxOffset = (zoom - 1) * 115;
     setPan({
       x: Math.max(-maxOffset, Math.min(maxOffset, dragStartRef.current.panX + dx)),
       y: Math.max(-maxOffset, Math.min(maxOffset, dragStartRef.current.panY + dy)),
@@ -93,11 +95,11 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
     dragStartRef.current = null;
   };
 
-  // 현재 선택된 비밀 포인트와 그 번호(1, 2, 3) 찾기
   const activeSpotIndex = activeHotspotId
     ? artwork.secretPoints.findIndex((s) => s.id === activeHotspotId)
     : -1;
   const activeSpot = activeSpotIndex >= 0 ? artwork.secretPoints[activeSpotIndex] : null;
+  const innerHeight = framed ? height - 18 : height;
 
   return (
     <div style={{ width: "100%", userSelect: "none" }}>
@@ -113,9 +115,10 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
             ? "linear-gradient(135deg, #6B4E23 0%, #D4AF37 28%, #8B6914 55%, #F3E5AB 78%, #5C4018 100%)"
             : "transparent",
           boxShadow: framed
-            ? "0 14px 32px rgba(15, 23, 42, 0.25), inset 0 2px 4px rgba(255,255,255,0.45)"
+            ? "0 12px 28px rgba(15, 23, 42, 0.22), inset 0 2px 4px rgba(255,255,255,0.45)"
             : "none",
           overflow: "hidden",
+          boxSizing: "border-box",
         }}
       >
         <div
@@ -130,55 +133,137 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
             borderRadius: framed ? "11px" : "12px",
             overflow: "hidden",
             background: "#0B0F19",
-            cursor: interactive ? (zoom > 1 ? (isDragging ? "grabbing" : "grab") : "zoom-in") : "pointer",
+            cursor: interactive ? (zoom > 1 ? (isDragging ? "grabbing" : "grab") : "default") : "pointer",
             boxShadow: framed ? "inset 0 0 18px rgba(0,0,0,0.65)" : "none",
             touchAction: zoom > 1 ? "none" : "pan-y",
           }}
         >
-          {/* 줌 & 패닝 컨테이너 */}
+          {/* 1. 여백을 우아하게 채우는 앰비언트 블러 배경 */}
+          {!imgError && (
+            <img
+              src={artwork.imageUrl}
+              alt=""
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                inset: "-16px",
+                width: "calc(100% + 32px)",
+                height: "calc(100% + 32px)",
+                objectFit: "cover",
+                filter: "blur(20px) brightness(0.38)",
+                pointerEvents: "none",
+              }}
+            />
+          )}
+
+          {/* 2. 줌 & 패닝 플렉스 센터 컨테이너 */}
           <div
             style={{
               width: "100%",
               height: "100%",
-              position: "relative",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: "center center",
-              transition: isDragging ? "none" : "transform 0.32s cubic-bezier(0.22, 1, 0.36, 1)",
+              transition: isDragging ? "none" : "transform 0.34s cubic-bezier(0.22, 1, 0.36, 1)",
             }}
           >
             {!imgError ? (
-              <>
-                {/* 1. 여백을 우아하게 채우는 앰비언트 블러 배경 */}
-                <img
-                  src={artwork.imageUrl}
-                  alt=""
-                  aria-hidden="true"
-                  style={{
-                    position: "absolute",
-                    inset: "-12px",
-                    width: "calc(100% + 24px)",
-                    height: "calc(100% + 24px)",
-                    objectFit: "cover",
-                    filter: "blur(18px) brightness(0.42)",
-                    pointerEvents: "none",
-                  }}
-                />
-
-                {/* 2. 실제 고해상도 명화 원화 이미지 */}
+              /* 이미지 실제 렌더링 크기에 100% 밀착되는 inline-block 래퍼 -> 세로형/가로형 어디서든 좌표 오차 0% */
+              <div
+                style={{
+                  position: "relative",
+                  display: "inline-block",
+                  lineHeight: 0,
+                  width: fitMode === "cover" ? "100%" : "auto",
+                  height: fitMode === "cover" ? "100%" : "auto",
+                  maxWidth: "100%",
+                  maxHeight: `${innerHeight}px`,
+                }}
+              >
                 <img
                   src={artwork.imageUrl}
                   alt={artwork.title}
                   onError={() => setImgError(true)}
                   style={{
-                    position: "relative",
-                    width: "100%",
-                    height: "100%",
-                    objectFit: fitMode,
+                    width: fitMode === "cover" ? "100%" : "auto",
+                    height: fitMode === "cover" ? `${innerHeight}px` : "auto",
+                    maxWidth: "100%",
+                    maxHeight: `${innerHeight}px`,
+                    objectFit: fitMode === "cover" ? "cover" : "contain",
                     display: "block",
                     pointerEvents: "none",
+                    borderRadius: "4px",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.45)",
                   }}
                 />
-              </>
+
+                {/* 3. 아래 비밀 포인트 버튼을 눌렀을 때만 실제 그림 영역 내부의 정확한 (x%, y%) 좌표에 번호 핀 표시 */}
+                {interactive && activeSpot && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: `${activeSpot.x}%`,
+                      top: `${activeSpot.y}%`,
+                      transform: `translate(-50%, -50%) scale(${1 / Math.sqrt(zoom)})`,
+                      pointerEvents: "none",
+                      zIndex: 15,
+                      display: "flex",
+                      flexDirection: activeSpot.y > 72 ? "column-reverse" : "column",
+                      alignItems: "center",
+                    }}
+                  >
+                    {/* 번호 원형 배지 */}
+                    <div
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        border: "2.5px solid #FFFFFF",
+                        background: "linear-gradient(135deg, #FF3B30, #FF9500)",
+                        color: "#FFFFFF",
+                        fontSize: "13px",
+                        fontWeight: 900,
+                        lineHeight: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow:
+                          "0 0 0 6px rgba(255, 149, 0, 0.42), 0 4px 14px rgba(0,0,0,0.7)",
+                      }}
+                    >
+                      {activeSpotIndex + 1}
+                    </div>
+
+                    {/* 핀 캡션 라벨 (화면 가장자리 잘림 방지) */}
+                    <div
+                      style={{
+                        marginTop: activeSpot.y > 72 ? "0px" : "4px",
+                        marginBottom: activeSpot.y > 72 ? "4px" : "0px",
+                        transform:
+                          activeSpot.x < 24
+                            ? "translateX(28%)"
+                            : activeSpot.x > 76
+                            ? "translateX(-28%)"
+                            : "none",
+                        background: "rgba(15, 23, 42, 0.94)",
+                        color: "#FDE68A",
+                        border: "1px solid rgba(250, 204, 21, 0.65)",
+                        borderRadius: "999px",
+                        padding: "4px 9px",
+                        fontSize: "10px",
+                        lineHeight: 1.2,
+                        fontWeight: 800,
+                        whiteSpace: "nowrap",
+                        boxShadow: "0 3px 10px rgba(0,0,0,0.55)",
+                      }}
+                    >
+                      {activeSpot.label}
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div
                 style={{
@@ -195,165 +280,86 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
                 🎨 {artwork.title} ({artwork.artist})
               </div>
             )}
+          </div>
 
-            {/* 미술관 스포트라이트 질감 오버레이 */}
+          {/* 비인터랙티브 카드 목록에서만 좌측 하단에 작고 깔끔한 사조 캡션 표시 */}
+          {!interactive && (
             <div
               style={{
                 position: "absolute",
-                inset: 0,
-                background:
-                  "radial-gradient(circle at 50% 25%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.22) 100%)",
+                bottom: "8px",
+                left: "8px",
+                background: "rgba(15, 23, 42, 0.78)",
+                backdropFilter: "blur(6px)",
+                color: "#F8FAFC",
+                padding: "3px 8px",
+                borderRadius: "999px",
+                fontSize: "10.5px",
+                fontWeight: 700,
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
                 pointerEvents: "none",
               }}
-            />
-
-            {/* 3. 아래 비밀 포인트 버튼을 눌렀을 때만 해당 좌표에 번호 핀과 포커스 링 표시! */}
-            {interactive && activeSpot && (
-              <div
-                style={{
-                  position: "absolute",
-                  left: `${activeSpot.x}%`,
-                  top: `${activeSpot.y}%`,
-                  transform: `translate(-50%, -50%) scale(${1 / Math.sqrt(zoom)})`,
-                  pointerEvents: "none",
-                  zIndex: 12,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                {/* 타겟 스포트라이트 링 */}
-                <div
-                  style={{
-                    width: "34px",
-                    height: "34px",
-                    borderRadius: "50%",
-                    border: "2.5px solid #FFFFFF",
-                    background: "linear-gradient(135deg, #FF3B30, #FF9500)",
-                    color: "#FFFFFF",
-                    fontSize: "14px",
-                    fontWeight: 900,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow:
-                      "0 0 0 7px rgba(255, 149, 0, 0.38), 0 6px 16px rgba(0,0,0,0.65)",
-                  }}
-                >
-                  {activeSpotIndex + 1}
-                </div>
-                {/* 핀 하단 미니 라벨 */}
-                <div
-                  style={{
-                    marginTop: "5px",
-                    background: "rgba(15, 23, 42, 0.92)",
-                    color: "#FDE68A",
-                    border: "1px solid rgba(250, 204, 21, 0.6)",
-                    borderRadius: "999px",
-                    padding: "2px 8px",
-                    fontSize: "10px",
-                    fontWeight: 800,
-                    whiteSpace: "nowrap",
-                    boxShadow: "0 3px 8px rgba(0,0,0,0.5)",
-                  }}
-                >
-                  {activeSpot.label}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* 좌측 상단 배지: 사조 & 제작연도 */}
-          <div
-            style={{
-              position: "absolute",
-              top: "10px",
-              left: "10px",
-              background: "rgba(15, 23, 42, 0.82)",
-              backdropFilter: "blur(6px)",
-              color: "#F8FAFC",
-              padding: "4px 9px",
-              borderRadius: "999px",
-              fontSize: "11px",
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              gap: "5px",
-              pointerEvents: "none",
-            }}
-          >
-            <span>🎨 {artwork.movement}</span>
-            <span style={{ opacity: 0.6 }}>|</span>
-            <span style={{ color: "#FDE68A" }}>{artwork.year}</span>
-          </div>
-
-          {/* 우측 상단: 원화 전체 비율 / 액자 꽉 채우기 전환 토글 */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setFitMode((prev) => (prev === "contain" ? "cover" : "contain"));
-            }}
-            style={{
-              position: "absolute",
-              top: "10px",
-              right: "10px",
-              background: "rgba(15, 23, 42, 0.82)",
-              backdropFilter: "blur(6px)",
-              color: "#FFFFFF",
-              border: "1px solid rgba(255,255,255,0.25)",
-              borderRadius: "999px",
-              padding: "4px 10px",
-              fontSize: "11px",
-              fontWeight: 700,
-              cursor: "pointer",
-              zIndex: 15,
-            }}
-          >
-            {fitMode === "contain" ? "↔ 액자 꽉 채우기" : "🖼️ 원화 전체 비율"}
-          </button>
+            >
+              <span>🎨 {artwork.movement}</span>
+              <span style={{ opacity: 0.5 }}>·</span>
+              <span style={{ color: "#FDE68A" }}>{artwork.year}</span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 인터랙티브 돋보기 컨트롤 바 */}
+      {/* 인터랙티브 돋보기 & 비율 컨트롤 바 (명화 이미지를 전혀 가리지 않도록 액자 바로 아래 배치) */}
       {interactive && (
         <div
           style={{
             marginTop: "10px",
             display: "flex",
+            flexWrap: "wrap",
             alignItems: "center",
             justifyContent: "space-between",
             background: "#F2F4F6",
-            padding: "8px 12px",
+            padding: "8px 10px",
             borderRadius: "12px",
-            gap: "8px",
+            gap: "6px",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              fontSize: "12px",
-              fontWeight: 700,
-              color: "#333D4B",
-            }}
-          >
-            <span>🔍 초고화질 원화 돋보기</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <span style={{ fontSize: "12px", fontWeight: 800, color: "#333D4B" }}>
+              🔍 돋보기
+            </span>
             <span
               style={{
                 background: "#3182F6",
                 color: "#FFFFFF",
-                padding: "2px 7px",
+                padding: "2px 6px",
                 borderRadius: "6px",
                 fontSize: "11px",
+                fontWeight: 800,
               }}
             >
               {zoom.toFixed(1)}x
             </span>
+            <button
+              type="button"
+              onClick={() => setFitMode((prev) => (prev === "contain" ? "cover" : "contain"))}
+              style={{
+                border: "1px solid #D1D6DB",
+                background: "#FFFFFF",
+                color: "#4E5968",
+                borderRadius: "8px",
+                padding: "4px 8px",
+                fontSize: "11px",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              {fitMode === "contain" ? "↔ 액자 채우기" : "🖼️ 전체 비율"}
+            </button>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             {[1, 1.8, 2.6, 3.5].map((level) => (
               <button
                 key={level}
@@ -362,9 +368,9 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
                 style={{
                   border: "none",
                   borderRadius: "8px",
-                  padding: "5px 9px",
-                  fontSize: "12px",
-                  fontWeight: 700,
+                  padding: "5px 8px",
+                  fontSize: "11.5px",
+                  fontWeight: 800,
                   cursor: "pointer",
                   background: Math.abs(zoom - level) < 0.2 ? "#191F28" : "#FFFFFF",
                   color: Math.abs(zoom - level) < 0.2 ? "#FFFFFF" : "#4E5968",

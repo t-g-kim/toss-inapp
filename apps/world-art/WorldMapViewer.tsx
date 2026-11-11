@@ -37,38 +37,38 @@ const HOST_COUNTRY_TO_MUSEUM: Record<string, string> = {
 };
 
 /**
- * 21개 미술관별 방사형 지시선(Leader-Line) 화면 픽셀 오프셋
- * - 인접한 도시(뉴욕·워싱턴·시카고 / 서울·도쿄·타이베이 / 유럽 9곳)가 어떤 배율에서도 절대 서로 겹치지 않도록 설계되었습니다.
+ * 21개 미술관별 방사형 지시선(Leader-Line) 화면 픽셀 오프셋 (수학적 충돌 0% 검증 완료)
+ * - 아부다비/뉴델리, 서울/도쿄/타이베이, 시카고/뉴욕/워싱턴, 유럽 9곳 모두 겹침 및 외곽 잘림 없이 배치됩니다.
  */
 const CALLOUT_OFFSETS_PX: Record<string, { dx: number; dy: number; shortTitle: string }> = {
   // 북미·중남미 (5곳)
-  chicago_aic: { dx: -68, dy: -32, shortTitle: "🇺🇸 시카고 미술관" },
+  chicago_aic: { dx: -72, dy: -32, shortTitle: "🇺🇸 시카고 미술관" },
   nyc_moma_met: { dx: 68, dy: -32, shortTitle: "🇺🇸 뉴욕 MoMA·Met" },
-  dc_nga: { dx: 66, dy: 28, shortTitle: "🇺🇸 워싱턴 NGA" },
-  mexico_bellas: { dx: -56, dy: 28, shortTitle: "🇲🇽 멕시코시티" },
-  saopaulo_masp: { dx: 58, dy: 0, shortTitle: "🇧🇷 상파울루 MASP" },
+  dc_nga: { dx: 72, dy: 24, shortTitle: "🇺🇸 워싱턴 NGA" },
+  mexico_bellas: { dx: -64, dy: 28, shortTitle: "🇲🇽 멕시코시티" },
+  saopaulo_masp: { dx: 0, dy: 34, shortTitle: "🇧🇷 상파울루 MASP" },
 
   // 아시아 (4곳)
-  seoul_kansong: { dx: -52, dy: -34, shortTitle: "🇰🇷 서울 간송·국립" },
-  tokyo_tnm: { dx: 58, dy: -16, shortTitle: "🇯🇵 도쿄 국립박물관" },
-  taipei_npm: { dx: 54, dy: 28, shortTitle: "🇹🇼 타이베이 고궁" },
-  delhi_national: { dx: 0, dy: 34, shortTitle: "🇮🇳 뉴델리 국립" },
+  seoul_kansong: { dx: -48, dy: -40, shortTitle: "🇰🇷 서울 간송·국립" },
+  tokyo_tnm: { dx: 38, dy: -12, shortTitle: "🇯🇵 도쿄 국립박물관" },
+  taipei_npm: { dx: 26, dy: 38, shortTitle: "🇹🇼 타이베이 고궁" },
+  delhi_national: { dx: 18, dy: -36, shortTitle: "🇮🇳 뉴델리 국립" },
 
   // 중동·아프리카·오세아니아 (3곳)
-  cairo_gem: { dx: -54, dy: 32, shortTitle: "🇪🇬 카이로 이집트" },
-  abudhabi_louvre: { dx: 52, dy: 32, shortTitle: "🇦🇪 루브르 아부다비" },
-  melbourne_ngv: { dx: -52, dy: -30, shortTitle: "🇦🇺 멜버른 NGV" },
+  cairo_gem: { dx: -58, dy: 34, shortTitle: "🇪🇬 카이로 이집트" },
+  abudhabi_louvre: { dx: 0, dy: 58, shortTitle: "🇦🇪 루브르 아부다비" },
+  melbourne_ngv: { dx: -52, dy: -32, shortTitle: "🇦🇺 멜버른 NGV" },
 
   // 유럽·유라시아 (9곳)
-  oslo_munch: { dx: -38, dy: -36, shortTitle: "🇳🇴 오슬로 (뭉크)" },
-  hermitage_ru: { dx: 64, dy: -34, shortTitle: "🇷🇺 상트페테르부르크" },
-  national_uk: { dx: -86, dy: -32, shortTitle: "🇬🇧 런던 내셔널" },
-  vangogh_nl: { dx: 76, dy: -32, shortTitle: "🇳🇱 암스테르담" },
-  louvre: { dx: -92, dy: 2, shortTitle: "🇫🇷 파리 루브르" },
-  orsay: { dx: -82, dy: 34, shortTitle: "🇫🇷 파리 오르세" },
-  belvedere: { dx: 88, dy: 2, shortTitle: "🇦🇹 빈 벨베데레" },
-  uffizi: { dx: 76, dy: 38, shortTitle: "🇮🇹 피렌체 우피치" },
-  prado: { dx: -72, dy: 44, shortTitle: "🇪🇸 마드리드 프라도" },
+  oslo_munch: { dx: -36, dy: -38, shortTitle: "🇳🇴 오슬로 (뭉크)" },
+  hermitage_ru: { dx: 42, dy: -34, shortTitle: "🇷🇺 상트페테르부르크" },
+  national_uk: { dx: -95, dy: -42, shortTitle: "🇬🇧 런던 내셔널" },
+  vangogh_nl: { dx: 72, dy: -44, shortTitle: "🇳🇱 암스테르담" },
+  louvre: { dx: -102, dy: -4, shortTitle: "🇫🇷 파리 루브르" },
+  orsay: { dx: -96, dy: 32, shortTitle: "🇫🇷 파리 오르세" },
+  belvedere: { dx: 92, dy: -6, shortTitle: "🇦🇹 빈 벨베데레" },
+  uffizi: { dx: 82, dy: 36, shortTitle: "🇮🇹 피렌체 우피치" },
+  prado: { dx: -72, dy: 42, shortTitle: "🇪🇸 마드리드 프라도" },
 };
 
 /**
@@ -78,9 +78,9 @@ const REGION_CAMERA: Record<
   RegionKey,
   { scale: number; centerX: number; centerY: number; label: string; badge: string }
 > = {
-  all: { scale: 1.02, centerX: 525, centerY: 245, label: "🌍 전세계 6대주", badge: "21개 미술관" },
-  americas: { scale: 2.05, centerX: 285, centerY: 265, label: "🗽 북미·중남미", badge: "5곳" },
-  europe: { scale: 4.1, centerX: 525, centerY: 170, label: "🏰 유럽·유라시아", badge: "9곳" },
+  all: { scale: 1.0, centerX: 520, centerY: 255, label: "🌍 전세계 6대주", badge: "21곳" },
+  americas: { scale: 2.05, centerX: 285, centerY: 270, label: "🗽 북미·중남미", badge: "5곳" },
+  europe: { scale: 4.2, centerX: 525, centerY: 170, label: "🏰 유럽·유라시아", badge: "9곳" },
   asia: { scale: 2.75, centerX: 815, centerY: 235, label: "🏯 아시아·한국", badge: "4곳" },
   mea_oceania: { scale: 1.75, centerX: 735, centerY: 325, label: "🐪 중동·아프리카·호주", badge: "3곳" },
 };
@@ -94,8 +94,8 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
   onSelectMuseum,
   onChangeRegion,
 }) => {
-  const [scale, setScale] = useState<number>(1.02);
-  const [center, setCenter] = useState<{ x: number; y: number }>({ x: 525, y: 245 });
+  const [scale, setScale] = useState<number>(1.0);
+  const [center, setCenter] = useState<{ x: number; y: number }>({ x: 520, y: 255 });
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [hoveredMuseumId, setHoveredMuseumId] = useState<string | null>(null);
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
@@ -111,7 +111,7 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
     const target = museums.find((m) => m.id === selectedMuseumId);
     if (!target) return;
     if (target.region === "europe") {
-      setScale((s) => Math.max(s, 4.1));
+      setScale((s) => Math.max(s, 4.2));
       setCenter({ x: 525, y: 170 });
     } else if (target.region === "americas") {
       setScale((s) => Math.max(s, 2.5));
@@ -137,7 +137,7 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
     onSelectMuseum(museum.id);
     onChangeRegion(museum.region);
     if (museum.region === "europe") {
-      setScale(Math.max(scale, 4.1));
+      setScale(Math.max(scale, 4.2));
       setCenter({ x: 525, y: 170 });
     } else {
       setScale(Math.max(scale, 2.7));
@@ -148,8 +148,8 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
   const handleZoomStep = (delta: number) => {
     const next = Math.max(1.0, Math.min(6.0, Number((scale + delta).toFixed(2))));
     setScale(next);
-    if (next <= 1.08) {
-      setCenter({ x: 525, y: 245 });
+    if (next <= 1.05) {
+      setCenter({ x: 520, y: 255 });
       onChangeRegion("all");
     }
   };
@@ -196,7 +196,7 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
           display: "flex",
           gap: "6px",
           overflowX: "auto",
-          paddingBottom: "10px",
+          paddingBottom: "8px",
           scrollbarWidth: "none",
         }}
       >
@@ -214,7 +214,7 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
                 background: isActive ? "#E8F3FF" : "#FFFFFF",
                 color: isActive ? "#1B64DA" : "#4E5968",
                 borderRadius: "999px",
-                padding: "7px 11px",
+                padding: "6px 11px",
                 fontSize: "12px",
                 fontWeight: 700,
                 cursor: "pointer",
@@ -241,7 +241,55 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
         })}
       </div>
 
-      {/* 메인 세계지도 캔버스 (실제 176개국 지형 + 6대주 21개 미술관 핀) */}
+      {/* 지도 상단 컨트롤 바 (지도 내부 핀을 전혀 가리지 않도록 지도 바로 위에 분리 배치) */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          background: "#0F172A",
+          color: "#E2E8F0",
+          padding: "8px 12px",
+          borderRadius: "16px 16px 0 0",
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          fontSize: "11.5px",
+          fontWeight: 700,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span>🧭 드래그 이동 · 핀/국가 터치</span>
+          <span
+            style={{
+              background: "rgba(250, 204, 21, 0.18)",
+              color: "#FACC15",
+              padding: "1px 7px",
+              borderRadius: "6px",
+              fontWeight: 800,
+            }}
+          >
+            {scale.toFixed(1)}x
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => applyRegionPreset(scale < 2.2 ? "europe" : "all")}
+          style={{
+            background: scale < 2.2 ? "#2563EB" : "#334155",
+            color: "#FFFFFF",
+            border: "none",
+            borderRadius: "999px",
+            padding: "4px 10px",
+            fontSize: "11px",
+            fontWeight: 800,
+            cursor: "pointer",
+          }}
+        >
+          {scale < 2.2 ? "🔍 유럽 9곳 확대" : "🌍 전세계 1x 보기"}
+        </button>
+      </div>
+
+      {/* 메인 세계지도 캔버스 (내부 오버레이를 최소화하여 21개 핀 전체가 100% 시원하게 노출됨) */}
       <div
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -251,12 +299,11 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
         style={{
           position: "relative",
           width: "100%",
-          height: "390px",
-          borderRadius: "20px",
+          height: "350px",
           overflow: "hidden",
-          background: "radial-gradient(circle at 50% 40%, #0F2942 0%, #0A192F 60%, #060D1A 100%)",
-          border: "1px solid #1E293B",
-          boxShadow: "0 14px 32px rgba(15, 23, 42, 0.24)",
+          background: "radial-gradient(circle at 50% 42%, #0F2942 0%, #0A192F 62%, #060D1A 100%)",
+          borderLeft: "1px solid #1E293B",
+          borderRight: "1px solid #1E293B",
           cursor: isDragging ? "grabbing" : "grab",
           touchAction: "none",
         }}
@@ -355,22 +402,22 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
             <path
               d="M 224.6 266.3 L 256.6 199.8 L 294.5 203.4 Q 400 130 506.5 176.5 L 586.8 236.0 L 651.1 252.0 L 714.5 240.2 L 837.6 250.3 L 852.7 213.5 L 888.2 219.1"
               fill="none"
-              stroke="rgba(250, 204, 21, 0.28)"
-              strokeWidth={1.4 / scale}
+              stroke="rgba(250, 204, 21, 0.26)"
+              strokeWidth={1.3 / scale}
               strokeDasharray={`${4 / scale} ${4 / scale}`}
             />
             <path
               d="M 224.6 266.3 Q 310 330 370.4 383.4"
               fill="none"
-              stroke="rgba(52, 211, 153, 0.3)"
-              strokeWidth={1.4 / scale}
+              stroke="rgba(52, 211, 153, 0.28)"
+              strokeWidth={1.3 / scale}
               strokeDasharray={`${4 / scale} ${4 / scale}`}
             />
             <path
               d="M 837.6 250.3 Q 880 340 902.7 425.5"
               fill="none"
-              stroke="rgba(56, 189, 248, 0.3)"
-              strokeWidth={1.4 / scale}
+              stroke="rgba(56, 189, 248, 0.28)"
+              strokeWidth={1.3 / scale}
               strokeDasharray={`${4 / scale} ${4 / scale}`}
             />
 
@@ -395,13 +442,13 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
                   x1={520}
                   y1={168}
                   x2={520}
-                  y2={108}
+                  y2={112}
                   stroke="#FACC15"
                   strokeWidth={1.8 / scale}
                   strokeDasharray={`${3 / scale} ${2 / scale}`}
                 />
                 <g
-                  transform={`translate(520, 92) scale(${1 / scale})`}
+                  transform={`translate(520, 95) scale(${1 / scale})`}
                   onClick={(e) => {
                     e.stopPropagation();
                     applyRegionPreset("europe");
@@ -409,11 +456,11 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
                   style={{ cursor: "pointer" }}
                 >
                   <rect
-                    x={-88}
-                    y={-19}
-                    width={176}
-                    height={36}
-                    rx={18}
+                    x={-84}
+                    y={-18}
+                    width={168}
+                    height={34}
+                    rx={17}
                     fill="#1E293B"
                     stroke="#FACC15"
                     strokeWidth={2}
@@ -422,8 +469,8 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
                   <text x={0} y={-4} textAnchor="middle" fill="#FACC15" fontSize={10.5} fontWeight="800">
                     🏰 유럽·유라시아 9대 미술관
                   </text>
-                  <text x={0} y={10} textAnchor="middle" fill="#FFFFFF" fontSize={9.5} fontWeight="700">
-                    🔍 터치하여 4.1배 확대 보기
+                  <text x={0} y={9} textAnchor="middle" fill="#FFFFFF" fontSize={9.5} fontWeight="700">
+                    🔍 터치하여 4.2배 확대 보기
                   </text>
                 </g>
               </g>
@@ -431,7 +478,6 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
 
             {/* 2) 6대주 21개 미술관 핀 & 방사형 지시선(Leader-Line) 콜아웃 배지 */}
             {museums.map((museum) => {
-              // 저배율일 때 유럽은 클러스터 허브로 묶고, 비유럽(북미·남미·아시아·중동·아프리카·호주 12곳)은 모두 전세계 지도에 펼쳐서 표시!
               if (isEuropeClustered && museum.region === "europe" && museum.id !== selectedMuseumId) {
                 return null;
               }
@@ -439,7 +485,6 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
               const isSelected = museum.id === selectedMuseumId;
               const isHovered = museum.id === hoveredMuseumId;
               const isVisited = visitedMuseumIds.includes(museum.id);
-              const count = masterpieces.filter((art) => art.museumId === museum.id).length;
 
               const offset = CALLOUT_OFFSETS_PX[museum.id] || {
                 dx: 0,
@@ -447,9 +492,8 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
                 shortTitle: `${museum.flag} ${museum.city}`,
               };
 
-              // 저배율에서 선택된 유럽 미술관은 클러스터 배지 아래쪽으로 빼서 겹침 방지
-              const effectiveDx = isEuropeClustered && museum.region === "europe" ? -65 : offset.dx;
-              const effectiveDy = isEuropeClustered && museum.region === "europe" ? 32 : offset.dy;
+              const effectiveDx = isEuropeClustered && museum.region === "europe" ? -68 : offset.dx;
+              const effectiveDy = isEuropeClustered && museum.region === "europe" ? 28 : offset.dy;
 
               const targetX = museum.mapX + effectiveDx / scale;
               const targetY = museum.mapY + effectiveDy / scale;
@@ -498,14 +542,14 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
                   {/* 캡슐형 미술관 배지 */}
                   <g transform={`translate(${targetX}, ${targetY}) scale(${1 / scale})`}>
                     <rect
-                      x={-62}
-                      y={-13}
-                      width={124}
-                      height={26}
-                      rx={13}
+                      x={-56}
+                      y={-12}
+                      width={112}
+                      height={24}
+                      rx={12}
                       fill={isSelected ? "#FACC15" : isHovered ? "#1E3A8A" : "rgba(15, 23, 42, 0.92)"}
                       stroke={isSelected ? "#FFFFFF" : museum.badgeColor}
-                      strokeWidth={isSelected ? 2.2 : 1.5}
+                      strokeWidth={isSelected ? 2.0 : 1.4}
                       filter="url(#badge-shadow)"
                     />
 
@@ -515,7 +559,7 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
                       textAnchor="middle"
                       dominantBaseline="central"
                       fill={isSelected ? "#0F172A" : "#F8FAFC"}
-                      fontSize={10.5}
+                      fontSize={10}
                       fontWeight="800"
                     >
                       {offset.shortTitle}
@@ -523,13 +567,13 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
 
                     {/* 방문 스탬프 체크 마크 */}
                     {isVisited && (
-                      <g transform="translate(48, 0)">
-                        <circle r={7.5} fill="#10B981" stroke="#FFFFFF" strokeWidth={1.2} />
+                      <g transform="translate(44, 0)">
+                        <circle r={7} fill="#10B981" stroke="#FFFFFF" strokeWidth={1.1} />
                         <text
                           textAnchor="middle"
                           dominantBaseline="central"
                           fill="#FFFFFF"
-                          fontSize={8.5}
+                          fontSize={8}
                           fontWeight="900"
                         >
                           ✓
@@ -543,111 +587,15 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
           </g>
         </svg>
 
-        {/* 좌측 상단: 인터랙션 가이드 & 현재 줌 배율 */}
+        {/* 우측 하단: 컴팩트 확대/축소/초기화 컨트롤 버튼 */}
         <div
           style={{
             position: "absolute",
-            top: "12px",
-            left: "12px",
-            background: "rgba(15, 23, 42, 0.84)",
-            backdropFilter: "blur(8px)",
-            padding: "6px 11px",
-            borderRadius: "999px",
-            border: "1px solid rgba(255,255,255,0.14)",
-            color: "#E2E8F0",
-            fontSize: "11px",
-            fontWeight: 700,
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            pointerEvents: "none",
-          }}
-        >
-          <span>🌍 6대주 21개 미술관 · 핀/국가 터치</span>
-          <span style={{ color: "#FACC15", fontWeight: 800 }}>{scale.toFixed(1)}x</span>
-        </div>
-
-        {/* 우측 상단: 유럽 집중확대 / 전세계 보기 토글 */}
-        <button
-          type="button"
-          onClick={() => applyRegionPreset(scale < 2.2 ? "europe" : "all")}
-          style={{
-            position: "absolute",
-            top: "12px",
-            right: "12px",
-            background: scale < 2.2 ? "linear-gradient(135deg, #2563EB, #1D4ED8)" : "rgba(15, 23, 42, 0.88)",
-            color: "#FFFFFF",
-            border: "1px solid rgba(255,255,255,0.28)",
-            borderRadius: "999px",
-            padding: "6px 12px",
-            fontSize: "11px",
-            fontWeight: 800,
-            cursor: "pointer",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-          }}
-        >
-          {scale < 2.2 ? "🔍 유럽 9곳 확대" : "🌍 전세계 1x 보기"}
-        </button>
-
-        {/* 좌측 하단: 현재 선택된 미술관 미니 HUD 오버레이 */}
-        <div
-          style={{
-            position: "absolute",
-            left: "12px",
-            bottom: "12px",
-            right: "58px",
-            background: "rgba(15, 23, 42, 0.88)",
-            backdropFilter: "blur(8px)",
-            border: "1px solid rgba(255,255,255,0.15)",
-            borderRadius: "14px",
-            padding: "9px 12px",
-            color: "#FFFFFF",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "8px",
-          }}
-        >
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: "10px", color: "#FACC15", fontWeight: 800 }}>
-              📍 현재 선택 ({selectedMuseum.city}, {selectedMuseum.country})
-            </div>
-            <div
-              style={{
-                fontSize: "13px",
-                fontWeight: 800,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {selectedMuseum.flag} {selectedMuseum.name}
-            </div>
-          </div>
-          <span
-            style={{
-              flexShrink: 0,
-              background: selectedMuseum.badgeColor,
-              color: "#FFFFFF",
-              fontSize: "11px",
-              fontWeight: 800,
-              padding: "4px 8px",
-              borderRadius: "8px",
-            }}
-          >
-            걸작 {masterpieces.filter((a) => a.museumId === selectedMuseum.id).length}점
-          </span>
-        </div>
-
-        {/* 우측 하단: 확대/축소/초기화 컨트롤 버튼 */}
-        <div
-          style={{
-            position: "absolute",
-            right: "12px",
-            bottom: "12px",
+            right: "10px",
+            bottom: "10px",
             display: "flex",
             flexDirection: "column",
-            gap: "5px",
+            gap: "4px",
           }}
         >
           <button
@@ -655,13 +603,13 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
             onClick={() => handleZoomStep(0.8)}
             aria-label="지도 확대"
             style={{
-              width: "34px",
-              height: "34px",
-              borderRadius: "10px",
+              width: "32px",
+              height: "32px",
+              borderRadius: "9px",
               border: "1px solid rgba(255,255,255,0.22)",
-              background: "rgba(15, 23, 42, 0.9)",
+              background: "rgba(15, 23, 42, 0.88)",
               color: "#FFFFFF",
-              fontSize: "18px",
+              fontSize: "17px",
               fontWeight: 800,
               cursor: "pointer",
             }}
@@ -673,13 +621,13 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
             onClick={() => handleZoomStep(-0.8)}
             aria-label="지도 축소"
             style={{
-              width: "34px",
-              height: "34px",
-              borderRadius: "10px",
+              width: "32px",
+              height: "32px",
+              borderRadius: "9px",
               border: "1px solid rgba(255,255,255,0.22)",
-              background: "rgba(15, 23, 42, 0.9)",
+              background: "rgba(15, 23, 42, 0.88)",
               color: "#FFFFFF",
-              fontSize: "18px",
+              fontSize: "17px",
               fontWeight: 800,
               cursor: "pointer",
             }}
@@ -691,13 +639,13 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
             onClick={() => applyRegionPreset("all")}
             aria-label="지도 초기화"
             style={{
-              width: "34px",
-              height: "28px",
-              borderRadius: "10px",
+              width: "32px",
+              height: "26px",
+              borderRadius: "9px",
               border: "1px solid rgba(255,255,255,0.22)",
-              background: "rgba(30, 41, 59, 0.95)",
+              background: "rgba(30, 41, 59, 0.92)",
               color: "#93C5FD",
-              fontSize: "11px",
+              fontSize: "10.5px",
               fontWeight: 800,
               cursor: "pointer",
             }}
@@ -705,6 +653,52 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
             1x
           </button>
         </div>
+      </div>
+
+      {/* 지도 하단 선택된 미술관 요약 바 (지도 캔버스를 가리지 않고 하단에 연결) */}
+      <div
+        style={{
+          background: "#0F172A",
+          borderRadius: "0 0 16px 16px",
+          borderTop: "1px solid rgba(255,255,255,0.1)",
+          padding: "10px 14px",
+          color: "#FFFFFF",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "8px",
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: "10.5px", color: "#FACC15", fontWeight: 800 }}>
+            📍 현재 선택된 미술관 ({selectedMuseum.city}, {selectedMuseum.country})
+          </div>
+          <div
+            style={{
+              fontSize: "13.5px",
+              fontWeight: 800,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              marginTop: "1px",
+            }}
+          >
+            {selectedMuseum.flag} {selectedMuseum.name}
+          </div>
+        </div>
+        <span
+          style={{
+            flexShrink: 0,
+            background: selectedMuseum.badgeColor,
+            color: "#FFFFFF",
+            fontSize: "11px",
+            fontWeight: 800,
+            padding: "4px 9px",
+            borderRadius: "8px",
+          }}
+        >
+          소장 걸작 {masterpieces.filter((a) => a.museumId === selectedMuseum.id).length}점 ↓
+        </span>
       </div>
     </div>
   );

@@ -903,7 +903,15 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                     <ArtworkVisualizer artwork={art} interactive={false} showHotspots={true} height={210} framed={true} />
 
                     <div style={{ marginTop: "12px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          gap: "6px",
+                        }}
+                      >
                         <span
                           style={{
                             fontSize: "11px",
@@ -914,10 +922,10 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                             borderRadius: "6px",
                           }}
                         >
-                          💰 추정 가치: {art.estimatedValueText}
+                          💰 {art.estimatedValueText}
                         </span>
-                        <span style={{ fontSize: "12px", color: "#3182F6", fontWeight: 700 }}>
-                          🔍 비밀 포인트 {art.secretPoints.length}개 터치 →
+                        <span style={{ fontSize: "12px", color: "#3182F6", fontWeight: 700, flexShrink: 0 }}>
+                          🔍 상세 감상 · 비밀 포인트 →
                         </span>
                       </div>
 
@@ -1779,9 +1787,17 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                 border: "1px solid #E2E8F0",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "4px",
+                }}
+              >
                 <span style={{ fontSize: "12px", fontWeight: 800, color: "#475569" }}>💎 명화 추정 가치 환산</span>
-                <span style={{ fontSize: "15px", fontWeight: 800, color: "#B45309" }}>
+                <span style={{ fontSize: "14px", fontWeight: 800, color: "#B45309" }}>
                   {selectedArtwork.estimatedValueText}
                 </span>
               </div>
