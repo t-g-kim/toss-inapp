@@ -570,7 +570,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                 WORLD ART MAP
               </span>
               <span style={{ fontSize: "12px", color: TDSColors.textSecondary, fontWeight: 600 }}>
-                10대 미술관 · 16대 불멸의 명화
+                6대주 21대 미술관 · 28대 불멸의 명화
               </span>
             </div>
             <h1 style={{ fontSize: "22px", fontWeight: 800, margin: "6px 0 0", letterSpacing: "-0.4px" }}>
@@ -724,7 +724,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
               >
                 <div>
                   <h2 style={{ fontSize: "17px", fontWeight: 800, margin: 0 }}>
-                    🌍 세계 10대 미술관 인터랙티브 맵
+                    🌍 6대주 21대 미술관 인터랙티브 월드맵
                   </h2>
                   <p style={{ fontSize: "12px", color: TDSColors.textSecondary, margin: "3px 0 0" }}>
                     대륙을 확대하거나 핀을 눌러 각 미술관의 대표 걸작을 만나보세요
@@ -950,7 +950,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
               }}
             >
               <h2 style={{ fontSize: "18px", fontWeight: 800, margin: "0 0 10px" }}>
-                🖼️ 전세계 16대 명화 마스터 아카이브
+                🖼️ 전세계 28대 명화 마스터 아카이브
               </h2>
 
               {/* 검색창 */}
@@ -1418,7 +1418,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
               }}
             >
               <h3 style={{ fontSize: "17px", fontWeight: 800, margin: "0 0 4px" }}>
-                🛂 세계 10대 미술관 스탬프 도장 깨기
+                🛂 세계 21대 미술관 스탬프 도장 깨기
               </h3>
               <p style={{ fontSize: "12px", color: "#6B7684", margin: "0 0 14px" }}>
                 미술관의 명화를 감상하거나 아래 카드를 터치해 입국 스탬프를 완성하세요!
