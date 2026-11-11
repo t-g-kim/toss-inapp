@@ -13,8 +13,8 @@ interface ArtworkVisualizerProps {
 
 /**
  * 실제 고해상도 명화 원화 이미지 + 인터랙티브 3.5x 돋보기 렌더러
- * - 명화 원화 위에 시야를 가리는 번호 핀을 올리지 않고 100% 깨끗한 원화를 감상할 수 있습니다.
- * - 하단 비밀 포인트 칩을 선택하면 해당 디테일 좌표로 부드럽게 클로즈업됩니다.
+ * - 평소(카드 목록 및 모달 첫 진입 시)에는 그림 위에 번호 핀 없이 100% 깨끗한 원화를 보여줍니다.
+ * - 사용자가 하단의 비밀 포인트 버튼(1, 2, 3)을 누르면 해당 위치에 번호 마커와 포커스 링이 나타나며 클로즈업됩니다.
  */
 export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
   artwork,
@@ -29,7 +29,6 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
   const [imgError, setImgError] = useState(false);
   const [fitMode, setFitMode] = useState<"contain" | "cover">(interactive ? "contain" : "cover");
   const dragStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
-  const initialMountRef = useRef<boolean>(true);
 
   // 다른 작품 선택 시 줌/패닝/에러 상태 초기화
   useEffect(() => {
@@ -37,27 +36,27 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
     setPan({ x: 0, y: 0 });
     setImgError(false);
     setFitMode(interactive ? "contain" : "cover");
-    initialMountRef.current = true;
   }, [artwork.id, interactive]);
 
-  // 사용자가 비밀 포인트 칩을 클릭해 activeHotspotId가 변경되면 해당 위치로 부드럽게 포커스 이동
+  // 사용자가 하단 비밀 포인트 버튼을 클릭해 activeHotspotId가 변경되면 해당 위치로 번호 핀 표시 & 줌인
   useEffect(() => {
-    if (!interactive || !activeHotspotId) return;
-    if (initialMountRef.current) {
-      initialMountRef.current = false;
+    if (!interactive) return;
+    if (!activeHotspotId) {
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
       return;
     }
     const spot = artwork.secretPoints.find((s) => s.id === activeHotspotId);
     if (!spot) return;
-    const targetZoom = Math.max(zoom, 2.0);
+    const targetZoom = Math.max(zoom, 2.1);
     setZoom(targetZoom);
-    const offsetX = (50 - spot.x) * 2.0;
-    const offsetY = (50 - spot.y) * 2.0;
+    const offsetX = (50 - spot.x) * 2.1;
+    const offsetY = (50 - spot.y) * 2.1;
     setPan({
       x: Math.max(-135, Math.min(135, offsetX)),
       y: Math.max(-135, Math.min(135, offsetY)),
     });
-  }, [activeHotspotId]);
+  }, [activeHotspotId, interactive, artwork.secretPoints]);
 
   const handleZoomChange = (nextZoom: number) => {
     const clamped = Math.max(1, Math.min(3.5, Number(nextZoom.toFixed(1))));
@@ -93,6 +92,12 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
     setIsDragging(false);
     dragStartRef.current = null;
   };
+
+  // 현재 선택된 비밀 포인트와 그 번호(1, 2, 3) 찾기
+  const activeSpotIndex = activeHotspotId
+    ? artwork.secretPoints.findIndex((s) => s.id === activeHotspotId)
+    : -1;
+  const activeSpot = activeSpotIndex >= 0 ? artwork.secretPoints[activeSpotIndex] : null;
 
   return (
     <div style={{ width: "100%", userSelect: "none" }}>
@@ -159,7 +164,7 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
                   }}
                 />
 
-                {/* 2. 실제 고해상도 명화 원화 이미지 (번호 핀 없이 깨끗하게 표시) */}
+                {/* 2. 실제 고해상도 명화 원화 이미지 */}
                 <img
                   src={artwork.imageUrl}
                   alt={artwork.title}
@@ -201,6 +206,61 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
                 pointerEvents: "none",
               }}
             />
+
+            {/* 3. 아래 비밀 포인트 버튼을 눌렀을 때만 해당 좌표에 번호 핀과 포커스 링 표시! */}
+            {interactive && activeSpot && (
+              <div
+                style={{
+                  position: "absolute",
+                  left: `${activeSpot.x}%`,
+                  top: `${activeSpot.y}%`,
+                  transform: `translate(-50%, -50%) scale(${1 / Math.sqrt(zoom)})`,
+                  pointerEvents: "none",
+                  zIndex: 12,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                {/* 타겟 스포트라이트 링 */}
+                <div
+                  style={{
+                    width: "34px",
+                    height: "34px",
+                    borderRadius: "50%",
+                    border: "2.5px solid #FFFFFF",
+                    background: "linear-gradient(135deg, #FF3B30, #FF9500)",
+                    color: "#FFFFFF",
+                    fontSize: "14px",
+                    fontWeight: 900,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow:
+                      "0 0 0 7px rgba(255, 149, 0, 0.38), 0 6px 16px rgba(0,0,0,0.65)",
+                  }}
+                >
+                  {activeSpotIndex + 1}
+                </div>
+                {/* 핀 하단 미니 라벨 */}
+                <div
+                  style={{
+                    marginTop: "5px",
+                    background: "rgba(15, 23, 42, 0.92)",
+                    color: "#FDE68A",
+                    border: "1px solid rgba(250, 204, 21, 0.6)",
+                    borderRadius: "999px",
+                    padding: "2px 8px",
+                    fontSize: "10px",
+                    fontWeight: 800,
+                    whiteSpace: "nowrap",
+                    boxShadow: "0 3px 8px rgba(0,0,0,0.5)",
+                  }}
+                >
+                  {activeSpot.label}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 좌측 상단 배지: 사조 & 제작연도 */}

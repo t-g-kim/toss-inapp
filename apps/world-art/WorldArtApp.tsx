@@ -231,12 +231,12 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
     return list;
   }, [activeRegion, searchQuery, sortMode, bookmarkedIds]);
 
-  // 작품 상세 모달 열기 (미술관 자동 스탬프 획득 포함)
+  // 작품 상세 모달 열기 (처음 열 때는 그림 위 번호 없이 깨끗하게 시작)
   const openArtworkModal = (artwork: MasterpieceItem) => {
     window.history.pushState({ modal: "artwork", id: artwork.id }, "");
     stopDocentSpeech();
     setSelectedArtwork(artwork);
-    setActiveHotspot(artwork.secretPoints[0] || null);
+    setActiveHotspot(null);
     if (!visitedMuseums.includes(artwork.museumId)) {
       setVisitedMuseums((prev) => [...prev, artwork.museumId]);
       const museum = MUSEUMS.find((m) => m.id === artwork.museumId);
@@ -1671,36 +1671,82 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                 padding: "14px",
               }}
             >
-              <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400E", marginBottom: "8px" }}>
-                🔍 그림 속 숨은 비밀 포인트 (항목을 눌러 확대 해설 보기)
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "8px",
+                }}
+              >
+                <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400E" }}>
+                  🔍 그림 속 숨은 비밀 포인트 (버튼을 누르면 그림 위에 번호 표시)
+                </div>
+                {activeHotspot && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveHotspot(null)}
+                    style={{
+                      border: "1px solid #D97706",
+                      background: "#FFFFFF",
+                      color: "#B45309",
+                      borderRadius: "8px",
+                      padding: "3px 8px",
+                      fontSize: "11px",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✕ 번호 숨기기
+                  </button>
+                )}
               </div>
 
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "10px" }}>
-                {selectedArtwork.secretPoints.map((pt) => {
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: activeHotspot ? "10px" : "0px" }}>
+                {selectedArtwork.secretPoints.map((pt, idx) => {
                   const isAct = activeHotspot?.id === pt.id;
                   return (
                     <button
                       key={pt.id}
                       type="button"
-                      onClick={() => setActiveHotspot(pt)}
+                      onClick={() => setActiveHotspot((prev) => (prev?.id === pt.id ? null : pt))}
                       style={{
                         border: isAct ? "1.5px solid #D97706" : "1px solid #FDE68A",
                         background: isAct ? "#F59E0B" : "#FFFFFF",
                         color: isAct ? "#FFFFFF" : "#78350F",
                         borderRadius: "10px",
-                        padding: "6px 10px",
+                        padding: "7px 11px",
                         fontSize: "12px",
                         fontWeight: 800,
                         cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
                       }}
                     >
-                      {pt.label}
+                      <span
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          borderRadius: "50%",
+                          background: isAct ? "#FFFFFF" : "#F59E0B",
+                          color: isAct ? "#D97706" : "#FFFFFF",
+                          fontSize: "11px",
+                          fontWeight: 900,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        {idx + 1}
+                      </span>
+                      <span>{pt.label}</span>
                     </button>
                   );
                 })}
               </div>
 
-              {activeHotspot && (
+              {activeHotspot ? (
                 <div
                   style={{
                     background: "#FFFFFF",
@@ -1711,7 +1757,14 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                     lineHeight: 1.55,
                   }}
                 >
-                  <strong style={{ color: "#D97706" }}>[{activeHotspot.label}]</strong> {activeHotspot.detail}
+                  <strong style={{ color: "#D97706" }}>
+                    [{selectedArtwork.secretPoints.findIndex((s) => s.id === activeHotspot.id) + 1}. {activeHotspot.label}]
+                  </strong>{" "}
+                  {activeHotspot.detail}
+                </div>
+              ) : (
+                <div style={{ fontSize: "12px", color: "#B45309", marginTop: "8px" }}>
+                  👆 위 1·2·3번 버튼 중 궁금한 포인트를 누르면 그림 속 해당 위치에 번호 핀이 나타나며 확대됩니다.
                 </div>
               )}
             </div>
