@@ -518,7 +518,7 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
                       fontSize={10.5}
                       fontWeight="800"
                     >
-                      {offset.shortTitle} ({count})
+                      {offset.shortTitle}
                     </text>
 
                     {/* 방문 스탬프 체크 마크 */}

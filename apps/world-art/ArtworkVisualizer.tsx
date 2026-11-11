@@ -12,16 +12,14 @@ interface ArtworkVisualizerProps {
 }
 
 /**
- * 실제 고해상도 명화 원화 이미지 + 인터랙티브 3.5x 돋보기 & 시크릿 포인트 렌더러
- * - 로컬 번들링된 실제 명화 원화(/world-art/paintings/*.jpg)를 즉시 선명하게 표시합니다.
- * - 세로형/가로형 명화가 잘리지 않도록 기본 '원화 전체 보기(contain + 블러 배경)'와 '꽉 채우기(cover)' 전환을 지원합니다.
+ * 실제 고해상도 명화 원화 이미지 + 인터랙티브 3.5x 돋보기 렌더러
+ * - 명화 원화 위에 시야를 가리는 번호 핀을 올리지 않고 100% 깨끗한 원화를 감상할 수 있습니다.
+ * - 하단 비밀 포인트 칩을 선택하면 해당 디테일 좌표로 부드럽게 클로즈업됩니다.
  */
 export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
   artwork,
   interactive = false,
   activeHotspotId = null,
-  onSelectHotspot,
-  showHotspots = true,
   height = 310,
   framed = true,
 }) => {
@@ -31,6 +29,7 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
   const [imgError, setImgError] = useState(false);
   const [fitMode, setFitMode] = useState<"contain" | "cover">(interactive ? "contain" : "cover");
   const dragStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const initialMountRef = useRef<boolean>(true);
 
   // 다른 작품 선택 시 줌/패닝/에러 상태 초기화
   useEffect(() => {
@@ -38,27 +37,33 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
     setPan({ x: 0, y: 0 });
     setImgError(false);
     setFitMode(interactive ? "contain" : "cover");
+    initialMountRef.current = true;
   }, [artwork.id, interactive]);
+
+  // 사용자가 비밀 포인트 칩을 클릭해 activeHotspotId가 변경되면 해당 위치로 부드럽게 포커스 이동
+  useEffect(() => {
+    if (!interactive || !activeHotspotId) return;
+    if (initialMountRef.current) {
+      initialMountRef.current = false;
+      return;
+    }
+    const spot = artwork.secretPoints.find((s) => s.id === activeHotspotId);
+    if (!spot) return;
+    const targetZoom = Math.max(zoom, 2.0);
+    setZoom(targetZoom);
+    const offsetX = (50 - spot.x) * 2.0;
+    const offsetY = (50 - spot.y) * 2.0;
+    setPan({
+      x: Math.max(-135, Math.min(135, offsetX)),
+      y: Math.max(-135, Math.min(135, offsetY)),
+    });
+  }, [activeHotspotId]);
 
   const handleZoomChange = (nextZoom: number) => {
     const clamped = Math.max(1, Math.min(3.5, Number(nextZoom.toFixed(1))));
     setZoom(clamped);
     if (clamped === 1) {
       setPan({ x: 0, y: 0 });
-    }
-  };
-
-  const focusOnHotspot = (spot: SecretHotspot) => {
-    onSelectHotspot?.(spot);
-    if (interactive) {
-      const targetZoom = Math.max(zoom, 2.2);
-      setZoom(targetZoom);
-      const offsetX = (50 - spot.x) * 2.2;
-      const offsetY = (50 - spot.y) * 2.2;
-      setPan({
-        x: Math.max(-135, Math.min(135, offsetX)),
-        y: Math.max(-135, Math.min(135, offsetY)),
-      });
     }
   };
 
@@ -154,7 +159,7 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
                   }}
                 />
 
-                {/* 2. 실제 고해상도 명화 원화 이미지 */}
+                {/* 2. 실제 고해상도 명화 원화 이미지 (번호 핀 없이 깨끗하게 표시) */}
                 <img
                   src={artwork.imageUrl}
                   alt={artwork.title}
@@ -170,7 +175,6 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
                 />
               </>
             ) : (
-              /* 이미지 로드 실패 시 폴백 그라데이션 */
               <div
                 style={{
                   width: "100%",
@@ -197,51 +201,6 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
                 pointerEvents: "none",
               }}
             />
-
-            {/* 그림 속 숨은 비밀 포인트 핀 (①, ②, ③) */}
-            {showHotspots &&
-              artwork.secretPoints.map((spot, idx) => {
-                const isSelected = activeHotspotId === spot.id;
-                return (
-                  <button
-                    key={spot.id}
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      focusOnHotspot(spot);
-                    }}
-                    title={spot.label}
-                    style={{
-                      position: "absolute",
-                      left: `${spot.x}%`,
-                      top: `${spot.y}%`,
-                      transform: `translate(-50%, -50%) scale(${1 / Math.sqrt(zoom)})`,
-                      width: isSelected ? "32px" : "26px",
-                      height: isSelected ? "32px" : "26px",
-                      borderRadius: "50%",
-                      border: "2px solid #FFFFFF",
-                      background: isSelected
-                        ? "linear-gradient(135deg, #FF3B30, #FF9500)"
-                        : "rgba(25, 31, 40, 0.88)",
-                      color: "#FFFFFF",
-                      fontSize: "12px",
-                      fontWeight: 800,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      boxShadow: isSelected
-                        ? "0 0 0 6px rgba(255, 149, 0, 0.38), 0 4px 12px rgba(0,0,0,0.5)"
-                        : "0 0 0 4px rgba(255, 255, 255, 0.28), 0 3px 10px rgba(0,0,0,0.45)",
-                      transition: "all 0.2s ease",
-                      zIndex: isSelected ? 10 : 5,
-                      padding: 0,
-                    }}
-                  >
-                    {idx + 1}
-                  </button>
-                );
-              })}
           </div>
 
           {/* 좌측 상단 배지: 사조 & 제작연도 */}

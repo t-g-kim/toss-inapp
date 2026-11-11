@@ -1672,11 +1672,11 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
               }}
             >
               <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400E", marginBottom: "8px" }}>
-                🔍 그림 속 숨은 비밀 포인트 (번호를 눌러 확대 해설 보기)
+                🔍 그림 속 숨은 비밀 포인트 (항목을 눌러 확대 해설 보기)
               </div>
 
               <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "10px" }}>
-                {selectedArtwork.secretPoints.map((pt, idx) => {
+                {selectedArtwork.secretPoints.map((pt) => {
                   const isAct = activeHotspot?.id === pt.id;
                   return (
                     <button
@@ -1694,7 +1694,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                         cursor: "pointer",
                       }}
                     >
-                      {idx + 1}. {pt.label}
+                      {pt.label}
                     </button>
                   );
                 })}
