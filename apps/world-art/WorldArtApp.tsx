@@ -81,9 +81,9 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
   const [visitedMuseums, setVisitedMuseums] = useState<string[]>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEYS.VISITED_MUSEUMS);
-      return raw ? JSON.parse(raw) : ["louvre", "korea_national"];
+      return raw ? JSON.parse(raw) : ["louvre", "seoul_kansong"];
     } catch {
-      return ["louvre", "korea_national"];
+      return ["louvre", "seoul_kansong"];
     }
   });
 
