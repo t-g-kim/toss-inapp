@@ -339,162 +339,188 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
     }
   };
 
-  // HTML5 Canvas 기반 나만의 미술관 티켓 & 포토카드 PNG 생성
+  // HTML5 Canvas 기반 나만의 미술관 티켓 & 포토카드 PNG 생성 (실제 명화 원화 이미지 포함)
   const generateMuseumTicketPng = (artwork: MasterpieceItem) => {
     const museum = MUSEUMS.find((m) => m.id === artwork.museumId) || MUSEUMS[0];
-    const canvas = document.createElement("canvas");
-    canvas.width = 720;
-    canvas.height = 1040;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
 
-    // 1. 배경 그라데이션
-    const bgGrad = ctx.createLinearGradient(0, 0, 720, 1040);
-    bgGrad.addColorStop(0, "#0F172A");
-    bgGrad.addColorStop(0.55, "#1E293B");
-    bgGrad.addColorStop(1, "#090D16");
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, 720, 1040);
+    const renderTicketWithImage = (loadedImg: HTMLImageElement | null) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 720;
+      canvas.height = 1040;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
 
-    // 2. 티켓 메인 카드 프레임
-    ctx.fillStyle = "#FFFDF9";
-    ctx.beginPath();
-    ctx.roundRect(44, 52, 632, 936, 28);
-    ctx.fill();
+      // 1. 배경 그라데이션
+      const bgGrad = ctx.createLinearGradient(0, 0, 720, 1040);
+      bgGrad.addColorStop(0, "#0F172A");
+      bgGrad.addColorStop(0.55, "#1E293B");
+      bgGrad.addColorStop(1, "#090D16");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, 720, 1040);
 
-    // 상단 미술관 헤더 바
-    const headerGrad = ctx.createLinearGradient(44, 52, 676, 170);
-    headerGrad.addColorStop(0, museum.badgeColor);
-    headerGrad.addColorStop(1, "#1E293B");
-    ctx.fillStyle = headerGrad;
-    ctx.beginPath();
-    ctx.roundRect(44, 52, 632, 128, [28, 28, 0, 0]);
-    ctx.fill();
+      // 2. 티켓 메인 카드 프레임
+      ctx.fillStyle = "#FFFDF9";
+      ctx.beginPath();
+      ctx.roundRect(44, 52, 632, 936, 28);
+      ctx.fill();
 
-    ctx.fillStyle = "#FACC15";
-    ctx.font = "bold 18px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.fillText(`WORLD ART VIP ADMISSION TICKET  |  ${museum.stampCode}`, 80, 102);
+      // 상단 미술관 헤더 바
+      const headerGrad = ctx.createLinearGradient(44, 52, 676, 170);
+      headerGrad.addColorStop(0, museum.badgeColor);
+      headerGrad.addColorStop(1, "#1E293B");
+      ctx.fillStyle = headerGrad;
+      ctx.beginPath();
+      ctx.roundRect(44, 52, 632, 128, [28, 28, 0, 0]);
+      ctx.fill();
 
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 30px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.fillText(`${museum.flag} ${museum.name} (${museum.city})`, 80, 146);
+      ctx.fillStyle = "#FACC15";
+      ctx.font = "bold 18px -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.fillText(`WORLD ART VIP ADMISSION TICKET  |  ${museum.stampCode}`, 80, 102);
 
-    // 3. 명화 대표 컬러 팔레트 아트 박스
-    const artGrad = ctx.createLinearGradient(80, 210, 640, 560);
-    artGrad.addColorStop(0, artwork.palette[0]);
-    artGrad.addColorStop(0.55, artwork.palette[1]);
-    artGrad.addColorStop(1, artwork.palette[2]);
-    ctx.fillStyle = artGrad;
-    ctx.beginPath();
-    ctx.roundRect(80, 210, 560, 340, 20);
-    ctx.fill();
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "bold 28px -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.fillText(`${museum.flag} ${museum.name} (${museum.city})`, 80, 146);
 
-    // 액자 골드 보더
-    ctx.strokeStyle = "#D4AF37";
-    ctx.lineWidth = 6;
-    ctx.stroke();
+      // 3. 명화 액자 프레임 & 실제 원화 이미지 렌더링
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(80, 204, 560, 356, 20);
+      ctx.clip();
 
-    // 명화 아트워크 심볼릭 장식 원
-    ctx.fillStyle = "rgba(255, 255, 255, 0.16)";
-    ctx.beginPath();
-    ctx.arc(360, 380, 110, 0, Math.PI * 2);
-    ctx.fill();
+      const artGrad = ctx.createLinearGradient(80, 204, 640, 560);
+      artGrad.addColorStop(0, "#0B0F19");
+      artGrad.addColorStop(1, "#1E293B");
+      ctx.fillStyle = artGrad;
+      ctx.fillRect(80, 204, 560, 356);
 
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 36px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.fillText(`“${artwork.title}”`, 110, 370);
-    ctx.font = "500 22px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-    ctx.fillText(`${artwork.artist}  ·  ${artwork.year}`, 110, 412);
-    ctx.font = "bold 19px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.fillStyle = "#FEF08A";
-    ctx.fillText(`추정 가치: ${artwork.estimatedValueText}`, 110, 456);
+      if (loadedImg && loadedImg.width > 0 && loadedImg.height > 0) {
+        // 배경 은은한 꽉 찬 이미지
+        ctx.globalAlpha = 0.28;
+        ctx.drawImage(loadedImg, 80, 204, 560, 356);
+        ctx.globalAlpha = 1.0;
 
-    // 4. 작품 도슨트 요약 & 행운 메시지
-    ctx.fillStyle = "#191F28";
-    ctx.font = "bold 26px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.fillText(`${artwork.title} (${artwork.originalTitle})`, 80, 608);
+        // 중앙 원본 비율 유지 이미지
+        const boxW = 540;
+        const boxH = 336;
+        const scale = Math.min(boxW / loadedImg.width, boxH / loadedImg.height);
+        const drawW = loadedImg.width * scale;
+        const drawH = loadedImg.height * scale;
+        const drawX = 80 + (560 - drawW) / 2;
+        const drawY = 204 + (356 - drawH) / 2;
+        ctx.drawImage(loadedImg, drawX, drawY, drawW, drawH);
+      } else {
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 34px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.fillText(`“${artwork.title}”`, 110, 370);
+      }
+      ctx.restore();
 
-    ctx.fillStyle = "#4E5968";
-    ctx.font = "600 19px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.fillText(`사조: ${artwork.movement}   |   소장: ${museum.name}`, 80, 644);
+      // 액자 골드 보더
+      ctx.strokeStyle = "#D4AF37";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.roundRect(80, 204, 560, 356, 20);
+      ctx.stroke();
 
-    // 행운 부적 박스
-    ctx.fillStyle = "#F2F4F6";
-    ctx.beginPath();
-    ctx.roundRect(80, 672, 560, 96, 16);
-    ctx.fill();
+      // 4. 작품 도슨트 요약 & 행운 메시지
+      ctx.fillStyle = "#191F28";
+      ctx.font = "bold 25px -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.fillText(`${artwork.title} · ${artwork.artist}`, 80, 606);
 
-    ctx.fillStyle = "#1B64DA";
-    ctx.font = "bold 18px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.fillText(`✨ [${artwork.fortuneTag.category}] 큐레이터 행운 메시지`, 104, 708);
+      ctx.fillStyle = "#4E5968";
+      ctx.font = "600 18px -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.fillText(`사조: ${artwork.movement} (${artwork.year})  |  가치: ${artwork.estimatedValueText.slice(0, 22)}`, 80, 642);
 
-    ctx.fillStyle = "#333D4B";
-    ctx.font = "500 17px -apple-system, BlinkMacSystemFont, sans-serif";
-    const blessingShort =
-      artwork.fortuneTag.blessing.length > 36
-        ? artwork.fortuneTag.blessing.slice(0, 36) + "..."
-        : artwork.fortuneTag.blessing;
-    ctx.fillText(blessingShort, 104, 742);
+      // 행운 부적 박스
+      ctx.fillStyle = "#F2F4F6";
+      ctx.beginPath();
+      ctx.roundRect(80, 670, 560, 98, 16);
+      ctx.fill();
 
-    // 5. 티켓 절취선
-    ctx.strokeStyle = "#CBD5E1";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([10, 8]);
-    ctx.beginPath();
-    ctx.moveTo(64, 805);
-    ctx.lineTo(656, 805);
-    ctx.stroke();
-    ctx.setLineDash([]);
+      ctx.fillStyle = "#1B64DA";
+      ctx.font = "bold 18px -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.fillText(`✨ [${artwork.fortuneTag.category}] 큐레이터 행운 메시지`, 104, 706);
 
-    // 6. 하단 관람객 이름 & 입국 스탬프 도장
-    const dateStr = new Date().toISOString().slice(0, 10);
-    ctx.fillStyle = "#6B7684";
-    ctx.font = "600 17px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.fillText(`COLLECTOR: ${collectorName || "토스 아트 컬렉터"}`, 80, 858);
-    ctx.fillText(`ISSUED DATE: ${dateStr}   |   PASSPORT STAMPED`, 80, 892);
-    ctx.fillStyle = "#191F28";
-    ctx.font = "bold 20px monospace";
-    ctx.fillText("|||| |||| || ||||| |||| ||| |||| |||||", 80, 940);
+      ctx.fillStyle = "#333D4B";
+      ctx.font = "500 16.5px -apple-system, BlinkMacSystemFont, sans-serif";
+      const blessingShort =
+        artwork.fortuneTag.blessing.length > 38
+          ? artwork.fortuneTag.blessing.slice(0, 38) + "..."
+          : artwork.fortuneTag.blessing;
+      ctx.fillText(blessingShort, 104, 742);
 
-    // 원형 스탬프 인장
-    ctx.save();
-    ctx.translate(555, 890);
-    ctx.rotate(-0.18);
-    ctx.strokeStyle = "#E11D48";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(0, 0, 58, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.fillStyle = "#E11D48";
-    ctx.font = "bold 16px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("WORLD ART", 0, -14);
-    ctx.font = "bold 19px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.fillText(museum.stampCode, 0, 10);
-    ctx.font = "600 13px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.fillText("VERIFIED", 0, 32);
-    ctx.restore();
+      // 5. 티켓 절취선
+      ctx.strokeStyle = "#CBD5E1";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 8]);
+      ctx.beginPath();
+      ctx.moveTo(64, 805);
+      ctx.lineTo(656, 805);
+      ctx.stroke();
+      ctx.setLineDash([]);
 
-    const url = canvas.toDataURL("image/png");
-    setTicketDataUrl(url);
+      // 6. 하단 관람객 이름 & 입국 스탬프 도장
+      const dateStr = new Date().toISOString().slice(0, 10);
+      ctx.fillStyle = "#6B7684";
+      ctx.font = "600 17px -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.fillText(`COLLECTOR: ${collectorName || "토스 아트 컬렉터"}`, 80, 858);
+      ctx.fillText(`ISSUED DATE: ${dateStr}   |   PASSPORT STAMPED`, 80, 892);
+      ctx.fillStyle = "#191F28";
+      ctx.font = "bold 20px monospace";
+      ctx.fillText("|||| |||| || ||||| |||| ||| |||| |||||", 80, 940);
 
-    // 즉시 다운로드 트리거
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `world-art-ticket-${artwork.id}.png`;
-    link.click();
-    showToast("🎟️ 나만의 미술관 티켓 포토카드가 저장되었어요!");
+      // 원형 스탬프 인장
+      ctx.save();
+      ctx.translate(555, 890);
+      ctx.rotate(-0.18);
+      ctx.strokeStyle = "#E11D48";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(0, 0, 58, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = "#E11D48";
+      ctx.font = "bold 16px -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("WORLD ART", 0, -14);
+      ctx.font = "bold 18px -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.fillText(museum.stampCode, 0, 10);
+      ctx.font = "600 13px -apple-system, BlinkMacSystemFont, sans-serif";
+      ctx.fillText("VERIFIED", 0, 32);
+      ctx.restore();
+
+      const url = canvas.toDataURL("image/png");
+      setTicketDataUrl(url);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `world-art-ticket-${artwork.id}.png`;
+      link.click();
+      showToast("🎟️ 실제 명화가 담긴 미술관 VIP 티켓이 저장되었어요!");
+    };
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => renderTicketWithImage(img);
+    img.onerror = () => renderTicketWithImage(null);
+    img.src = artwork.imageUrl;
   };
 
-  // 컬렉터 등급 산정
+  // 컬렉터 등급 산정 (21개 미술관 기준)
   const collectorRank = useMemo(() => {
     const count = visitedMuseums.length;
-    if (count >= 9) return { title: "🏆 월드 마스터 컬렉터", desc: "세계 10대 미술관을 제패한 전설적인 도슨트" };
-    if (count >= 6) return { title: "👑 루브르 명예 큐레이터", desc: "대륙을 넘나들며 명화의 비밀을 꿰뚫는 안목" };
-    if (count >= 3) return { title: "🎨 유럽 그랜드 투어러", desc: "세계 미술관 순례의 즐거움에 눈뜬 여행자" };
+    if (count >= 15) return { title: "🏆 월드 마스터 컬렉터", desc: "6대주 주요 미술관을 제패한 전설적인 도슨트" };
+    if (count >= 10) return { title: "👑 루브르 명예 큐레이터", desc: "대륙을 넘나들며 명화의 비밀을 꿰뚫는 안목" };
+    if (count >= 5) return { title: "🎨 글로벌 그랜드 투어러", desc: "세계 미술관 순례의 즐거움에 눈뜬 여행자" };
     return { title: "🌱 방구석 아트 탐험가", desc: "지도를 넓혀 미술관 핀을 터치해 스탬프를 모아보세요!" };
   }, [visitedMuseums.length]);
+
+  // 지도에서 미술관 선택 시 가로 퀵 선택 바의 해당 버튼이 보이도록 자동 스크롤
+  useEffect(() => {
+    const el = document.getElementById(`museum-pill-${selectedMuseumId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+  }, [selectedMuseumId]);
 
   return (
     <div
@@ -757,6 +783,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                   const visited = visitedMuseums.includes(m.id);
                   return (
                     <button
+                      id={`museum-pill-${m.id}`}
                       key={m.id}
                       type="button"
                       onClick={() => setSelectedMuseumId(m.id)}
@@ -805,6 +832,168 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                     </button>
                   );
                 })}
+              </div>
+
+              {/* 지도 바로 아래: 선택된 미술관 즉시 프리뷰 & 이전/다음 미술관 투어 버튼 */}
+              <div
+                style={{
+                  marginTop: "12px",
+                  background: "#F8FAFC",
+                  border: "1px solid #E2E8F0",
+                  borderRadius: "16px",
+                  padding: "12px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "8px",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0 }}>
+                    <span style={{ fontSize: "18px" }}>{selectedMuseum.flag}</span>
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 800,
+                        color: "#191F28",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {selectedMuseum.name}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        color: "#3182F6",
+                        background: "#EFF6FF",
+                        padding: "2px 7px",
+                        borderRadius: "999px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      대표작 {museumArtworks.length}점
+                    </span>
+                  </div>
+
+                  {/* 이전/다음 미술관 빠른 투어 버튼 */}
+                  <div style={{ display: "flex", gap: "5px", flexShrink: 0 }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const pool = MUSEUMS.filter((m) => activeRegion === "all" || m.region === activeRegion);
+                        const idx = pool.findIndex((m) => m.id === selectedMuseumId);
+                        const prev = pool[(idx - 1 + pool.length) % pool.length] || MUSEUMS[0];
+                        setSelectedMuseumId(prev.id);
+                      }}
+                      style={{
+                        border: "1px solid #CBD5E1",
+                        background: "#FFFFFF",
+                        borderRadius: "8px",
+                        padding: "4px 9px",
+                        fontSize: "11px",
+                        fontWeight: 800,
+                        color: "#334155",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ◀ 이전 미술관
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const pool = MUSEUMS.filter((m) => activeRegion === "all" || m.region === activeRegion);
+                        const idx = pool.findIndex((m) => m.id === selectedMuseumId);
+                        const next = pool[(idx + 1) % pool.length] || MUSEUMS[0];
+                        setSelectedMuseumId(next.id);
+                      }}
+                      style={{
+                        border: "1px solid #CBD5E1",
+                        background: "#FFFFFF",
+                        borderRadius: "8px",
+                        padding: "4px 9px",
+                        fontSize: "11px",
+                        fontWeight: 800,
+                        color: "#334155",
+                        cursor: "pointer",
+                      }}
+                    >
+                      다음 미술관 ▶
+                    </button>
+                  </div>
+                </div>
+
+                {/* 소장 명화 썸네일 바로가기 스트립 (스크롤 내리지 않고 즉시 감상 가능) */}
+                <div style={{ display: "flex", gap: "8px", overflowX: "auto" }}>
+                  {museumArtworks.map((art) => (
+                    <div
+                      key={art.id}
+                      onClick={() => openArtworkModal(art)}
+                      style={{
+                        flex: "1 1 0",
+                        minWidth: "210px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        background: "#FFFFFF",
+                        border: "1px solid #E2E8F0",
+                        borderRadius: "12px",
+                        padding: "8px 10px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <img
+                        src={art.imageUrl}
+                        alt={art.title}
+                        style={{
+                          width: "46px",
+                          height: "46px",
+                          borderRadius: "8px",
+                          objectFit: "cover",
+                          background: "#0F172A",
+                          flexShrink: 0,
+                          border: "1.5px solid #D97706",
+                        }}
+                      />
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div
+                          style={{
+                            fontSize: "13px",
+                            fontWeight: 800,
+                            color: "#191F28",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {art.title}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#6B7684", fontWeight: 600 }}>
+                          {art.artist} · {art.year}
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 800,
+                          color: "#D97706",
+                          background: "#FEF3C7",
+                          padding: "4px 8px",
+                          borderRadius: "8px",
+                          flexShrink: 0,
+                        }}
+                      >
+                        크게 보기
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -1425,12 +1614,73 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                 boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
               }}
             >
-              <h3 style={{ fontSize: "17px", fontWeight: 800, margin: "0 0 4px" }}>
-                🛂 세계 21대 미술관 스탬프 도장 깨기
-              </h3>
-              <p style={{ fontSize: "12px", color: "#6B7684", margin: "0 0 14px" }}>
-                미술관의 명화를 감상하거나 아래 카드를 터치해 입국 스탬프를 완성하세요!
-              </p>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginBottom: "8px",
+                }}
+              >
+                <div>
+                  <h3 style={{ fontSize: "17px", fontWeight: 800, margin: "0 0 3px" }}>
+                    🛂 세계 21대 미술관 스탬프 도장 깨기
+                  </h3>
+                  <p style={{ fontSize: "12px", color: "#6B7684", margin: 0 }}>
+                    미술관의 명화를 감상하거나 아래 카드를 터치해 입국 스탬프를 완성하세요!
+                  </p>
+                </div>
+
+                {visitedMuseums.length < MUSEUMS.length && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const unvisited = MUSEUMS.filter((m) => !visitedMuseums.includes(m.id));
+                      const pick = unvisited[Math.floor(Math.random() * unvisited.length)];
+                      if (pick) {
+                        setSelectedMuseumId(pick.id);
+                        setActiveRegion("all");
+                        setActiveTab("map");
+                        showToast(`✈️ 미방문 '${pick.name}'(${pick.city})으로 이동했어요!`);
+                      }
+                    }}
+                    style={{
+                      flexShrink: 0,
+                      border: "none",
+                      background: "#3182F6",
+                      color: "#FFFFFF",
+                      borderRadius: "10px",
+                      padding: "7px 11px",
+                      fontSize: "11px",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✈️ 안 가본 미술관 출발
+                  </button>
+                )}
+              </div>
+
+              {/* 스탬프 달성률 프로그레스 바 */}
+              <div
+                style={{
+                  background: "#F1F5F9",
+                  height: "10px",
+                  borderRadius: "999px",
+                  overflow: "hidden",
+                  marginBottom: "14px",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${Math.round((visitedMuseums.length / MUSEUMS.length) * 100)}%`,
+                    height: "100%",
+                    background: "linear-gradient(90deg, #3182F6 0%, #F59E0B 100%)",
+                    transition: "width 0.3s ease",
+                  }}
+                />
+              </div>
 
               <div
                 style={{
@@ -1559,7 +1809,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                 👑 WORLD ART VIP CURATOR PASS
               </div>
               <div style={{ fontSize: "17px", fontWeight: 800, color: "#191F28", marginTop: "4px" }}>
-                16대 전 작품 VIP 비하인드 스토리 무제한 열람 패스
+                28대 전 작품 VIP 비하인드 스토리 무제한 열람 패스
               </div>
               <p style={{ fontSize: "12px", color: "#78350F", margin: "6px 0 12px", lineHeight: 1.45 }}>
                 도난 사건의 전말, X선 스캔으로 밝혀진 덧칠의 비밀, 천문학적 경매 비화를 광고 없이 평생 소장하세요.
@@ -1616,6 +1866,62 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
               boxShadow: "0 20px 50px rgba(0,0,0,0.45)",
             }}
           >
+            {/* 모달 상단: 이전/다음 명화 빠른 넘기기 네비게이션 바 */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                background: "#F8FAFC",
+                border: "1px solid #E2E8F0",
+                borderRadius: "12px",
+                padding: "6px 10px",
+                marginBottom: "12px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  const idx = MASTERPIECES.findIndex((a) => a.id === selectedArtwork.id);
+                  const prev = MASTERPIECES[(idx - 1 + MASTERPIECES.length) % MASTERPIECES.length];
+                  if (prev) openArtworkModal(prev);
+                }}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: "#334155",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  padding: "4px 6px",
+                }}
+              >
+                ◀ 이전 명화
+              </button>
+              <span style={{ fontSize: "11px", fontWeight: 800, color: "#64748B" }}>
+                세계 28대 걸작 컬렉션 ({MASTERPIECES.findIndex((a) => a.id === selectedArtwork.id) + 1} / {MASTERPIECES.length})
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const idx = MASTERPIECES.findIndex((a) => a.id === selectedArtwork.id);
+                  const next = MASTERPIECES[(idx + 1) % MASTERPIECES.length];
+                  if (next) openArtworkModal(next);
+                }}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: "#334155",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  padding: "4px 6px",
+                }}
+              >
+                다음 명화 ▶
+              </button>
+            </div>
+
             {/* 모달 상단 헤더 */}
             <div
               style={{

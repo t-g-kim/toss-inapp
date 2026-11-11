@@ -5,7 +5,7 @@ interface ArtworkVisualizerProps {
   artwork: MasterpieceItem;
   interactive?: boolean;
   activeHotspotId?: string | null;
-  onSelectHotspot?: (hotspot: SecretHotspot) => void;
+  onSelectHotspot?: (hotspot: SecretHotspot | null) => void;
   showHotspots?: boolean;
   height?: number;
   framed?: boolean;
@@ -13,15 +13,16 @@ interface ArtworkVisualizerProps {
 
 /**
  * 실제 고해상도 명화 원화 이미지 + 인터랙티브 3.5x 돋보기 렌더러
- * - 이미지 실제 렌더링 영역(inline-block 래퍼) 내부에 비밀 포인트 마커를 배치하여,
- *   세로형(모나리자·미인도 등)/가로형 비율과 무관하게 100% 정확한 명화 좌표에 번호 핀이 표시됩니다.
- * - 상단 배지가 명화를 가리지 않도록 컨트롤 바와 메타데이터 바를 액자 외부에 깔끔하게 배치했습니다.
+ * - 평소(activeHotspotId === null)에는 번호 핀 없이 100% 깨끗한 원화를 보여줍니다.
+ * - 하단 1·2·3 버튼을 누르면 실제 이미지 렌더링 크기(imgWrapperRef)를 기준으로 정밀 계산된 좌표로 클로즈업되며,
+ *   확대된 그림 위에서도 다른 번호 핀을 직접 터치해 바로 이동할 수 있습니다.
  */
 export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
   artwork,
   interactive = false,
   activeHotspotId = null,
-  height = 320,
+  onSelectHotspot,
+  height = 330,
   framed = true,
 }) => {
   const [zoom, setZoom] = useState<number>(1);
@@ -30,6 +31,7 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
   const [imgError, setImgError] = useState(false);
   const [fitMode, setFitMode] = useState<"contain" | "cover">(interactive ? "contain" : "cover");
   const dragStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const imgWrapperRef = useRef<HTMLDivElement | null>(null);
 
   // 다른 작품 선택 시 줌/패닝/에러 상태 초기화
   useEffect(() => {
@@ -39,7 +41,7 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
     setFitMode(interactive ? "contain" : "cover");
   }, [artwork.id, interactive]);
 
-  // 하단 비밀 포인트 버튼 클릭 시 해당 좌표로 번호 핀 표시 & 부드러운 클로즈업
+  // 비밀 포인트 선택 시 실제 렌더링된 그림 폭/높이(offsetWidth/Height)에 비례해 정밀 클로즈업
   useEffect(() => {
     if (!interactive) return;
     if (!activeHotspotId) {
@@ -49,14 +51,20 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
     }
     const spot = artwork.secretPoints.find((s) => s.id === activeHotspotId);
     if (!spot) return;
-    const targetZoom = 2.0;
+
+    const targetZoom = 2.15;
     setZoom(targetZoom);
-    // 선택된 포인트가 화면 중앙 부근에 오도록 패닝 오프셋 계산
-    const offsetX = (50 - spot.x) * 1.65;
-    const offsetY = (50 - spot.y) * 1.65;
+
+    const w = imgWrapperRef.current?.offsetWidth || 260;
+    const h = imgWrapperRef.current?.offsetHeight || 260;
+    const rawX = ((50 - spot.x) / 100) * w * (targetZoom * 0.72);
+    const rawY = ((50 - spot.y) / 100) * h * (targetZoom * 0.72);
+    const maxPanX = (w * (targetZoom - 1)) / 2 + 40;
+    const maxPanY = (h * (targetZoom - 1)) / 2 + 40;
+
     setPan({
-      x: Math.max(-120, Math.min(120, offsetX)),
-      y: Math.max(-120, Math.min(120, offsetY)),
+      x: Math.max(-maxPanX, Math.min(maxPanX, rawX)),
+      y: Math.max(-maxPanY, Math.min(maxPanY, rawY)),
     });
   }, [activeHotspotId, interactive, artwork.secretPoints]);
 
@@ -83,7 +91,7 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
     if (!isDragging || !dragStartRef.current) return;
     const dx = e.clientX - dragStartRef.current.x;
     const dy = e.clientY - dragStartRef.current.y;
-    const maxOffset = (zoom - 1) * 115;
+    const maxOffset = (zoom - 1) * 130;
     setPan({
       x: Math.max(-maxOffset, Math.min(maxOffset, dragStartRef.current.panX + dx)),
       y: Math.max(-maxOffset, Math.min(maxOffset, dragStartRef.current.panY + dy)),
@@ -95,10 +103,6 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
     dragStartRef.current = null;
   };
 
-  const activeSpotIndex = activeHotspotId
-    ? artwork.secretPoints.findIndex((s) => s.id === activeHotspotId)
-    : -1;
-  const activeSpot = activeSpotIndex >= 0 ? artwork.secretPoints[activeSpotIndex] : null;
   const innerHeight = framed ? height - 18 : height;
 
   return (
@@ -126,6 +130,15 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
+          onDoubleClick={() => {
+            if (!interactive) return;
+            if (zoom > 1) {
+              handleZoomChange(1);
+              onSelectHotspot?.(null);
+            } else {
+              handleZoomChange(2.2);
+            }
+          }}
           style={{
             position: "relative",
             width: "100%",
@@ -133,7 +146,7 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
             borderRadius: framed ? "11px" : "12px",
             overflow: "hidden",
             background: "#0B0F19",
-            cursor: interactive ? (zoom > 1 ? (isDragging ? "grabbing" : "grab") : "default") : "pointer",
+            cursor: interactive ? (zoom > 1 ? (isDragging ? "grabbing" : "grab") : "zoom-in") : "pointer",
             boxShadow: framed ? "inset 0 0 18px rgba(0,0,0,0.65)" : "none",
             touchAction: zoom > 1 ? "none" : "pan-y",
           }}
@@ -166,12 +179,13 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
               justifyContent: "center",
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: "center center",
-              transition: isDragging ? "none" : "transform 0.34s cubic-bezier(0.22, 1, 0.36, 1)",
+              transition: isDragging ? "none" : "transform 0.36s cubic-bezier(0.22, 1, 0.36, 1)",
             }}
           >
             {!imgError ? (
-              /* 이미지 실제 렌더링 크기에 100% 밀착되는 inline-block 래퍼 -> 세로형/가로형 어디서든 좌표 오차 0% */
+              /* 이미지 실제 렌더링 크기에 100% 밀착되는 inline-block 래퍼 */
               <div
+                ref={imgWrapperRef}
                 style={{
                   position: "relative",
                   display: "inline-block",
@@ -199,70 +213,85 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
                   }}
                 />
 
-                {/* 3. 아래 비밀 포인트 버튼을 눌렀을 때만 실제 그림 영역 내부의 정확한 (x%, y%) 좌표에 번호 핀 표시 */}
-                {interactive && activeSpot && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: `${activeSpot.x}%`,
-                      top: `${activeSpot.y}%`,
-                      transform: `translate(-50%, -50%) scale(${1 / Math.sqrt(zoom)})`,
-                      pointerEvents: "none",
-                      zIndex: 15,
-                      display: "flex",
-                      flexDirection: activeSpot.y > 72 ? "column-reverse" : "column",
-                      alignItems: "center",
-                    }}
-                  >
-                    {/* 번호 원형 배지 */}
-                    <div
-                      style={{
-                        width: "30px",
-                        height: "30px",
-                        borderRadius: "50%",
-                        border: "2.5px solid #FFFFFF",
-                        background: "linear-gradient(135deg, #FF3B30, #FF9500)",
-                        color: "#FFFFFF",
-                        fontSize: "13px",
-                        fontWeight: 900,
-                        lineHeight: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow:
-                          "0 0 0 6px rgba(255, 149, 0, 0.42), 0 4px 14px rgba(0,0,0,0.7)",
-                      }}
-                    >
-                      {activeSpotIndex + 1}
-                    </div>
+                {/* 3. 사용자가 비밀 포인트를 활성화했을 때만 그림 위에 번호 마커 표시 (다른 번호도 그림 위에서 바로 터치 가능) */}
+                {interactive &&
+                  activeHotspotId &&
+                  artwork.secretPoints.map((spot, idx) => {
+                    const isSelected = spot.id === activeHotspotId;
+                    return (
+                      <div
+                        key={spot.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectHotspot?.(isSelected ? null : spot);
+                        }}
+                        style={{
+                          position: "absolute",
+                          left: `${spot.x}%`,
+                          top: `${spot.y}%`,
+                          transform: `translate(-50%, -50%) scale(${1 / Math.sqrt(zoom)})`,
+                          zIndex: isSelected ? 20 : 12,
+                          display: "flex",
+                          flexDirection: spot.y > 72 ? "column-reverse" : "column",
+                          alignItems: "center",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: isSelected ? "30px" : "22px",
+                            height: isSelected ? "30px" : "22px",
+                            borderRadius: "50%",
+                            border: isSelected ? "2.5px solid #FFFFFF" : "1.5px solid rgba(255,255,255,0.85)",
+                            background: isSelected
+                              ? "linear-gradient(135deg, #FF3B30, #FF9500)"
+                              : "rgba(15, 23, 42, 0.78)",
+                            color: "#FFFFFF",
+                            fontSize: isSelected ? "13px" : "11px",
+                            fontWeight: 900,
+                            lineHeight: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            boxShadow: isSelected
+                              ? "0 0 0 6px rgba(255, 149, 0, 0.42), 0 4px 14px rgba(0,0,0,0.7)"
+                              : "0 2px 6px rgba(0,0,0,0.5)",
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          {idx + 1}
+                        </div>
 
-                    {/* 핀 캡션 라벨 (화면 가장자리 잘림 방지) */}
-                    <div
-                      style={{
-                        marginTop: activeSpot.y > 72 ? "0px" : "4px",
-                        marginBottom: activeSpot.y > 72 ? "4px" : "0px",
-                        transform:
-                          activeSpot.x < 24
-                            ? "translateX(28%)"
-                            : activeSpot.x > 76
-                            ? "translateX(-28%)"
-                            : "none",
-                        background: "rgba(15, 23, 42, 0.94)",
-                        color: "#FDE68A",
-                        border: "1px solid rgba(250, 204, 21, 0.65)",
-                        borderRadius: "999px",
-                        padding: "4px 9px",
-                        fontSize: "10px",
-                        lineHeight: 1.2,
-                        fontWeight: 800,
-                        whiteSpace: "nowrap",
-                        boxShadow: "0 3px 10px rgba(0,0,0,0.55)",
-                      }}
-                    >
-                      {activeSpot.label}
-                    </div>
-                  </div>
-                )}
+                        {isSelected && (
+                          <div
+                            style={{
+                              marginTop: spot.y > 72 ? "0px" : "4px",
+                              marginBottom: spot.y > 72 ? "4px" : "0px",
+                              transform:
+                                spot.x < 24
+                                  ? "translateX(28%)"
+                                  : spot.x > 76
+                                  ? "translateX(-28%)"
+                                  : "none",
+                              background: "rgba(15, 23, 42, 0.94)",
+                              color: "#FDE68A",
+                              border: "1px solid rgba(250, 204, 21, 0.65)",
+                              borderRadius: "999px",
+                              padding: "4px 9px",
+                              fontSize: "10px",
+                              lineHeight: 1.2,
+                              fontWeight: 800,
+                              whiteSpace: "nowrap",
+                              boxShadow: "0 3px 10px rgba(0,0,0,0.55)",
+                              pointerEvents: "none",
+                            }}
+                          >
+                            {spot.label}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
               </div>
             ) : (
               <div
@@ -310,7 +339,7 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
         </div>
       </div>
 
-      {/* 인터랙티브 돋보기 & 비율 컨트롤 바 (명화 이미지를 전혀 가리지 않도록 액자 바로 아래 배치) */}
+      {/* 인터랙티브 돋보기 & 비율 컨트롤 바 */}
       {interactive && (
         <div
           style={{
@@ -364,7 +393,10 @@ export const ArtworkVisualizer: React.FC<ArtworkVisualizerProps> = ({
               <button
                 key={level}
                 type="button"
-                onClick={() => handleZoomChange(level)}
+                onClick={() => {
+                  handleZoomChange(level);
+                  if (level === 1) onSelectHotspot?.(null);
+                }}
                 style={{
                   border: "none",
                   borderRadius: "8px",
