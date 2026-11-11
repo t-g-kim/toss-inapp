@@ -21,10 +21,15 @@ import {
   SecretHotspot,
   RegionKey,
 } from "./catalog";
+import {
+  SPECIAL_EXHIBITIONS,
+  ARTIST_RIVALRIES,
+  CLOSEUP_DETECTIVE_CHALLENGES,
+} from "./specialContent";
 import { WorldMapViewer } from "./WorldMapViewer";
 import { ArtworkVisualizer } from "./ArtworkVisualizer";
 
-type TabType = "map" | "archive" | "quiz" | "passport";
+type TabType = "map" | "special" | "archive" | "quiz" | "passport";
 
 const STORAGE_KEYS = {
   VISITED_MUSEUMS: "world_art_visited_museums_v1",
@@ -124,10 +129,36 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
   // 오디오 도슨트 상태
   const [isDocentPlaying, setIsDocentPlaying] = useState<boolean>(false);
 
-  // 취향 진단 퀴즈 상태
+  // 취향 진단 & 미니게임 상태
+  const [quizSubMode, setQuizSubMode] = useState<"auction" | "closeup" | "taste">("auction");
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
   const [quizResultArt, setQuizResultArt] = useState<MasterpieceItem | null>(null);
   const [selectedFortuneCategory, setSelectedFortuneCategory] = useState<string>("전체");
+
+  // 특별 기획전 & 라이벌 열전 탭 상태
+  const [specialSubMode, setSpecialSubMode] = useState<"exhibition" | "rivalry">("exhibition");
+  const [activeExhibitionId, setActiveExhibitionId] = useState<string>(SPECIAL_EXHIBITIONS[0].id);
+  const [activeRivalryId, setActiveRivalryId] = useState<string>(ARTIST_RIVALRIES[0].id);
+
+  // 하이&로우 명화 옥션 감정사 상태
+  const [auctionPair, setAuctionPair] = useState<[MasterpieceItem, MasterpieceItem]>(() => [
+    MASTERPIECES[0],
+    MASTERPIECES[1],
+  ]);
+  const [auctionStreak, setAuctionStreak] = useState<number>(0);
+  const [auctionBestStreak, setAuctionBestStreak] = useState<number>(() => {
+    try {
+      return Number(localStorage.getItem("world_art_auction_best_v1") || "0");
+    } catch {
+      return 0;
+    }
+  });
+  const [auctionPickedId, setAuctionPickedId] = useState<string | null>(null);
+
+  // 1% 클로즈업 명화 탐정 퀴즈 상태
+  const [closeupIndex, setCloseupIndex] = useState<number>(0);
+  const [closeupPickedId, setCloseupPickedId] = useState<string | null>(null);
+  const [closeupSolvedCount, setCloseupSolvedCount] = useState<number>(0);
 
   // 티켓 포토카드 캔버스 미리보기 데이터 URL
   const [ticketArtworkId, setTicketArtworkId] = useState<string>("starry_night");
@@ -336,6 +367,41 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
       playMuseumAmbientChord();
       setQuizResultArt(bestArt);
       setTicketArtworkId(bestArt.id);
+    }
+  };
+
+  // 하이&로우 옥션 감정사: 서로 다른 추정가치를 가진 두 명화 뽑기
+  const rollNextAuctionPair = () => {
+    const aIdx = Math.floor(Math.random() * MASTERPIECES.length);
+    const first = MASTERPIECES[aIdx];
+    const candidates = MASTERPIECES.filter(
+      (item) => item.id !== first.id && item.estimatedValueBillionKrw !== first.estimatedValueBillionKrw
+    );
+    const second = candidates[Math.floor(Math.random() * candidates.length)] || MASTERPIECES[(aIdx + 1) % MASTERPIECES.length];
+    setAuctionPair([first, second]);
+    setAuctionPickedId(null);
+  };
+
+  const handlePickAuctionWinner = (pickedId: string) => {
+    if (auctionPickedId) return;
+    setAuctionPickedId(pickedId);
+    const [left, right] = auctionPair;
+    const winnerId =
+      left.estimatedValueBillionKrw >= right.estimatedValueBillionKrw ? left.id : right.id;
+    if (pickedId === winnerId) {
+      playMuseumAmbientChord();
+      const nextStreak = auctionStreak + 1;
+      setAuctionStreak(nextStreak);
+      if (nextStreak > auctionBestStreak) {
+        setAuctionBestStreak(nextStreak);
+        try {
+          localStorage.setItem("world_art_auction_best_v1", String(nextStreak));
+        } catch {}
+      }
+      showToast(`🔨 정답! 수석 옥션 감정사 ${nextStreak}연승 달성!`);
+    } else {
+      setAuctionStreak(0);
+      showToast("아쉬워요! 두 작품의 실제 감정가와 비하인드를 확인해보세요.");
     }
   };
 
@@ -596,7 +662,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                 WORLD ART MAP
               </span>
               <span style={{ fontSize: "12px", color: TDSColors.textSecondary, fontWeight: 600 }}>
-                6대주 21대 미술관 · 28대 불멸의 명화
+                6대주 27대 미술관 · 38대 불멸의 명화
               </span>
             </div>
             <h1 style={{ fontSize: "22px", fontWeight: 800, margin: "6px 0 0", letterSpacing: "-0.4px" }}>
@@ -624,12 +690,12 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
           </button>
         </div>
 
-        {/* 상단 네비게이션 4탭 */}
+        {/* 상단 네비게이션 5탭 */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "6px",
+            gridTemplateColumns: "repeat(5, 1fr)",
+            gap: "4px",
             marginTop: "14px",
             background: "#F2F4F6",
             padding: "4px",
@@ -639,8 +705,9 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
           {(
             [
               { id: "map", label: "🗺️ 세계지도" },
+              { id: "special", label: "🏛️ 기획·라이벌" },
               { id: "archive", label: "🖼️ 명화도감" },
-              { id: "quiz", label: "✨ 취향진단" },
+              { id: "quiz", label: "🔨 옥션·진단" },
               { id: "passport", label: "🛂 아트여권" },
             ] as Array<{ id: TabType; label: string }>
           ).map((tab) => {
@@ -653,14 +720,15 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                 style={{
                   border: "none",
                   borderRadius: "10px",
-                  padding: "9px 4px",
-                  fontSize: "13px",
+                  padding: "9px 2px",
+                  fontSize: "12px",
                   fontWeight: active ? 800 : 600,
                   background: active ? "#FFFFFF" : "transparent",
                   color: active ? "#191F28" : "#6B7684",
                   boxShadow: active ? "0 2px 6px rgba(0,0,0,0.08)" : "none",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {tab.label}
@@ -750,7 +818,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
               >
                 <div>
                   <h2 style={{ fontSize: "17px", fontWeight: 800, margin: 0 }}>
-                    🌍 6대주 21대 미술관 인터랙티브 월드맵
+                    🌍 6대주 27대 미술관 인터랙티브 월드맵
                   </h2>
                   <p style={{ fontSize: "12px", color: TDSColors.textSecondary, margin: "3px 0 0" }}>
                     대륙을 확대하거나 핀을 눌러 각 미술관의 대표 걸작을 만나보세요
@@ -1135,7 +1203,469 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
           </div>
         )}
 
-        {/* ================= 2. 명화도감 탭 ================= */}
+        {/* ================= 2. 스페셜 테마 기획전 & 거장 라이벌 열전 탭 ================= */}
+        {activeTab === "special" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {/* 서브모드 스위처: 스페셜 테마 기획전 vs 세기의 거장 라이벌 열전 */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "8px",
+                background: "#FFFFFF",
+                padding: "6px",
+                borderRadius: "16px",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.04)",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setSpecialSubMode("exhibition")}
+                style={{
+                  border: "none",
+                  borderRadius: "12px",
+                  padding: "11px 8px",
+                  fontSize: "13px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  background: specialSubMode === "exhibition" ? "#191F28" : "transparent",
+                  color: specialSubMode === "exhibition" ? "#FACC15" : "#6B7684",
+                }}
+              >
+                🕯️ 스페셜 테마 기획전 (4관)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSpecialSubMode("rivalry")}
+                style={{
+                  border: "none",
+                  borderRadius: "12px",
+                  padding: "11px 8px",
+                  fontSize: "13px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  background: specialSubMode === "rivalry" ? "#191F28" : "transparent",
+                  color: specialSubMode === "rivalry" ? "#FACC15" : "#6B7684",
+                }}
+              >
+                ⚔️ 세기의 거장 라이벌전 (5전)
+              </button>
+            </div>
+
+            {specialSubMode === "exhibition" ? (
+              (() => {
+                const activeEx =
+                  SPECIAL_EXHIBITIONS.find((ex) => ex.id === activeExhibitionId) || SPECIAL_EXHIBITIONS[0];
+                const exArtworks = activeEx.artworkIds
+                  .map((id) => MASTERPIECES.find((a) => a.id === id))
+                  .filter((a): a is MasterpieceItem => Boolean(a));
+
+                return (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                    {/* 4대 기획전 선택 탭 */}
+                    <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "4px" }}>
+                      {SPECIAL_EXHIBITIONS.map((ex) => {
+                        const isSel = ex.id === activeEx.id;
+                        return (
+                          <button
+                            key={ex.id}
+                            type="button"
+                            onClick={() => setActiveExhibitionId(ex.id)}
+                            style={{
+                              flexShrink: 0,
+                              border: isSel ? `2px solid ${ex.themeColor}` : "1px solid #E5E8EB",
+                              background: isSel ? "#0F172A" : "#FFFFFF",
+                              color: isSel ? "#FFFFFF" : "#333D4B",
+                              borderRadius: "14px",
+                              padding: "9px 13px",
+                              cursor: "pointer",
+                              textAlign: "left",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: "10px",
+                                fontWeight: 800,
+                                color: isSel ? ex.themeColor : "#6B7684",
+                              }}
+                            >
+                              {ex.badge}
+                            </div>
+                            <div style={{ fontSize: "13px", fontWeight: 800, marginTop: "2px", whiteSpace: "nowrap" }}>
+                              {ex.title}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* 선택된 기획전 히어로 배너 */}
+                    <div
+                      style={{
+                        background: activeEx.bgGradient,
+                        borderRadius: "22px",
+                        padding: "20px",
+                        color: "#FFFFFF",
+                        boxShadow: "0 10px 26px rgba(15, 23, 42, 0.22)",
+                      }}
+                    >
+                      <span
+                        style={{
+                          background: activeEx.themeColor,
+                          color: "#0F172A",
+                          fontSize: "11px",
+                          fontWeight: 800,
+                          padding: "3px 9px",
+                          borderRadius: "999px",
+                        }}
+                      >
+                        {activeEx.badge} · 출품작 {exArtworks.length}점
+                      </span>
+                      <h2 style={{ fontSize: "21px", fontWeight: 800, margin: "10px 0 4px" }}>{activeEx.title}</h2>
+                      <div style={{ fontSize: "13px", color: "#FDE68A", fontWeight: 700, marginBottom: "10px" }}>
+                        {activeEx.subtitle}
+                      </div>
+                      <p
+                        style={{
+                          fontSize: "13px",
+                          color: "#E2E8F0",
+                          lineHeight: 1.55,
+                          margin: 0,
+                          background: "rgba(255,255,255,0.08)",
+                          padding: "12px",
+                          borderRadius: "12px",
+                        }}
+                      >
+                        🎙️ <strong>수석 큐레이터 서문:</strong> {activeEx.curatorIntro}
+                      </p>
+                    </div>
+
+                    {/* 기획전 출품 명화 & 비하인드 에피소드 카드 */}
+                    {exArtworks.map((art, idx) => {
+                      const museum = MUSEUMS.find((m) => m.id === art.museumId);
+                      const ep = activeEx.episodeNotes[art.id];
+                      return (
+                        <div
+                          key={art.id}
+                          onClick={() => openArtworkModal(art)}
+                          style={{
+                            background: "#FFFFFF",
+                            borderRadius: "20px",
+                            padding: "16px",
+                            boxShadow: "0 4px 16px rgba(0,0,0,0.05)",
+                            cursor: "pointer",
+                            border: "1px solid #E5E8EB",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              marginBottom: "10px",
+                            }}
+                          >
+                            <span
+                              style={{
+                                background: "#0F172A",
+                                color: "#FACC15",
+                                fontSize: "11px",
+                                fontWeight: 800,
+                                padding: "3px 9px",
+                                borderRadius: "999px",
+                              }}
+                            >
+                              EXHIBIT #{idx + 1}
+                            </span>
+                            <span style={{ fontSize: "12px", fontWeight: 700, color: "#4E5968" }}>
+                              {museum?.flag} {museum?.name}
+                            </span>
+                          </div>
+
+                          <ArtworkVisualizer artwork={art} interactive={false} height={215} framed={true} />
+
+                          <div style={{ marginTop: "12px" }}>
+                            <h3 style={{ fontSize: "18px", fontWeight: 800, margin: "0 0 4px" }}>
+                              {art.title} · <span style={{ fontSize: "14px", color: "#6B7684" }}>{art.artist}</span>
+                            </h3>
+
+                            {ep && (
+                              <div
+                                style={{
+                                  marginTop: "8px",
+                                  background: "#FFFBEB",
+                                  border: "1px solid #FDE68A",
+                                  borderRadius: "14px",
+                                  padding: "12px",
+                                }}
+                              >
+                                <div style={{ fontSize: "13px", fontWeight: 800, color: "#92400E", marginBottom: "4px" }}>
+                                  {ep.headline}
+                                </div>
+                                <div style={{ fontSize: "12.5px", color: "#78350F", lineHeight: 1.55 }}>
+                                  {ep.story}
+                                </div>
+                              </div>
+                            )}
+
+                            <div
+                              style={{
+                                marginTop: "10px",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                fontSize: "12px",
+                                fontWeight: 800,
+                                color: "#3182F6",
+                              }}
+                            >
+                              <span>💰 {art.estimatedValueText}</span>
+                              <span>🔍 초고화질 확대 & 비밀 포인트 보기 →</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()
+            ) : (
+              (() => {
+                const activeRiv =
+                  ARTIST_RIVALRIES.find((r) => r.id === activeRivalryId) || ARTIST_RIVALRIES[0];
+                const leftArts = activeRiv.leftArtist.representativeArtworkIds
+                  .map((id) => MASTERPIECES.find((a) => a.id === id))
+                  .filter((a): a is MasterpieceItem => Boolean(a));
+                const rightArts = activeRiv.rightArtist.representativeArtworkIds
+                  .map((id) => MASTERPIECES.find((a) => a.id === id))
+                  .filter((a): a is MasterpieceItem => Boolean(a));
+
+                return (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                    {/* 5대 라이벌 매치 선택 바 */}
+                    <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "4px" }}>
+                      {ARTIST_RIVALRIES.map((riv) => {
+                        const isSel = riv.id === activeRiv.id;
+                        return (
+                          <button
+                            key={riv.id}
+                            type="button"
+                            onClick={() => setActiveRivalryId(riv.id)}
+                            style={{
+                              flexShrink: 0,
+                              border: isSel ? "2px solid #F59E0B" : "1px solid #E5E8EB",
+                              background: isSel ? "#1E293B" : "#FFFFFF",
+                              color: isSel ? "#FFFFFF" : "#333D4B",
+                              borderRadius: "14px",
+                              padding: "9px 13px",
+                              cursor: "pointer",
+                              textAlign: "left",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: "10px",
+                                fontWeight: 800,
+                                color: isSel ? "#FACC15" : "#6B7684",
+                              }}
+                            >
+                              {riv.eraBadge}
+                            </div>
+                            <div style={{ fontSize: "13px", fontWeight: 800, marginTop: "2px", whiteSpace: "nowrap" }}>
+                              {riv.title}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* 라이벌 매치 메인 카드 */}
+                    <div
+                      style={{
+                        background: "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)",
+                        borderRadius: "22px",
+                        padding: "18px",
+                        color: "#FFFFFF",
+                      }}
+                    >
+                      <span
+                        style={{
+                          background: "#F59E0B",
+                          color: "#0F172A",
+                          fontSize: "11px",
+                          fontWeight: 800,
+                          padding: "3px 9px",
+                          borderRadius: "999px",
+                        }}
+                      >
+                        {activeRiv.eraBadge}
+                      </span>
+                      <h2 style={{ fontSize: "20px", fontWeight: 800, margin: "10px 0 6px" }}>{activeRiv.title}</h2>
+                      <p style={{ fontSize: "13px", color: "#CBD5E1", lineHeight: 1.5, margin: "0 0 14px" }}>
+                        {activeRiv.matchupSummary}
+                      </p>
+
+                      {/* 좌우 거장 스펙 비교 */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                        {[activeRiv.leftArtist, activeRiv.rightArtist].map((artist, sideIdx) => (
+                          <div
+                            key={artist.name}
+                            style={{
+                              background:
+                                sideIdx === 0 ? "rgba(59, 130, 246, 0.16)" : "rgba(245, 158, 11, 0.16)",
+                              border:
+                                sideIdx === 0
+                                  ? "1px solid rgba(96, 165, 250, 0.45)"
+                                  : "1px solid rgba(251, 191, 36, 0.45)",
+                              borderRadius: "16px",
+                              padding: "12px",
+                            }}
+                          >
+                            <div style={{ fontSize: "11px", color: "#FDE68A", fontWeight: 800 }}>
+                              {artist.countryFlag} {artist.lifespan}
+                            </div>
+                            <div style={{ fontSize: "15px", fontWeight: 800, marginTop: "3px" }}>{artist.name}</div>
+                            <div style={{ fontSize: "11px", color: "#93C5FD", fontWeight: 700, marginTop: "2px" }}>
+                              “{artist.nickname}”
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "11.5px",
+                                color: "#E2E8F0",
+                                marginTop: "8px",
+                                lineHeight: 1.45,
+                              }}
+                            >
+                              {artist.signatureStyle}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 세기의 대결 타임라인 */}
+                    <div
+                      style={{
+                        background: "#FFFFFF",
+                        borderRadius: "20px",
+                        padding: "18px",
+                        boxShadow: "0 4px 14px rgba(0,0,0,0.04)",
+                      }}
+                    >
+                      <h3 style={{ fontSize: "16px", fontWeight: 800, margin: "0 0 12px" }}>
+                        ⚡ 세기의 라이벌 결정적 순간 타임라인
+                      </h3>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                        {activeRiv.clashTimeline.map((item, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              background: "#F8FAFC",
+                              borderLeft: "4px solid #3182F6",
+                              borderRadius: "0 12px 12px 0",
+                              padding: "11px 14px",
+                            }}
+                          >
+                            <div style={{ fontSize: "11px", fontWeight: 800, color: "#2563EB" }}>{item.year}</div>
+                            <div style={{ fontSize: "14px", fontWeight: 800, color: "#191F28", margin: "2px 0 4px" }}>
+                              {item.eventTitle}
+                            </div>
+                            <div style={{ fontSize: "12.5px", color: "#4E5968", lineHeight: 1.5 }}>{item.detail}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: "14px",
+                          background: "#FFFBEB",
+                          border: "1px solid #FDE68A",
+                          borderRadius: "14px",
+                          padding: "12px",
+                          fontSize: "12.5px",
+                          color: "#78350F",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        🏛️ <strong>수석 큐레이터 평결:</strong> {activeRiv.curatorVerdict}
+                      </div>
+                    </div>
+
+                    {/* 두 거장의 대표 걸작 나란히 감상하기 */}
+                    <div
+                      style={{
+                        background: "#FFFFFF",
+                        borderRadius: "20px",
+                        padding: "18px",
+                        boxShadow: "0 4px 14px rgba(0,0,0,0.04)",
+                      }}
+                    >
+                      <h3 style={{ fontSize: "16px", fontWeight: 800, margin: "0 0 12px" }}>
+                        🖼️ 두 거장의 대표 걸작 바로 비교 감상
+                      </h3>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {[...leftArts, ...rightArts].map((art) => (
+                          <div
+                            key={art.id}
+                            onClick={() => openArtworkModal(art)}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "12px",
+                              padding: "10px",
+                              borderRadius: "14px",
+                              border: "1px solid #E5E8EB",
+                              cursor: "pointer",
+                            }}
+                          >
+                            <img
+                              src={art.imageUrl}
+                              alt={art.title}
+                              style={{
+                                width: "64px",
+                                height: "64px",
+                                borderRadius: "10px",
+                                objectFit: "cover",
+                                border: "2px solid #D97706",
+                                flexShrink: 0,
+                              }}
+                            />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: "11px", fontWeight: 800, color: "#2563EB" }}>
+                                {art.artist} · {art.year}
+                              </div>
+                              <div style={{ fontSize: "15px", fontWeight: 800, color: "#191F28", marginTop: "2px" }}>
+                                {art.title}
+                              </div>
+                              <div style={{ fontSize: "12px", color: "#B45309", fontWeight: 700, marginTop: "2px" }}>
+                                💰 {art.estimatedValueText}
+                              </div>
+                            </div>
+                            <span
+                              style={{
+                                fontSize: "12px",
+                                fontWeight: 800,
+                                color: "#3182F6",
+                                background: "#EFF6FF",
+                                padding: "6px 10px",
+                                borderRadius: "10px",
+                                flexShrink: 0,
+                              }}
+                            >
+                              감상 →
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()
+            )}
+          </div>
+        )}
+
+        {/* ================= 3. 명화도감 탭 ================= */}
         {activeTab === "archive" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
             <div
@@ -1147,7 +1677,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
               }}
             >
               <h2 style={{ fontSize: "18px", fontWeight: 800, margin: "0 0 10px" }}>
-                🖼️ 전세계 28대 명화 마스터 아카이브
+                🖼️ 전세계 38대 명화 마스터 아카이브
               </h2>
 
               {/* 검색창 */}
@@ -1325,9 +1855,391 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
           </div>
         )}
 
-        {/* ================= 3. 취향진단 & 행운 명화 탭 ================= */}
+        {/* ================= 4. 옥션 감정사 · 클로즈업 탐정 · 취향진단 탭 ================= */}
         {activeTab === "quiz" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {/* 상단 3종 미니게임 & 취향진단 모드 스위처 */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: "6px",
+                background: "#FFFFFF",
+                padding: "6px",
+                borderRadius: "16px",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.04)",
+              }}
+            >
+              {(
+                [
+                  { id: "auction", label: "🔨 옥션 감정사" },
+                  { id: "closeup", label: "🕵️ 1% 클로즈업" },
+                  { id: "taste", label: "✨ 소울 취향진단" },
+                ] as const
+              ).map((mode) => {
+                const isAct = quizSubMode === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => setQuizSubMode(mode.id)}
+                    style={{
+                      border: "none",
+                      borderRadius: "12px",
+                      padding: "10px 4px",
+                      fontSize: "12.5px",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      background: isAct ? "#191F28" : "transparent",
+                      color: isAct ? "#FACC15" : "#6B7684",
+                    }}
+                  >
+                    {mode.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 1) 하이&로우 명화 옥션 감정사 게임 */}
+            {quizSubMode === "auction" && (
+              <div
+                style={{
+                  background: "#FFFFFF",
+                  borderRadius: "22px",
+                  padding: "20px",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span
+                    style={{
+                      background: "#FEF3C7",
+                      color: "#B45309",
+                      fontSize: "11px",
+                      fontWeight: 800,
+                      padding: "3px 8px",
+                      borderRadius: "6px",
+                    }}
+                  >
+                    CHRISTIE'S & SOTHEBY'S AUCTION CHALLENGE
+                  </span>
+                  <div style={{ fontSize: "12px", fontWeight: 800, color: "#2563EB" }}>
+                    🔥 현재 {auctionStreak}연승 · 최고 {auctionBestStreak}연승
+                  </div>
+                </div>
+
+                <h2 style={{ fontSize: "20px", fontWeight: 800, margin: "8px 0 4px" }}>
+                  🔨 두 명화 중 어느 작품의 몸값이 더 높을까요?
+                </h2>
+                <p style={{ fontSize: "13px", color: "#6B7684", margin: "0 0 16px" }}>
+                  국제 전시 보험 가액 및 경매 낙찰가를 기준으로 더 높은 가치를 지닌 명화를 선택해보세요!
+                </p>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  {auctionPair.map((art) => {
+                    const isPicked = auctionPickedId === art.id;
+                    const winnerId =
+                      auctionPair[0].estimatedValueBillionKrw >= auctionPair[1].estimatedValueBillionKrw
+                        ? auctionPair[0].id
+                        : auctionPair[1].id;
+                    const isWinner = art.id === winnerId;
+                    const museum = MUSEUMS.find((m) => m.id === art.museumId);
+
+                    return (
+                      <div
+                        key={art.id}
+                        onClick={() => handlePickAuctionWinner(art.id)}
+                        style={{
+                          border: auctionPickedId
+                            ? isWinner
+                              ? "2.5px solid #16A34A"
+                              : isPicked
+                              ? "2.5px solid #DC2626"
+                              : "1px solid #E5E8EB"
+                            : "2px solid #E2E8F0",
+                          background: auctionPickedId
+                            ? isWinner
+                              ? "#F0FDF4"
+                              : isPicked
+                              ? "#FEF2F2"
+                              : "#F8FAFC"
+                            : "#FFFFFF",
+                          borderRadius: "18px",
+                          padding: "12px",
+                          cursor: auctionPickedId ? "default" : "pointer",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: "11px", color: "#6B7684", fontWeight: 700, marginBottom: "6px" }}>
+                            {museum?.flag} {museum?.city}
+                          </div>
+                          <img
+                            src={art.imageUrl}
+                            alt={art.title}
+                            style={{
+                              width: "100%",
+                              height: "150px",
+                              objectFit: "cover",
+                              borderRadius: "12px",
+                              border: "2px solid #D97706",
+                              background: "#0F172A",
+                            }}
+                          />
+                          <div style={{ fontSize: "15px", fontWeight: 800, color: "#191F28", marginTop: "8px" }}>
+                            {art.title}
+                          </div>
+                          <div style={{ fontSize: "12px", color: "#4E5968", fontWeight: 600 }}>
+                            {art.artist} ({art.year})
+                          </div>
+                        </div>
+
+                        {auctionPickedId ? (
+                          <div
+                            style={{
+                              marginTop: "10px",
+                              padding: "8px",
+                              borderRadius: "10px",
+                              background: isWinner ? "#DCFCE7" : "#FEE2E2",
+                              color: isWinner ? "#15803D" : "#B91C1C",
+                              fontSize: "12px",
+                              fontWeight: 800,
+                              textAlign: "center",
+                            }}
+                          >
+                            {isWinner ? "👑 더 높은 가치!" : "감정가 열세"}
+                            <div style={{ fontSize: "13px", marginTop: "2px" }}>
+                              약 {art.estimatedValueBillionKrw.toLocaleString()}억 원
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            style={{
+                              marginTop: "10px",
+                              padding: "9px",
+                              borderRadius: "10px",
+                              background: "#191F28",
+                              color: "#FACC15",
+                              fontSize: "12px",
+                              fontWeight: 800,
+                              textAlign: "center",
+                            }}
+                          >
+                            🔨 이 작품에 낙찰 베팅
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {auctionPickedId && (
+                  <div
+                    style={{
+                      marginTop: "16px",
+                      background: "#F8FAFC",
+                      border: "1px solid #E2E8F0",
+                      borderRadius: "16px",
+                      padding: "14px",
+                    }}
+                  >
+                    <div style={{ fontSize: "13px", fontWeight: 800, color: "#1E293B", marginBottom: "8px" }}>
+                      📊 수석 옥션 딜러의 감정 리포트
+                    </div>
+                    {auctionPair.map((art) => (
+                      <div key={art.id} style={{ fontSize: "12px", color: "#334155", marginBottom: "8px", lineHeight: 1.5 }}>
+                        • <strong>{art.title}</strong> ({art.estimatedValueText}): {art.valuationBasis}{" "}
+                        <button
+                          type="button"
+                          onClick={() => openArtworkModal(art)}
+                          style={{
+                            border: "none",
+                            background: "#EFF6FF",
+                            color: "#2563EB",
+                            fontSize: "11px",
+                            fontWeight: 800,
+                            padding: "2px 7px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            marginLeft: "4px",
+                          }}
+                        >
+                          작품 상세 →
+                        </button>
+                      </div>
+                    ))}
+                    <TossButton onClick={rollNextAuctionPair}>🔨 다음 명화 경매 대결 시작하기 →</TossButton>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 2) 1% 클로즈업 명화 탐정 퀴즈 */}
+            {quizSubMode === "closeup" &&
+              (() => {
+                const challenge =
+                  CLOSEUP_DETECTIVE_CHALLENGES[closeupIndex % CLOSEUP_DETECTIVE_CHALLENGES.length];
+                const targetArt =
+                  MASTERPIECES.find((a) => a.id === challenge.artworkId) || MASTERPIECES[0];
+
+                return (
+                  <div
+                    style={{
+                      background: "#FFFFFF",
+                      borderRadius: "22px",
+                      padding: "20px",
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span
+                        style={{
+                          background: "#EDE9FE",
+                          color: "#6D28D9",
+                          fontSize: "11px",
+                          fontWeight: 800,
+                          padding: "3px 8px",
+                          borderRadius: "6px",
+                        }}
+                      >
+                        1% DETAIL DETECTIVE ({closeupIndex + 1} / {CLOSEUP_DETECTIVE_CHALLENGES.length})
+                      </span>
+                      <span style={{ fontSize: "12px", fontWeight: 800, color: "#6D28D9" }}>
+                        🕵️ 검거 성공 {closeupSolvedCount}건
+                      </span>
+                    </div>
+
+                    <h2 style={{ fontSize: "20px", fontWeight: 800, margin: "8px 0 4px" }}>
+                      🔍 확대된 그림의 일부분만 보고 명화를 맞혀보세요!
+                    </h2>
+                    <p style={{ fontSize: "13px", color: "#6B7684", margin: "0 0 14px" }}>
+                      {challenge.clueTitle}
+                    </p>
+
+                    {/* 3.4배 초근접 줌인 뷰포트 */}
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "220px",
+                        borderRadius: "18px",
+                        overflow: "hidden",
+                        position: "relative",
+                        border: "3px solid #D97706",
+                        background: "#0F172A",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      <img
+                        src={targetArt.imageUrl}
+                        alt="클로즈업 단서"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          transform: closeupPickedId
+                            ? "scale(1)"
+                            : `scale(${challenge.zoomScale})`,
+                          transformOrigin: `${challenge.zoomX}% ${challenge.zoomY}%`,
+                          transition: "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: "10px",
+                          left: "10px",
+                          right: "10px",
+                          background: "rgba(15, 23, 42, 0.86)",
+                          color: "#FDE68A",
+                          padding: "8px 12px",
+                          borderRadius: "10px",
+                          fontSize: "12px",
+                          fontWeight: 700,
+                        }}
+                      >
+                        💡 힌트: {challenge.clueHint}
+                      </div>
+                    </div>
+
+                    {/* 4지선다 보기 */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                      {challenge.options.map((optId) => {
+                        const optArt = MASTERPIECES.find((a) => a.id === optId);
+                        if (!optArt) return null;
+                        const isCorrect = optId === challenge.artworkId;
+                        const isChosen = closeupPickedId === optId;
+
+                        return (
+                          <button
+                            key={optId}
+                            type="button"
+                            onClick={() => {
+                              if (closeupPickedId) return;
+                              setCloseupPickedId(optId);
+                              if (isCorrect) {
+                                playMuseumAmbientChord();
+                                setCloseupSolvedCount((c) => c + 1);
+                                showToast("🕵️ 정답! 명화 속 1% 디테일을 정확히 꿰뚫어 보셨어요!");
+                              } else {
+                                showToast(`아쉬워요! 정답은 '${targetArt.title}'입니다.`);
+                              }
+                            }}
+                            style={{
+                              padding: "11px 12px",
+                              borderRadius: "12px",
+                              textAlign: "left",
+                              cursor: closeupPickedId ? "default" : "pointer",
+                              border: closeupPickedId
+                                ? isCorrect
+                                  ? "2px solid #16A34A"
+                                  : isChosen
+                                  ? "2px solid #DC2626"
+                                  : "1px solid #E5E8EB"
+                                : "1px solid #CBD5E1",
+                              background: closeupPickedId
+                                ? isCorrect
+                                  ? "#DCFCE7"
+                                  : isChosen
+                                  ? "#FEE2E2"
+                                  : "#F8FAFC"
+                                : "#FFFFFF",
+                            }}
+                          >
+                            <div style={{ fontSize: "13px", fontWeight: 800, color: "#191F28" }}>
+                              {optArt.title}
+                            </div>
+                            <div style={{ fontSize: "11px", color: "#6B7684", marginTop: "2px" }}>
+                              {optArt.artist}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {closeupPickedId && (
+                      <div style={{ display: "flex", gap: "8px", marginTop: "14px" }}>
+                        <TossButton onClick={() => openArtworkModal(targetArt)}>
+                          🔍 {targetArt.title} 전체 해설 보기
+                        </TossButton>
+                        <TossButton
+                          variant="secondary"
+                          onClick={() => {
+                            setCloseupPickedId(null);
+                            setCloseupIndex((i) => (i + 1) % CLOSEUP_DETECTIVE_CHALLENGES.length);
+                          }}
+                        >
+                          다음 문제 →
+                        </TossButton>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+            {/* 3) 내 심리 & 취향 맞춤 소울 명화 테스트 */}
+            {quizSubMode === "taste" && (
             <div
               style={{
                 background: "#FFFFFF",
@@ -1457,6 +2369,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                 </div>
               )}
             </div>
+            )}
 
             {/* 행운 기운별 부적 명화 도감 */}
             <div
@@ -1625,7 +2538,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
               >
                 <div>
                   <h3 style={{ fontSize: "17px", fontWeight: 800, margin: "0 0 3px" }}>
-                    🛂 세계 21대 미술관 스탬프 도장 깨기
+                    🛂 세계 27대 미술관 스탬프 도장 깨기
                   </h3>
                   <p style={{ fontSize: "12px", color: "#6B7684", margin: 0 }}>
                     미술관의 명화를 감상하거나 아래 카드를 터치해 입국 스탬프를 완성하세요!
@@ -1809,7 +2722,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                 👑 WORLD ART VIP CURATOR PASS
               </div>
               <div style={{ fontSize: "17px", fontWeight: 800, color: "#191F28", marginTop: "4px" }}>
-                28대 전 작품 VIP 비하인드 스토리 무제한 열람 패스
+                38대 전 작품 VIP 비하인드 스토리 무제한 열람 패스
               </div>
               <p style={{ fontSize: "12px", color: "#78350F", margin: "6px 0 12px", lineHeight: 1.45 }}>
                 도난 사건의 전말, X선 스캔으로 밝혀진 덧칠의 비밀, 천문학적 경매 비화를 광고 없이 평생 소장하세요.
@@ -1899,7 +2812,7 @@ export const WorldArtApp: React.FC<WorldArtAppProps> = ({ onBack }) => {
                 ◀ 이전 명화
               </button>
               <span style={{ fontSize: "11px", fontWeight: 800, color: "#64748B" }}>
-                세계 28대 걸작 컬렉션 ({MASTERPIECES.findIndex((a) => a.id === selectedArtwork.id) + 1} / {MASTERPIECES.length})
+                세계 38대 걸작 컬렉션 ({MASTERPIECES.findIndex((a) => a.id === selectedArtwork.id) + 1} / {MASTERPIECES.length})
               </span>
               <button
                 type="button"

@@ -13,13 +13,14 @@ interface WorldMapViewerProps {
 }
 
 /**
- * 21개 세계 미술관 보유 국가 ISO -> 대표 미술관 매핑 (국가 영토 클릭 시 즉시 해당 미술관 선택)
+ * 27개 세계 미술관 보유 국가 ISO -> 대표 미술관 매핑 (국가 영토 클릭 시 즉시 해당 미술관 선택)
  */
 const HOST_COUNTRY_TO_MUSEUM: Record<string, string> = {
   USA: "nyc_moma_met",
   MEX: "mexico_bellas",
   BRA: "saopaulo_masp",
   KOR: "seoul_kansong",
+  CHN: "beijing_palace",
   JPN: "tokyo_tnm",
   TWN: "taipei_npm",
   IND: "delhi_national",
@@ -29,7 +30,7 @@ const HOST_COUNTRY_TO_MUSEUM: Record<string, string> = {
   FRA: "louvre",
   GBR: "national_uk",
   NLD: "vangogh_nl",
-  ITA: "uffizi",
+  ITA: "vatican_museums",
   AUT: "belvedere",
   ESP: "prado",
   NOR: "oslo_munch",
@@ -37,37 +38,42 @@ const HOST_COUNTRY_TO_MUSEUM: Record<string, string> = {
 };
 
 /**
- * 21개 미술관별 방사형 지시선(Leader-Line) 화면 픽셀 오프셋 (수학적 충돌 0% 검증 완료)
- * - 아부다비/뉴델리, 서울/도쿄/타이베이, 시카고/뉴욕/워싱턴, 유럽 9곳 모두 겹침 및 외곽 잘림 없이 배치됩니다.
+ * 27개 미술관별 방사형 지시선(Leader-Line) 화면 픽셀 오프셋 (수학적 충돌 0% 검증 완료)
  */
 const CALLOUT_OFFSETS_PX: Record<string, { dx: number; dy: number; shortTitle: string }> = {
-  // 북미·중남미 (5곳)
-  chicago_aic: { dx: -72, dy: -32, shortTitle: "🇺🇸 시카고 미술관" },
-  nyc_moma_met: { dx: 68, dy: -32, shortTitle: "🇺🇸 뉴욕 MoMA·Met" },
-  dc_nga: { dx: 72, dy: 24, shortTitle: "🇺🇸 워싱턴 NGA" },
+  // 북미·중남미 (6곳)
+  chicago_aic: { dx: -78, dy: -32, shortTitle: "🇺🇸 시카고 미술관" },
+  boston_mfa: { dx: 72, dy: -38, shortTitle: "🇺🇸 보스턴 MFA" },
+  nyc_moma_met: { dx: 78, dy: -2, shortTitle: "🇺🇸 뉴욕 MoMA·Met" },
+  dc_nga: { dx: 72, dy: 34, shortTitle: "🇺🇸 워싱턴 NGA" },
   mexico_bellas: { dx: -64, dy: 28, shortTitle: "🇲🇽 멕시코시티" },
   saopaulo_masp: { dx: 0, dy: 34, shortTitle: "🇧🇷 상파울루 MASP" },
 
-  // 아시아 (4곳)
-  seoul_kansong: { dx: -48, dy: -40, shortTitle: "🇰🇷 서울 간송·국립" },
-  tokyo_tnm: { dx: 38, dy: -12, shortTitle: "🇯🇵 도쿄 국립박물관" },
+  // 아시아 (6곳)
+  beijing_palace: { dx: -76, dy: -34, shortTitle: "🇨🇳 베이징 자금성" },
+  seoul_kansong: { dx: 0, dy: -48, shortTitle: "🇰🇷 서울 간송미술관" },
+  seoul_nmk: { dx: 12, dy: -16, shortTitle: "🇰🇷 서울 국립중앙" },
+  tokyo_tnm: { dx: 42, dy: 18, shortTitle: "🇯🇵 도쿄 국립박물관" },
   taipei_npm: { dx: 26, dy: 38, shortTitle: "🇹🇼 타이베이 고궁" },
-  delhi_national: { dx: 18, dy: -36, shortTitle: "🇮🇳 뉴델리 국립" },
+  delhi_national: { dx: -56, dy: -32, shortTitle: "🇮🇳 뉴델리 국립" },
 
   // 중동·아프리카·오세아니아 (3곳)
   cairo_gem: { dx: -58, dy: 34, shortTitle: "🇪🇬 카이로 이집트" },
   abudhabi_louvre: { dx: 0, dy: 58, shortTitle: "🇦🇪 루브르 아부다비" },
   melbourne_ngv: { dx: -52, dy: -32, shortTitle: "🇦🇺 멜버른 NGV" },
 
-  // 유럽·유라시아 (9곳)
+  // 유럽·유라시아 (12곳)
   oslo_munch: { dx: -36, dy: -38, shortTitle: "🇳🇴 오슬로 (뭉크)" },
   hermitage_ru: { dx: 42, dy: -34, shortTitle: "🇷🇺 상트페테르부르크" },
-  national_uk: { dx: -95, dy: -42, shortTitle: "🇬🇧 런던 내셔널" },
-  vangogh_nl: { dx: 72, dy: -44, shortTitle: "🇳🇱 암스테르담" },
+  national_uk: { dx: -100, dy: -42, shortTitle: "🇬🇧 런던 내셔널" },
+  rijksmuseum_nl: { dx: 20, dy: -68, shortTitle: "🇳🇱 암스테르담 국립" },
+  vangogh_nl: { dx: 85, dy: -36, shortTitle: "🇳🇱 반 고흐 미술관" },
   louvre: { dx: -102, dy: -4, shortTitle: "🇫🇷 파리 루브르" },
   orsay: { dx: -96, dy: 32, shortTitle: "🇫🇷 파리 오르세" },
-  belvedere: { dx: 92, dy: -6, shortTitle: "🇦🇹 빈 벨베데레" },
-  uffizi: { dx: 82, dy: 36, shortTitle: "🇮🇹 피렌체 우피치" },
+  vienna_khm: { dx: 96, dy: -24, shortTitle: "🇦🇹 빈 미술사(KHM)" },
+  belvedere: { dx: 102, dy: 12, shortTitle: "🇦🇹 빈 벨베데레" },
+  uffizi: { dx: -75, dy: 68, shortTitle: "🇮🇹 피렌체 우피치" },
+  vatican_museums: { dx: 78, dy: 52, shortTitle: "🇻🇦 바티칸 시스티나" },
   prado: { dx: -72, dy: 42, shortTitle: "🇪🇸 마드리드 프라도" },
 };
 
@@ -78,10 +84,10 @@ const REGION_CAMERA: Record<
   RegionKey,
   { scale: number; centerX: number; centerY: number; label: string; badge: string }
 > = {
-  all: { scale: 1.0, centerX: 520, centerY: 255, label: "🌍 전세계 6대주", badge: "21곳" },
-  americas: { scale: 2.05, centerX: 285, centerY: 270, label: "🗽 북미·중남미", badge: "5곳" },
-  europe: { scale: 4.2, centerX: 525, centerY: 170, label: "🏰 유럽·유라시아", badge: "9곳" },
-  asia: { scale: 2.75, centerX: 815, centerY: 235, label: "🏯 아시아·한국", badge: "4곳" },
+  all: { scale: 1.0, centerX: 520, centerY: 255, label: "🌍 전세계 6대주", badge: "27곳" },
+  americas: { scale: 2.05, centerX: 285, centerY: 270, label: "🗽 북미·중남미", badge: "6곳" },
+  europe: { scale: 4.2, centerX: 525, centerY: 170, label: "🏰 유럽·유라시아", badge: "12곳" },
+  asia: { scale: 2.75, centerX: 815, centerY: 235, label: "🏯 아시아·한국", badge: "6곳" },
   mea_oceania: { scale: 1.75, centerX: 735, centerY: 325, label: "🐪 중동·아프리카·호주", badge: "3곳" },
 };
 
@@ -467,7 +473,7 @@ export const WorldMapViewer: React.FC<WorldMapViewerProps> = ({
                     filter="url(#badge-shadow)"
                   />
                   <text x={0} y={-4} textAnchor="middle" fill="#FACC15" fontSize={10.5} fontWeight="800">
-                    🏰 유럽·유라시아 9대 미술관
+                    🏰 유럽·유라시아 12대 미술관
                   </text>
                   <text x={0} y={9} textAnchor="middle" fill="#FFFFFF" fontSize={9.5} fontWeight="700">
                     🔍 터치하여 4.2배 확대 보기
