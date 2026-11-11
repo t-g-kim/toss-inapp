@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 export type AppId =
+  | "world-art"
   | "face-fit"
   | "gohyang-gift"
   | "lotto-filter"
@@ -58,6 +59,16 @@ interface MiniAppMeta {
 }
 
 const APPS: MiniAppMeta[] = [
+  {
+    id: "world-art",
+    title: "월드아트맵 (세계지도 미술관 투어)",
+    category: "문화/전시/교양",
+    badge: { text: "신규 런칭", variant: "purple" },
+    desc: "세계지도를 확대해 10대 미술관 핀을 누르고 불멸의 명화 초고화질 돋보기·오디오 도슨트·여권 스탬프 투어!",
+    iconBg: "bg-indigo-700",
+    icon: <Award className="w-5 h-5 text-white" />,
+    revenueType: "보상형 비하인드 도슨트 + VIP 올패스 1,900원",
+  },
   {
     id: "face-fit",
     title: "페이스핏 (얼굴형 헤어&안경 피팅)",

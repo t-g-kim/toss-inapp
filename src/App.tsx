@@ -16,6 +16,7 @@ import { MoneyMatchApp } from "@apps/money-match/MoneyMatchApp";
 import { SpendingReceiptApp } from "@apps/spending-receipt/SpendingReceiptApp";
 import { GohyangGiftApp } from "@apps/gohyang-gift/GohyangGiftApp";
 import { FaceFitApp } from "@apps/face-fit/FaceFitApp";
+import { WorldArtApp } from "@apps/world-art/WorldArtApp";
 import { getInitialAppFromUrl, isStandaloneMode, setAppUrl, isTossApp } from "@shared/index";
 import { Smartphone, Monitor, Home } from "lucide-react";
 
@@ -49,6 +50,8 @@ export const App: React.FC = () => {
 
   const renderActiveApp = () => {
     switch (currentApp) {
+      case "world-art":
+        return <WorldArtApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "face-fit":
         return <FaceFitApp onBack={standalone ? undefined : handleBackToPortal} />;
       case "gohyang-gift":

@@ -1,0 +1,25 @@
+{
+  "name": "@toss-app/world-art",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 3017",
+    "build": "vite build",
+    "preview": "vite preview --port 3017",
+    "ait:build": "npm run build && npx ait build"
+  },
+  "dependencies": {
+    "@toss/shared": "*",
+    "canvas-confetti": "^1.9.4",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.55.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwind-merge": "^3.7.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.2",
+    "vite": "^8.3.4"
+  }
+}
