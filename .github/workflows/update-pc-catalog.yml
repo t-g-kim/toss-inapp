@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: auto-sync-main
+  cancel-in-progress: false
+
 jobs:
   update-catalog:
     runs-on: ubuntu-latest
@@ -45,31 +49,41 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # 1. 원격 최신 변경사항 사전 동기화
-          git fetch origin main
-          git rebase origin/main || true
-
-          # 2. 업데이트된 카탈로그 및 번들 스테이징
+          # 1. 업데이트된 카탈로그 및 번들 스테이징
           git add apps/make-my-pc/catalog-latest.json apps/make-my-pc/make-my-pc.ait
 
-          # 3. 변경사항이 있는 경우에만 커밋 & 안전 푸시
+          # 2. 변경사항이 있는 경우에만 커밋 & 원격 동기화 후 안전 푸시
           if git diff --staged --quiet; then
             echo "✅ No price updates or changes detected in catalog-latest.json."
           else
             echo "📦 Changes detected. Committing latest catalog..."
             git commit -m "chore(make-my-pc): auto-sync latest PC parts & market prices"
-            
-            echo "🚀 Pushing catalog update to origin main with auto-rebase protection..."
+
+            echo "🚀 Syncing with origin/main and pushing catalog update..."
+            pushed=false
             for attempt in 1 2 3; do
+              git fetch origin main
+              if ! git rebase -X theirs origin/main; then
+                echo "⚠️ Rebase conflict detected on attempt $attempt. Resolving with latest catalog & bundle..."
+                git checkout --theirs -- apps/make-my-pc/catalog-latest.json apps/make-my-pc/make-my-pc.ait 2>/dev/null || true
+                git add apps/make-my-pc/catalog-latest.json apps/make-my-pc/make-my-pc.ait
+                GIT_EDITOR=true git rebase --continue || { git rebase --abort; exit 1; }
+              fi
+
               if git push origin HEAD:main; then
                 echo "🎉 Successfully pushed latest PC catalog on attempt $attempt!"
+                pushed=true
                 break
               else
-                echo "⚠️ Push rejected on attempt $attempt. Re-fetching and rebasing with latest catalog..."
-                git fetch origin main
-                git rebase -X theirs origin/main || true
+                echo "⚠️ Push rejected on attempt $attempt. Retrying..."
+                sleep 3
               fi
             done
+
+            if [ "$pushed" != "true" ]; then
+              echo "❌ Failed to push latest PC catalog after 3 attempts."
+              exit 1
+            fi
           fi
 
 
